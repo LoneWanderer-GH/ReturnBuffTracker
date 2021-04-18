@@ -1,9 +1,7 @@
 .vscode/
 scripts/
-libs/
 
-
+libs/**/*
 
 .idea/vcs.xml
-
 .idea/workspace.xml
