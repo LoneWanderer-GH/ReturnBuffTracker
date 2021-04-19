@@ -358,28 +358,31 @@ function ReturnBuffTracker:OnUpdate(self)
         return
     end
 
-    local value    = 0
-    local maxValue = 1
-    local tooltip  = {}
+    --local value    = 0
+    --local maxValue = 1
+    --local tooltip  = {}
     for _, buff in ipairs(ReturnBuffTracker.Buffs) do
 
         if ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] then
             return
         end
 
-        value    = 0
-        maxValue = 1
-        tooltip  = {}
+        --value    = 0
+        --maxValue = 1
+        --tooltip  = {}
         if buff.func then
-            value, maxValue, tooltip = ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
+            --value, maxValue, tooltip = ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
+            ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
         else
-            value, maxValue, tooltip = ReturnBuffTracker:CheckBuff(buff)
+            --value, maxValue, tooltip = ReturnBuffTracker:CheckBuff(buff)
+            ReturnBuffTracker:CheckBuff(buff)
         end
-        if value and maxValue and maxValue > 0 then
-            buff.bar:Update(value, maxValue, tooltip)
-        else
-            buff.bar:Update(0, 1, tooltip)
-        end
+        --if value and maxValue and maxValue > 0 then
+        --    buff.bar:Update(value, maxValue, tooltip)
+        --else
+        --    buff.bar:Update(0, 1, tooltip)
+        --end
+        buff.bar:Update()
     end
 end
 

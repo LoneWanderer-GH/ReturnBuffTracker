@@ -1,12 +1,20 @@
-local ReturnBuffTracker                   = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local ReturnBuffTracker                                    = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L                                                    = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
-local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local format                              = format
-local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
+local WARRIOR, MAGE, ROGUE, DRUID, HUNTER                  = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
+local SHAMAN, PRIEST, WARLOCK, PALADIN                     = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
+local format                                               = format
+local GetRaidRosterInfo                                    = GetRaidRosterInfo
 
-local localized_classes                   = {}
+local IsInInstance, UnitIsAFK, UnitIsFeignDeath            = IsInInstance, UnitIsAFK, UnitIsFeignDeath
+local GetLootMethod, GetLootThreshold, GetItemQualityColor = GetLootMethod, GetLootThreshold, GetItemQualityColor
+local GetUnitName                                          = GetUnitName
+local UnitPowerType, UnitIsDead, UnitAffectingCombat       = UnitPowerType, UnitIsDead, UnitAffectingCombat
+local UnitBuff                                             = UnitBuff
+
+local tinsert, tconcat, tremove                            = table.insert, table.concat, table.remove
+
+local localized_classes                                    = {}
 FillLocalizedClassList(localized_classes, true)
 
 local all_classes                           = { WARRIOR, MAGE, ROGUE, DRUID, HUNTER, SHAMAN, PRIEST, WARLOCK, PALADIN }
@@ -475,11 +483,15 @@ end
 
 local function clearArrayList(t)
     local count = #t
-    for i = 0, count do t[i] = nil end
+    for i = 0, count do
+        t[i] = nil
+    end
 end
 
 local function clearTable(t)
-    for k, _ in pairs(t) do t[k] = nil end
+    for k, _ in pairs(t) do
+        t[k] = nil
+    end
 end
 
 local function ClearBuffTooltipTable(buff)
@@ -902,11 +914,12 @@ function ReturnBuffTracker:CheckInCombat(buff)
     ResetBuffData(buff)
     if buff.groups_array then
         for i = 1, MAX_GROUPS_IN_RAID do
-            buff.groups_array[i] = {}
+            clearArrayList(buff.groups_array[i])
         end
     else
+        buff.groups_array = {}
         for i = 1, MAX_GROUPS_IN_RAID do
-            clearArrayList(buff.groups_array[i])
+            buff.groups_array[i] = {}
         end
     end
     buff.count = 0
@@ -1065,7 +1078,7 @@ local function fill_tooltip_data_array(buff, players, tooltip, tool_tip_index)
                 group_players[player.class] = {}
                 tinsert(group_players[player.class], format("%s :", player.localized_class))
             end
-            tinsert(group_players[player.class], name)
+            tinsert(group_players[player.class], player.name)
         end
 
         for cls, str_list in pairs(group_players) do
@@ -1116,13 +1129,25 @@ function ReturnBuffTracker:CheckBuff(buff)
     --local tooltip        = {}
     local player_name, player_group, player_localized_class, player_class
     local isClassExpected
+    if buff.ignoredPlayers then
+        for k, v in pairs(buff.ignoredPlayers) do
+            clearArrayList(v)
+        end
+    else
+        buff.ignoredPlayers = {}
+    end
+    if buff.bad_players then
+        clearTable(buff.bad_players)
+    else
+        buff.bad_players = {}
+    end
     for i = 1, 40 do
         player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(i)
         if player_class then
             slacker, disco, fd, not_in_raid = ReturnBuffTracker:CheckUnitCannotHelpRaid(player_name)
             if slacker then
                 --@debug@
-                ReturnBuffTracker:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name), unitPowerTypeName)
+                ReturnBuffTracker:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name))
                 --@end-debug@
                 if not buff.ignoredPlayers["Slacker"] then
                     buff.ignoredPlayers["Slacker"] = {}
@@ -1186,11 +1211,12 @@ function ReturnBuffTracker:CheckBuff(buff)
         --@debug@
         ReturnBuffTracker:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
-        players_str = tconcat(player_details, " ")
-        tinsert(buff.tooltip,
-                format("Ignoring: %s %s", tostring(reason), players_str))
+        if #player_details > 0 then
+            players_str = tconcat(player_details, " ")
+            tinsert(buff.tooltip,
+                    format("Ignoring: %s %s", tostring(reason), players_str))
+        end
     end
-
     return buff.count, buff.total, buff.tooltip
 end
 

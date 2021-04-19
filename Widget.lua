@@ -2,6 +2,13 @@ local addonName, T      = ...;
 local ReturnBuffTracker = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 --local AceGUI            = LibStub("AceGUI-3.0")
 local L                 = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local GameTooltip       = GameTooltip
+local gsub, format      = gsub, format
+local IsShiftKeyDown    = IsShiftKeyDown
+local SendChatMessage   = SendChatMessage
+local CreateFrame       = CreateFrame
+local UIParent          = UIParent
+local floor             = floor
 -- taken from NWB
 --Strip escape strings from chat msgs.
 local function stripColors(str)
@@ -22,7 +29,7 @@ end
 
 local function stripSymbols(str)
     local escapes = {
-        ["{.-}"]               = "", --Raid target icons.
+        ["{.-}"] = "", --Raid target icons.
     };
     if (str) then
         for k, v in pairs(escapes) do
@@ -175,13 +182,6 @@ function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
     theBar.buffNameTextString:SetPoint("LEFT", theBar, "LEFT")
     theBar.buffNameTextString:SetText(buff.displayText)
 
-    if buff.shortName and buff.shortName == L["DMF Damage"] then
-        local DMF_specific = { [true] = "active", [false] = "inactive" }
-        local is_active    = ReturnBuffTracker:isDMFActive()
-        local tmp          = format("%s (%s)", buff.shortName, DMF_specific[is_active])
-        theBar.buffNameTextString:SetText(tmp)
-    end
-
     theBar.percentTextString = theBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     theBar.percentTextString:SetPoint("RIGHT", theBar, "RIGHT")
     --theBar.percentTextString:SetText(text)
@@ -199,10 +199,21 @@ function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
         end
     end
 
-    theBar.Update   = function(self, value, maxValue, tooltip_lines)
-        local percentage = value / maxValue
+    theBar.Update   = function(self)
+        --, value, maxValue, tooltip_lines)
+        local percentage = buff.count / buff.total
         local totalWidth = ReturnBuffTracker.mainFrame:GetWidth() - 10
-        local width      = floor(totalWidth * percentage)
+
+        if theBar.buff.shortName and theBar.buff.shortName == L["DMF Damage"] then
+            local DMF_specific = { [true] = "active", [false] = "inactive" }
+            local is_active    = ReturnBuffTracker:isDMFActive()
+            local tmp          = format("%s (%s)", theBar.buff.shortName, DMF_specific[is_active])
+            theBar.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
+            theBar.buffNameTextString:SetText(tmp)
+            percentage = 1.0
+        end
+
+        local width = floor(totalWidth * percentage)
         if width > 0 then
             theBar.texture:SetWidth(totalWidth * percentage)
             theBar.texture:Show()
@@ -211,16 +222,24 @@ function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
         end
 
         theBar:SetWidth(totalWidth)
-        theBar.tooltip_lines = tooltip_lines
-        theBar.percentTextString:SetText(format("%.0f%%", ((value / maxValue) * 100.0)))
+        --theBar.tooltip_lines = theBar.buff.tooltip -- tooltip_lines
+        --theBar.percentTextString:SetText(format("%.0f%%", ((value / maxValue) * 100.0)))
+        if percentage ~= percentage then
+            theBar.percentTextString:SetText("NA")
+        else
+            theBar.percentTextString:SetText(format("%.0f%%", percentage * 100.0))
+        end
+
     end
 
     theBar:SetScript("OnEnter", function(self)
         --GameTooltip:AddLine("Missing " .. self.text .. ": ", 1, 1, 1)
         GameTooltip:AddLine(format(L["Missing %s"], self.buff.displayText), 1, 1, 1)
-        if self.tooltip_lines then
+        --if self.tooltip_lines then
+        if self.buff.tooltip then
             GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-            for k, v in ipairs(self.tooltip_lines) do
+            --for k, v in ipairs(self.tooltip_lines) do
+            for k, v in ipairs(self.buff.tooltip) do
                 GameTooltip:AddLine(v, 1, 1, 1)
             end
             GameTooltip:Show()
@@ -242,8 +261,10 @@ function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
         local tmp_str
         if shift_key then
             --DEFAULT_CHAT_FRAME:AddMessage("Missing " .. self.text .. ": ")
-            if self.tooltip_lines then
-                for k, v in ipairs(self.tooltip_lines) do
+            --if self.tooltip_lines then
+            if self.buff.tooltip then
+                --for k, v in ipairs(self.tooltip_lines) do
+                for k, v in ipairs(self.buff.tooltip) do
                     tmp_str = stripColors(v)
                     SendChatMessage(tmp_str, ReturnBuffTracker.db.profile.reportChannel)
                 end
