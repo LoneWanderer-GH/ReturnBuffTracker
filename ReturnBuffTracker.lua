@@ -357,32 +357,20 @@ function ReturnBuffTracker:OnUpdate(self)
     if not ReturnBuffTracker:CheckHideIfNotInRaid() then
         return
     end
+    if ReturnBuffTracker.mainFrame:IsVisible() then
+        for _, buff in ipairs(ReturnBuffTracker.Buffs) do
 
-    --local value    = 0
-    --local maxValue = 1
-    --local tooltip  = {}
-    for _, buff in ipairs(ReturnBuffTracker.Buffs) do
+            if ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] then
+                return
+            end
 
-        if ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] then
-            return
+            if buff.func then
+                ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
+            else
+                ReturnBuffTracker:CheckBuff(buff)
+            end
+            buff.bar:Update()
         end
-
-        --value    = 0
-        --maxValue = 1
-        --tooltip  = {}
-        if buff.func then
-            --value, maxValue, tooltip = ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
-            ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
-        else
-            --value, maxValue, tooltip = ReturnBuffTracker:CheckBuff(buff)
-            ReturnBuffTracker:CheckBuff(buff)
-        end
-        --if value and maxValue and maxValue > 0 then
-        --    buff.bar:Update(value, maxValue, tooltip)
-        --else
-        --    buff.bar:Update(0, 1, tooltip)
-        --end
-        buff.bar:Update()
     end
 end
 
@@ -399,17 +387,23 @@ function ReturnBuffTracker:Contains(tab, val)
     return false
 end
 
-function ReturnBuffTracker:CheckHideIfNotInRaid()
-    if not ReturnBuffTracker.db.profile.hideNotInRaid or IsInRaid() then
-        if not ReturnBuffTracker.mainFrame:IsVisible() then
-            ReturnBuffTracker.mainFrame:Show()
-        end
+function ReturnBuffTracker:CheckVisible()
+    --if not ReturnBuffTracker.db.profile.hideNotInRaid or IsInRaid() then
+    if IsInRaid() then
+        --if not ReturnBuffTracker.mainFrame:IsVisible() then
+        ReturnBuffTracker.mainFrame:Show()
+        --end
         return true
-    else
-        if ReturnBuffTracker.mainFrame:IsVisible() then
-            ReturnBuffTracker.mainFrame:Hide()
-        end
+    end
+    if ReturnBuffTracker.db.profile.hideNotInRaid then
+        --if ReturnBuffTracker.mainFrame:IsVisible() then
+        ReturnBuffTracker.mainFrame:Hide()
+        --end
         return false
+    else
+        ReturnBuffTracker.mainFrame:Show()
+        --end
+        return true
     end
 end
 

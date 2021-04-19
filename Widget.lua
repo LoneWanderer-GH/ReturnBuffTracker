@@ -159,10 +159,10 @@ end
 --    theBar.buffNameTextString:SetPoint("CENTER", ReturnBuffTracker.mainFrame, "TOP", 0, -7)
 --    theBar.buffNameTextString:SetText(text)
 --end
-
+local DMF_specific = { [true] = "active", [false] = "inactive" }
 function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
     -- text, r, g, b)
-    local theBar = CreateFrame("Frame", text, ReturnBuffTracker.mainFrame)
+    local theBar = CreateFrame("Frame", nil, ReturnBuffTracker.mainFrame)
     --theBar.text  = text
     theBar.buff  = buff
 
@@ -201,35 +201,39 @@ function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
 
     theBar.Update   = function(self)
         --, value, maxValue, tooltip_lines)
-        local percentage = buff.count / buff.total
+        --local percentage = buff.count / buff.total
+        local percentage_str, percentage_float = ReturnBuffTracker:compute_percent_string(self.buff.count, self.buff.total)
+
         local totalWidth = ReturnBuffTracker.mainFrame:GetWidth() - 10
 
-        if theBar.buff.shortName and theBar.buff.shortName == L["DMF Damage"] then
-            local DMF_specific = { [true] = "active", [false] = "inactive" }
+        if self.buff.shortName and self.buff.shortName == L["DMF Damage"] then
             local is_active    = ReturnBuffTracker:isDMFActive()
-            local tmp          = format("%s (%s)", theBar.buff.shortName, DMF_specific[is_active])
-            theBar.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
-            theBar.buffNameTextString:SetText(tmp)
-            percentage = 1.0
+            local tmp          = format("%s (%s)", self.buff.shortName, DMF_specific[is_active])
+            self.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
+            self.buffNameTextString:SetText(tmp)
+            percentage_str = "0%"
         end
-
-        local width = floor(totalWidth * percentage)
-        if width > 0 then
-            theBar.texture:SetWidth(totalWidth * percentage)
-            theBar.texture:Show()
+        if percentage_float then
+            local width = floor(totalWidth * percentage_float)
+            if width > 0 then
+                self.texture:SetWidth(totalWidth * percentage_float)
+                self.texture:Show()
+            else
+                self.texture:Hide()
+            end
         else
-            theBar.texture:Hide()
+            self.texture:Hide()
         end
-
-        theBar:SetWidth(totalWidth)
-        --theBar.tooltip_lines = theBar.buff.tooltip -- tooltip_lines
+        self:SetWidth(totalWidth)
+        --self.tooltip_lines = theBar.buff.tooltip -- tooltip_lines
         --theBar.percentTextString:SetText(format("%.0f%%", ((value / maxValue) * 100.0)))
-        if percentage ~= percentage then
-            theBar.percentTextString:SetText("NA")
-        else
-            theBar.percentTextString:SetText(format("%.0f%%", percentage * 100.0))
-        end
+        --if percentage ~= percentage then
+        --    theBar.percentTextString:SetText("NA")
+        --else
+        --    theBar.percentTextString:SetText(format("%.0f%%", percentage * 100.0))
+        --end
 
+        self.percentTextString:SetText(percentage_str)
     end
 
     theBar:SetScript("OnEnter", function(self)

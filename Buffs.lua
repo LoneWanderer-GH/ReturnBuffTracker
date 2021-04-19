@@ -10,7 +10,7 @@ local IsInInstance, UnitIsAFK, UnitIsFeignDeath            = IsInInstance, UnitI
 local GetLootMethod, GetLootThreshold, GetItemQualityColor = GetLootMethod, GetLootThreshold, GetItemQualityColor
 local GetUnitName                                          = GetUnitName
 local UnitPowerType, UnitIsDead, UnitAffectingCombat       = UnitPowerType, UnitIsDead, UnitAffectingCombat
-local UnitBuff                                             = UnitBuff
+local UnitBuff, UnitIsConnected                            = UnitBuff, UnitIsConnected
 
 local tinsert, tconcat, tremove                            = table.insert, table.concat, table.remove
 
@@ -468,17 +468,19 @@ function ReturnBuffTracker:compute_percent_string(nb, total)
     --@debug@
     ReturnBuffTracker:Debugf("compute_percent_string", "compute_percent_string(%s, %s)", tostring(nb), tostring(total))
     --@end-debug@
-    local return_value = "NA"
+    local return_value_str = "NA"
+    local return_value_f
     if total > 0 and nb <= total then
-        return_value = ((nb / total) * 100.0)
-        if return_value ~= return_value then
+        return_value_f = (nb / total)
+        if return_value_f ~= return_value_f then
             -- NaN/Inf checks
-            return_value = "NA"
+            return_value_str = "NA"
+            return_value_f   = nil
         else
-            return_value = format("%.0f%%", return_value)
+            return_value_str = format("%.0f%%", return_value_f * 100.0)
         end
     end
-    return return_value
+    return return_value_str, return_value_f
 end
 
 local function clearArrayList(t)
@@ -503,7 +505,6 @@ local function ClearBuffTooltipTable(buff)
     else
         buff.tooltip = {}
     end
-    return buff.tooltip
 end
 
 local function ResetBuffData(buff)
@@ -534,23 +535,14 @@ function ReturnBuffTracker:CheckAlive(buff)
     local dead_players_by_classes = buff.dead_players_by_classes
     local j                       = 2
 
-    --local aliveNumber             = 0
-    --local totalNumber             = 0
-    --local name, _, _, _, localized_class, class
-    --local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
     local name, localized_class, class, isDead
     for i = 1, 40 do
-        --name, _, _, _, localized_class, class = GetRaidRosterInfo(i)
         name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
         if name then
             buff.total = buff.total + 1
-            --if not UnitIsDeadOrGhost(name) then
             if not isDead then
                 buff.count = buff.count + 1
             else
-                --if not dead_players_by_classes[class] then
-                --    dead_players_by_classes[class] = {}
-                --end
                 tinsert(dead_players_by_classes[class], name)
             end
         end
@@ -558,7 +550,6 @@ function ReturnBuffTracker:CheckAlive(buff)
     local dead_number = (buff.total - buff.count)
     local percent     = ReturnBuffTracker:compute_percent_string(dead_number, buff.total)
     buff.tooltip[1]   = format("%s %d/%d - %s", L["Dead:"], dead_number, buff.total, percent)
-    --if #dead_players_by_classes > 0 then
     for dead_class, dead_names in ipairs(dead_players_by_classes) do
         if #dead_names > 0 then
             buff.tooltip[j] = format("%s: %s",
@@ -567,15 +558,12 @@ function ReturnBuffTracker:CheckAlive(buff)
             j               = j + 1
         end
     end
-    --else
-    --    tooltip[j] = L["no one."]
-    --end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 function ReturnBuffTracker:CheckUnitCannotHelpRaid(name)
     local slacker                  = false
-    --local disco   = false
+
     local afk                      = false
     local fd                       = false
     local inInstance, instanceType = IsInInstance(name)
@@ -724,7 +712,7 @@ function ReturnBuffTracker:CheckCannotHelpRaid(buff)
         end
 
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 function ReturnBuffTracker:CheckML(buff)
@@ -751,7 +739,7 @@ function ReturnBuffTracker:CheckML(buff)
         ML_name    = GetUnitName("raid" .. raid_unit_index, false)
         tinsert(buff.tooltip, format("ML: %s", ML_name))
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 function ReturnBuffTracker:CheckUnitIsRealDPS(name)
@@ -901,11 +889,13 @@ function ReturnBuffTracker:CheckPowerType(buff)
         --@debug@
         ReturnBuffTracker:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
-        local players_str = tconcat(player_details, " ")
-        tinsert(buff.tooltip,
-                format("Ignoring: %s %s", tostring(reason), players_str))
+        if #player_details > 0 then
+            local players_str = tconcat(player_details, " ")
+            tinsert(buff.tooltip,
+                    format("Ignoring: %s %s", tostring(reason), players_str))
+        end
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 local MAX_GROUPS_IN_RAID = 8
@@ -924,9 +914,7 @@ function ReturnBuffTracker:CheckInCombat(buff)
     end
     buff.count = 0
     buff.total = 0
-    --local inCombat = buff.count
-    --local total    = buff.total
-    --local players  = {}
+
     local player_name, player_group
     for i = 1, 40 do
         player_name, _, player_group = GetRaidRosterInfo(i)
@@ -935,13 +923,11 @@ function ReturnBuffTracker:CheckInCombat(buff)
             if UnitAffectingCombat(player_name) then
                 buff.count = buff.count + 1
             else
-                --players[player_name] = { name = player_name, group = player_group }
                 tinsert(buff.groups_array[player_group], player_name)
             end
         end
     end
 
-    --local tooltip = {}
     buff.tooltip[1]              = L["Not in Combat: "]
     local tool_tip_index         = 2
     buff.tooltip[tool_tip_index] = L["no one."]
@@ -952,17 +938,19 @@ function ReturnBuffTracker:CheckInCombat(buff)
             tool_tip_index               = tool_tip_index + 1
         end
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 function ReturnBuffTracker:CheckSoulstones(buff)
     ResetBuffData(buff)
-    --local tooltip                  = {}
-    local j                        = 2
-    buff.tooltip[j]                = L["none."]
+    local j         = 2
+    buff.tooltip[j] = L["none."]
     local name, group, localized_class, class
-    --local total                    = 0
-    local players_having_soulstone = {}
+    if buff.players_having_soulstone then
+        clearArrayList(buff.players_having_soulstone)
+    else
+        buff.players_having_soulstone = {}
+    end
     local present, caster
     for i = 1, 40 do
         name, _, group, _, localized_class, class = GetRaidRosterInfo(i)
@@ -976,14 +964,14 @@ function ReturnBuffTracker:CheckSoulstones(buff)
             end
             if present then
                 buff.count = buff.count + 1
-                tinsert(players_having_soulstone, format("%s (from %s)", name, tostring(caster)))
+                tinsert(buff.players_having_soulstone, format("%s (from %s)", name, tostring(caster)))
                 --j = j + 1
             end
         end
     end
     buff.tooltip[1] = format("%s (%d %s)", L["Soulstones: "], buff.total, localized_classes[buff.buffingClass])
-    if #players_having_soulstone > 0 then
-        buff.tooltip[j] = tconcat(players_having_soulstone, " ")
+    if #buff.players_having_soulstone > 0 then
+        buff.tooltip[j] = tconcat(buff.players_having_soulstone, " ")
     end
 
     -- override for bar display
@@ -995,7 +983,7 @@ function ReturnBuffTracker:CheckSoulstones(buff)
         buff.count = 1
         buff.total = 1
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 --function ReturnBuffTracker:CheckCarrot(_)
@@ -1070,10 +1058,14 @@ end
 --    return inCombat, total, tooltip
 --end
 
-local function fill_tooltip_data_array(buff, players, tooltip, tool_tip_index)
-    local group_players = {}
+local function fill_tooltip_data_array(buff,
+--players,
+--buff.tooltip,
+                                       tool_tip_index)
+    --local group_players = {}
+    local group_players = buff.bad_players
     if buff.missingMode == L["class"] then
-        for _, player in pairs(players) do
+        for _, player in pairs(group_players) do
             if not group_players[player.class] then
                 group_players[player.class] = {}
                 tinsert(group_players[player.class], format("%s :", player.localized_class))
@@ -1082,12 +1074,12 @@ local function fill_tooltip_data_array(buff, players, tooltip, tool_tip_index)
         end
 
         for cls, str_list in pairs(group_players) do
-            tooltip[tool_tip_index] = tconcat(str_list, " ")
-            tool_tip_index          = tool_tip_index + 1
+            buff.tooltip[tool_tip_index] = tconcat(str_list, " ")
+            tool_tip_index               = tool_tip_index + 1
         end
     else
         local player_group_nb
-        for _, player in pairs(players) do
+        for _, player in pairs(group_players) do
             player_group_nb = tonumber(player.group)
             if not group_players[player_group_nb] then
                 --group_players[tonumber(player.group)] = {
@@ -1112,8 +1104,8 @@ local function fill_tooltip_data_array(buff, players, tooltip, tool_tip_index)
         for group_nb, player_names_array in ipairs(group_players) do
             --tmp_str                 = format(L["Group %d:"], group_nb)
             --tmp_str                 = format("%s %s", tmp_str, )
-            tooltip[tool_tip_index] = tconcat(player_names_array, " ")
-            tool_tip_index          = tool_tip_index + 1
+            buff.tooltip[tool_tip_index] = tconcat(player_names_array, " ")
+            tool_tip_index               = tool_tip_index + 1
         end
     end
     return tool_tip_index
@@ -1197,7 +1189,8 @@ function ReturnBuffTracker:CheckBuff(buff)
     local tool_tip_index         = 2
     buff.tooltip[tool_tip_index] = L["no one."]
 
-    tool_tip_index               = fill_tooltip_data_array(buff, buff.bad_players, buff.tooltip, tool_tip_index)
+    --tool_tip_index               = fill_tooltip_data_array(buff, buff.bad_players, buff.tooltip, tool_tip_index)
+    tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
 
     -- TODO: Make the goodboys tooltip and report configurable
     --tooltip[tool_tip_index] = "Good boys:"
@@ -1217,7 +1210,7 @@ function ReturnBuffTracker:CheckBuff(buff)
                     format("Ignoring: %s %s", tostring(reason), players_str))
         end
     end
-    return buff.count, buff.total, buff.tooltip
+    --return buff.count, buff.total, buff.tooltip
 end
 
 function ReturnBuffTracker:CheckUnitBuff(unit, buff)
