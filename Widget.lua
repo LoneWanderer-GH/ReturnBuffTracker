@@ -1,6 +1,6 @@
 local addonName, T      = ...;
 local ReturnBuffTracker = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local AceGUI            = LibStub("AceGUI-3.0")
+--local AceGUI            = LibStub("AceGUI-3.0")
 local L                 = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 -- taken from NWB
 --Strip escape strings from chat msgs.
@@ -10,6 +10,18 @@ local function stripColors(str)
         ["|r"]                 = "", --Color end.
         --["|H.-|h(.-)|h"] = "%1", --Links.
         ["|T.-|t"]             = "", --Textures.
+        --["{.-}"]               = "", --Raid target icons.
+    };
+    if (str) then
+        for k, v in pairs(escapes) do
+            str = gsub(str, k, v);
+        end
+    end
+    return str;
+end
+
+local function stripSymbols(str)
+    local escapes = {
         ["{.-}"]               = "", --Raid target icons.
     };
     if (str) then
@@ -141,7 +153,7 @@ end
 --    theBar.buffNameTextString:SetText(text)
 --end
 
-function ReturnBuffTracker:CreateBuffInfoBar(index, buff)
+function ReturnBuffTracker:CreateBuffInfoBar(buff_index, buff)
     -- text, r, g, b)
     local theBar = CreateFrame("Frame", text, ReturnBuffTracker.mainFrame)
     --theBar.text  = text
@@ -227,11 +239,13 @@ function ReturnBuffTracker:CreateBuffInfoBar(index, buff)
     end)
     theBar:SetScript("OnMouseUp", function(self)
         local shift_key = IsShiftKeyDown()
+        local tmp_str
         if shift_key then
             --DEFAULT_CHAT_FRAME:AddMessage("Missing " .. self.text .. ": ")
             if self.tooltip_lines then
                 for k, v in ipairs(self.tooltip_lines) do
-                    SendChatMessage(v, ReturnBuffTracker.db.profile.reportChannel)
+                    tmp_str = stripColors(v)
+                    SendChatMessage(tmp_str, ReturnBuffTracker.db.profile.reportChannel)
                 end
             end
         else

@@ -10,7 +10,7 @@ local L                                               = LibStub("AceLocale-3.0")
 L["Global Settings"]                                  = "Paramètres globaux"
 L["Hide when not in raid"]                            = "Cacher si pas en raid"
 L["The buff tracker does not work outside of raids."] = "Ne fonctionne pas en dehors des raids"
-
+L["Loot Method"]                                      = "Mode de butin"
 L["Bars to show"]                                     = "Barres à afficher"
 L["General Buffs"]                                    = "Buffs généraux"
 L["Player buffs"]                                     = "Buffs joueurs"

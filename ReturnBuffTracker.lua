@@ -1,63 +1,60 @@
-local addonName, T                        = ...;
-local ReturnBuffTracker                   = LibStub("AceAddon-3.0"):NewAddon("ReturnBuffTracker",
-                                                                             "AceConsole-3.0",
-                                                                             "AceEvent-3.0",
-                                                                             "LoggingLib-0.1"
-)
-local LoggingLib                          = LibStub("LoggingLib-0.1")
-local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local addonName, T                          = ...;
+local ReturnBuffTracker                     = LibStub("AceAddon-3.0"):NewAddon("ReturnBuffTracker",
+                                                                               "AceConsole-3.0",
+                                                                               "AceEvent-3.0",
+                                                                               "LoggingLib-0.1")
+--@debug@
+local LoggingLib                            = LibStub("LoggingLib-0.1")
+--@end-debug@
+local L                                     = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
-local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
+local WARRIOR, MAGE, ROGUE, DRUID, HUNTER   = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
+local SHAMAN, PRIEST, WARLOCK, PALADIN      = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
 
--- log levels
-local ERROR                               = 0
-local WARNING                             = 1
-local INFO                                = 2
-local DEBUG                               = 3
-local TRACE                               = 4
+--@debug@
+local RAID_CLASS_COLORS                     = RAID_CLASS_COLORS
+
 -- Colors
-local DEFAULT                             = "DEFAULT"
+local DEFAULT                               = "DEFAULT"
 
 --local BASIC                                    = "BASIC"
-local EMPHASIS                            = "EMPHASIS"
-local BROWN                               = "BROWN"
-local ORANGE                              = "ORANGE"
+local EMPHASIS                              = "EMPHASIS"
+local BROWN                                 = "BROWN"
+local ORANGE                                = "ORANGE"
 --local BLUE                                     = "BLUE"
-local VIOLET                              = "VIOLET"
+local VIOLET                                = "VIOLET"
 --local YELLOW                                   = "YELLOW"
 --local GREEN                                    = "GREEN"
-local PINK                                = "PINK"
+local PINK                                  = "PINK"
 --local WHITE                                    = "WHITE"
 
-local LIGHTBLUE                           = "LIGHTBLUE"
-local LIGHTRED                            = "LIGHTRED"
-local SPRINGGREEN                         = "SPRINGGREEN"
-local GREENYELLOW                         = "GREENYELLOW"
-local BLUE                                = "BLUE"
-local PURPLE                              = "PURPLE"
-local GREEN                               = "GREEN"
-local RED                                 = "RED"
-local GOLD                                = "GOLD"
-local GOLD2                               = "GOLD2"
-local GREY                                = "GREY"
-local WHITE                               = "WHITE"
-local SUBWHITE                            = "SUBWHITE"
-local MAGENTA                             = "MAGENTA"
-local YELLOW                              = "YELLOW"
-local ORANGEY                             = "ORANGEY"
-local CHOCOLATE                           = "CHOCOLATE"
-local CYAN                                = "CYAN"
-local IVORY                               = "IVORY"
-local LIGHTYELLOW                         = "LIGHTYELLOW"
-local SEXGREEN                            = "SEXGREEN"
-local SEXTEAL                             = "SEXTEAL"
-local SEXPINK                             = "SEXPINK"
-local SEXBLUE                             = "SEXBLUE"
-local SEXHOTPINK                          = "SEXHOTPINK"
+local LIGHTBLUE                             = "LIGHTBLUE"
+local LIGHTRED                              = "LIGHTRED"
+local SPRINGGREEN                           = "SPRINGGREEN"
+local GREENYELLOW                           = "GREENYELLOW"
+local BLUE                                  = "BLUE"
+local PURPLE                                = "PURPLE"
+local GREEN                                 = "GREEN"
+local RED                                   = "RED"
+local GOLD                                  = "GOLD"
+local GOLD2                                 = "GOLD2"
+local GREY                                  = "GREY"
+local WHITE                                 = "WHITE"
+local SUBWHITE                              = "SUBWHITE"
+local MAGENTA                               = "MAGENTA"
+local YELLOW                                = "YELLOW"
+local ORANGEY                               = "ORANGEY"
+local CHOCOLATE                             = "CHOCOLATE"
+local CYAN                                  = "CYAN"
+local IVORY                                 = "IVORY"
+local LIGHTYELLOW                           = "LIGHTYELLOW"
+local SEXGREEN                              = "SEXGREEN"
+local SEXTEAL                               = "SEXTEAL"
+local SEXPINK                               = "SEXPINK"
+local SEXBLUE                               = "SEXBLUE"
+local SEXHOTPINK                            = "SEXHOTPINK"
 
-local colors                              = {
+local colors                                = {
     [DEFAULT]     = "|r",
     -- from https://www.wowinterface.com/forums/showthread.php?t=25712
     [LIGHTBLUE]   = '|cff00ccff',
@@ -106,56 +103,106 @@ local colors                              = {
     [WARLOCK]     = format("|c%s", RAID_CLASS_COLORS[WARLOCK].colorStr),
     [PALADIN]     = format("|c%s", RAID_CLASS_COLORS[PALADIN].colorStr),
 }
+--@end-debug@
+--@debug@
+local logging_categories_colors             = {
+    ["ADDON"]                   = colors[GOLD],
+    ["OnInitialize"]            = colors[SEXGREEN],
+    ["OnUpdate"]                = colors[SEXPINK],
+    ["UpdateBars"]              = colors[YELLOW],
+    ["ResetConfiguration"]      = colors[CYAN],
+    ["ActivatePlayerClassOnly"] = colors[LIGHTBLUE],
+    ["compute_percent_string"]  = colors[ORANGEY],
+    ["CheckAlive"]              = colors[GOLD2],
+    ["CheckCannotHelpRaid"]     = colors[GREY],
+    ["CheckPowerType"]          = colors[MAGE],
+    ["CheckBuff"]               = colors[PALADIN],
+}
+--@end-debug@
 
-local logging_categories_colors           = {
-    ["ADDON"]        = colors[GOLD],
-    ["OnInitialize"] = colors[SEXGREEN],
-    ["OnUpdate"]     = colors[SEXPINK],
+ReturnBuffTracker.Constants                 = {}
+
+ReturnBuffTracker.Constants.BarOptionGroups = {
+    General    = L["General"],
+    Player     = L["Player buffs"],
+    World      = L["World"],
+    Consumable = L["Consumable"],
+    Misc       = L["Misc"],
 }
 
-local defaults                            = {
+ReturnBuffTracker.Constants.ReportChannel   = {
+    --"CHANNEL",
+    --"DND",
+    --"EMOTE",
+    ["GUILD"]         = L["Guild"],
+    ["INSTANCE_CHAT"] = L["Instance"],
+    ["OFFICER"]       = L["Officer"],
+    ["PARTY"]         = L["Party"],
+    ["RAID"]          = L["Raid"],
+    ["RAID_WARNING"]  = L["Raid Warning"],
+    ["SAY"]           = L["Say"],
+    --"WHISPER",
+    --"YELL"
+}
+
+local defaults                              = {
     profile = {
         position        = nil,
         width           = 180,
         hideNotInRaid   = true,
         deactivatedBars = {  },
         reportChannel   = ReturnBuffTracker.Constants.ReportChannel["RAID_WARNING"],
+        --@debug@
+        logLevel        = LoggingLib.TRACE,
+        --@end-debug@
     }
 }
 
 function ReturnBuffTracker:OnInitialize()
+    --@debug@
     ReturnBuffTracker:InitializeLogging(addonName,
                                         nil,
                                         logging_categories_colors,
                                         LoggingLib.TRACE)
-    ReturnBuffTracker:Debug("ADDON", "OnInitialize")
+    ReturnBuffTracker:Debug("OnInitialize", "OnInitialize")
+    --@end-debug@
     self.OptionBarNames             = {}
     self.OptionBarClassesToBarNames = {}
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
     for k, buff in pairs(self.Buffs) do
+        --@debug@
         ReturnBuffTracker:Debugf("OnInitialize", "Treating buff at index: %d", k)
+        --@end-debug@
         if buff then
+            --@debug@
             ReturnBuffTracker:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.name or "no .name") .. "]")
             ReturnBuffTracker:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.buffOptionsGroup or "no .buffOptionsGroup") .. "]")
             ReturnBuffTracker:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.optionText or "no .optionText") .. "]")
             ReturnBuffTracker:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.text or "no .text") .. "]")
+            --@end-debug@
             if buff.buffOptionsGroup then
                 if not self.OptionBarNames[buff.buffOptionsGroup] then
                     self.OptionBarNames[buff.buffOptionsGroup] = {}
                 end
                 -- try to put exact buff name if ID availabe and its a unique buff
                 if not buff.shortName and not buff.buffOptionsGroup == L["Consumable"] then
+                    --@debug@
                     ReturnBuffTracker:Debugf("OnInitialize", "Buff has no shortName")
+                    --@end-debug@
                     if buff.sourceItemId ~= nil then
                         --if #buff.sourceItemId == 1 then
+                        --@debug@
                         ReturnBuffTracker:Debugf("OnInitialize", "Using source item ID")
+                        --@end-debug@
                         itemName, _, _, _, _, _, _, _, _, _, _ = GetItemInfo(buff.sourceItemId[1])
                         buff.optionText                        = itemName
                         buff.name                              = itemName
                         --end
                     elseif buff.buffIDs ~= nil then
+                        --@debug@
                         ReturnBuffTracker:Debugf("OnInitialize", "Using buff ID")
+                        --@end-debug@
                         buff_name, rank, _, _, _, _, _ = GetSpellInfo(buff.buffIDs[1])
                         if rank then
                             buff.optionText = format("%s (%s)", buff_name, rank)
@@ -175,11 +222,13 @@ function ReturnBuffTracker:OnInitialize()
                         --    ReturnBuffTracker:Debugf("OnInitialize", "index=%d several buffs IDs (%d)", k, #buff.buffIDs)
                         --end
                     else
+                        --@debug@
                         ReturnBuffTracker:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
+                        --@end-debug@
                     end
                 end
             end
-
+            --@debug@
             ReturnBuffTracker:Debugf("OnInitialize", "Consolidated data:")
             if self == nil then
                 ReturnBuffTracker:Tracef("OnInitialize", " ||-- WTF ???????????????")
@@ -199,6 +248,8 @@ function ReturnBuffTracker:OnInitialize()
             if buff.name == nil then
                 ReturnBuffTracker:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
             end
+            --@end-debug@
+
             --self.OptionBarNames[buff.buffOptionsGroup]
             --[buff.optionText
             --        or buff.text
@@ -217,10 +268,14 @@ function ReturnBuffTracker:OnInitialize()
             elseif buff.name then
                 key = buff.name
             else
+                --@debug@
                 key = "TA CHATTE"
                 ReturnBuffTracker:Errorf("OnInitialize", "index=%d no option text, no text no name (%s)", k, buff.shortName)
+                --@end-debug@
             end
+            --@debug@
             ReturnBuffTracker:Tracef("OnInitialize", "index=%d effective option bar name is [%s]", k, key)
+            --@end-debug@
             local tmp = self.OptionBarNames[buff.buffOptionsGroup]
             if tmp then
                 if key then
@@ -234,17 +289,15 @@ function ReturnBuffTracker:OnInitialize()
                             tinsert(self.OptionBarClassesToBarNames[c], key)
                         end
                     end
+                    --@debug@
                 else
                     ReturnBuffTracker:Errorf("OnInitialize", "index=%d null key ?!", k)
                 end
+                --@debug@
             else
                 ReturnBuffTracker:Errorf("OnInitialize", "index=%d WTF ?!!", k)
+                --@end-debug@
             end
-        else
-
-            --end
-            --else
-            --ReturnBuffTracker:Print("no buff at index: " .. k)
         end
     end
 
@@ -264,35 +317,33 @@ function ReturnBuffTracker:OnInitialize()
         buff.bar = ReturnBuffTracker:CreateBuffInfoBar(index, buff)
     end
 
-
-    --self.nextBuff = 1
     self.nextTime = 0
-    --self.updateFrame = CreateFrame("Frame")
-    --self.updateFrame:SetScript("OnUpdate", self.OnUpdate)
     ReturnBuffTracker.mainFrame:SetScript("OnUpdate", self.OnUpdate)
 
     ReturnBuffTracker:UpdateBars()
 end
 
 function ReturnBuffTracker:UpdateBars()
-    --ReturnBuffTracker:Debugf("ADDON", "UpdateBars")
+    --@debug@
+    ReturnBuffTracker:Debugf("UpdateBars", "UpdateBars")
+    --@end-debug@
     local nb_of_bars_to_display = 0
     for _, buff in ipairs(ReturnBuffTracker.Buffs) do
         --if ReturnBuffTracker.db.profile.deactivatedBars[buff.optionText or buff.text or buff.name] then
         if ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] then
-            --ReturnBuffTracker:Debugf("ADDON", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
+            --@debug@
+            ReturnBuffTracker:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
+            --@end-debug@
             buff.bar:SetIndex(nil)
         else
-            --ReturnBuffTracker:Debugf("ADDON", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
+            --@debug@
+            ReturnBuffTracker:Debugf("UpdateBars", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
+            --@end-debug@
             buff.bar:SetIndex(nb_of_bars_to_display)
             nb_of_bars_to_display = nb_of_bars_to_display + 1
         end
     end
     ReturnBuffTracker:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
-    --self.nextBuff = 1
-    --self.nextTime = 0
-    --ReturnBuffTracker.mainFrame:SetScript("OnUpdate", self.OnUpdate)
-    --ReturnBuffTracker:OnUpdate()
 end
 
 function ReturnBuffTracker:OnUpdate(self)
@@ -307,26 +358,18 @@ function ReturnBuffTracker:OnUpdate(self)
         return
     end
 
-    --local buff = ReturnBuffTracker.Buffs[ReturnBuffTracker.nextBuff]
-    --if buff == nil then
-    --    ReturnBuffTracker:Warningf("OnUpdate", format("No buff at index %d" .. ReturnBuffTracker.nextBuff))
-    --    return
-    --end
-    --
-    --ReturnBuffTracker.nextBuff = ReturnBuffTracker.nextBuff + 1
-    --if ReturnBuffTracker.nextBuff > table.getn(ReturnBuffTracker.Buffs) then
-    --    ReturnBuffTracker.nextBuff = 1
-    --end
+    local value    = 0
+    local maxValue = 1
+    local tooltip  = {}
     for _, buff in ipairs(ReturnBuffTracker.Buffs) do
 
-        --if ReturnBuffTracker.db.profile.deactivatedBars[buff.optionText or buff.text or buff.name] then
         if ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] then
             return
         end
 
-        local value    = 0
-        local maxValue = 1
-        local tooltip --  = nil
+        value    = 0
+        maxValue = 1
+        tooltip  = {}
         if buff.func then
             value, maxValue, tooltip = ReturnBuffTracker[buff.func](ReturnBuffTracker, buff)
         else
@@ -344,7 +387,6 @@ function ReturnBuffTracker:Contains(tab, val)
     if not tab then
         return true
     end
-    --ReturnBuffTracker:Print(format("Checking %s in tab", val))
     for _, value in pairs(tab) do
         if value == val then
             return true
@@ -368,36 +410,44 @@ function ReturnBuffTracker:CheckHideIfNotInRaid()
     end
 end
 
-function ReturnBuffTracker:resetConfig()
+function ReturnBuffTracker:ResetConfiguration()
+    --@debug@
+    ReturnBuffTracker:Debug("ResetConfiguration", "ResetConfiguration")
+    --@end-debug@
     for bar_name, _ in pairs(ReturnBuffTracker.db.profile.deactivatedBars) do
-        ReturnBuffTracker:Debugf("ADDON", "Deactivating %s", bar_name)
+        --@debug@
+        ReturnBuffTracker:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
+        --@end-debug@
         ReturnBuffTracker.db.profile.deactivatedBars[bar_name] = true
     end
-    --LibStub("AceConfigRegistry-3.0"):NotifyChange("ReturnBuffTracker")
     ReturnBuffTracker.db.profile = defaults.profile
-    --LibStub("AceConfigRegistry-3.0"):NotifyChange("ReturnBuffTracker")
     ReturnBuffTracker:UpdateBars()
 end
 
 function ReturnBuffTracker:ActivatePlayerClassOnly()
-    ReturnBuffTracker:Debugf("ADDON", "ActivatePlayerClassOnly")
-
+    --@debug@
+    ReturnBuffTracker:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly")
+    --@end-debug@
     local _, player_class, _ = UnitClass("player")
 
-    ReturnBuffTracker:Debugf("ADDON", "ActivatePlayerClassOnly - deactivating all")
+    ReturnBuffTracker:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - deactivating all")
 
     for _, buff in ipairs(ReturnBuffTracker.Buffs) do
         ReturnBuffTracker.db.profile.deactivatedBars[buff.displayText] = (
                 (buff.buffingClass and buff.buffingClass ~= player_class) or true)
     end
-
-    ReturnBuffTracker:Debugf("ADDON", "ActivatePlayerClassOnly - my class: %s", player_class)
-
+    --@debug@
+    ReturnBuffTracker:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - my class: %s", player_class)
+    --@end-debug@
     for class, bar_names in pairs(ReturnBuffTracker.OptionBarClassesToBarNames) do
         if player_class == class then
-            ReturnBuffTracker:Debugf("ADDON", "ActivatePlayerClassOnly - Matching class")
+            --@debug@
+            ReturnBuffTracker:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Matching class")
+            --@end-debug@
             for _, bar_name_to_activate in ipairs(bar_names) do
-                ReturnBuffTracker:Debugf("ADDON", "ActivatePlayerClassOnly - Activating bar %s", bar_name_to_activate)
+                --@debug@
+                ReturnBuffTracker:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Activating bar %s", bar_name_to_activate)
+                --@end-debug@
                 ReturnBuffTracker.db.profile.deactivatedBars[bar_name_to_activate] = false
             end
         end
@@ -405,47 +455,27 @@ function ReturnBuffTracker:ActivatePlayerClassOnly()
     ReturnBuffTracker:UpdateBars()
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- Taken from NWB
-
---DMF spawns the following monday after first friday of the month at daily reset time.
---Whole region shares time of day for spawn (I think).
---Realms within the region possibly don't all spawn at same moment though, realms may wait for their own monday.
---(Bug: US player reported it showing 1 day late DMF end time while on OCE realm, think this whole thing needs rewriting tbh).
+--- Taken from NWB
+--- DMF spawns the following monday after first friday of the month at daily reset time.
+--- Whole region shares time of day for spawn (I think).
+--- Realms within the region possibly don't all spawn at same moment though, realms may wait for their own monday.
+--- (Bug: US player reported it showing 1 day late DMF end time while on OCE realm, think this whole thing needs rewriting tbh).
 function ReturnBuffTracker:getDmfStartEnd(month, nextYear)
     local startOffset, endOffset, validRegion, isDst;
     local minOffset, hourOffset, dayOffset = 0, 0, 0;
     local region                           = GetCurrentRegion();
+    local realm                            = GetRealmName()
+
     --I may change this to realm names later instead, region may be unreliable with US client on EU region if that issue still exists.
-    if (NWB.realm == "Arugal" or NWB.realm == "Felstriker" or NWB.realm == "Remulos" or NWB.realm == "Yojamba") then
+    if (realm == "Arugal" or realm == "Felstriker" or realm == "Remulos" or realm == "Yojamba") then
         --OCE Sunday 12pm UTC reset time (4am server time).
         dayOffset   = 2; --2 days after friday (sunday).
         hourOffset  = 18; -- 6pm.
         validRegion = true;
-    elseif (NWB.realm == "Arcanite Reaper" or NWB.realm == "Old Blanchy" or NWB.realm == "Anathema" or NWB.realm == "Azuresong"
-            or NWB.realm == "Kurinnaxx" or NWB.realm == "Myzrael" or NWB.realm == "Rattlegore" or NWB.realm == "Smolderweb"
-            or NWB.realm == "Thunderfury" or NWB.realm == "Atiesh" or NWB.realm == "Bigglesworth" or NWB.realm == "Blaumeux"
-            or NWB.realm == "Fairbanks" or NWB.realm == "Grobbulus" or NWB.realm == "Whitemane") then
+    elseif (realm == "Arcanite Reaper" or realm == "Old Blanchy" or realm == "Anathema" or realm == "Azuresong"
+            or realm == "Kurinnaxx" or realm == "Myzrael" or realm == "Rattlegore" or realm == "Smolderweb"
+            or realm == "Thunderfury" or realm == "Atiesh" or realm == "Bigglesworth" or realm == "Blaumeux"
+            or realm == "Fairbanks" or realm == "Grobbulus" or realm == "Whitemane") then
         --US west Sunday 11am UTC reset time (4am server time).
         dayOffset   = 3; --3 days after friday (monday).
         hourOffset  = 11; -- 11am.
@@ -522,6 +552,7 @@ function ReturnBuffTracker:getDmfStartEnd(month, nextYear)
     end
 end
 
+--- Taken from NWB
 function ReturnBuffTracker:isDMFActive()
     local dmfStart, dmfEnd = ReturnBuffTracker:getDmfStartEnd();
     --local timestamp, timeLeft, type;

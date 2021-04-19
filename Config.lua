@@ -1,5 +1,8 @@
 local ReturnBuffTracker = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 local L                 = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+--@debug@
+local LoggingLib        = LibStub("LoggingLib-0.1")
+--@end-debug@
 
 local options           = nil
 local function getOptions()
@@ -34,7 +37,7 @@ local function getOptions()
                         name = "reset Configuration",
                         desc = "reset to default",
                         type = "execute",
-                        func = ReturnBuffTracker.resetConfig,
+                        func = ReturnBuffTracker.ResetConfiguration,
                     },
                     --set_my_class_only    = {
                     --    name = "my class only",
@@ -74,12 +77,14 @@ local function getOptions()
                             ReturnBuffTracker.db.profile.reportChannel = v
                         end
                     },
+                    --@debug@
                     addonLoggerConfig    = {
                         name   = L["Addon logging level"],
                         type   = "select",
                         desc   = "Log level threshold",
                         order  = 6,
-                        values = ReturnBuffTracker.Constants.LoggingConfig,
+                        --values = ReturnBuffTracker.Constants.LoggingConfig,
+                        values = LoggingLib.logging_level_to_string,
                         get    = function(self)
                             return ReturnBuffTracker.db.profile.logLevel
                         end,
@@ -88,6 +93,7 @@ local function getOptions()
                         end
 
                     },
+                    --@end-debug@
                     headerBars           = {
                         name  = L["Bars to show"],
                         type  = "header",
