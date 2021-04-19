@@ -35,3 +35,15 @@ Buffs.lua
 Config.lua
 # Constants.lua
 Widget.lua
+#
+checks\CheckAlive.lua
+checks\CheckUselessPlayers.lua
+checks\CheckLootMethod.lua
+checks\CheckPowerType.lua
+checks\CheckCombat.lua
+checks\CheckSoulstones.lua
+checks\CheckPlayerRaidBuffs.lua
+checks\CheckWorldBuffs.lua
+checks\CheckConsumables.lua
+
+

@@ -1,9 +1,9 @@
 --local ReturnBuffTracker                           = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 --local L                                           = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 --
---ReturnBuffTracker.Constants                       = {}
+--RBT.Constants                       = {}
 --
---ReturnBuffTracker.Constants.BarOptionGroups       = {
+--RBT.Constants.BarOptionGroups       = {
 --    General    = L["General"],
 --    Player     = L["Player buffs"],
 --    World      = L["World"],
@@ -11,7 +11,7 @@
 --    Misc       = L["Misc"],
 --}
 --
---ReturnBuffTracker.Constants.ReportChannel         = {
+--RBT.Constants.ReportChannel         = {
 --    --"CHANNEL",
 --    --"DND",
 --    --"EMOTE",

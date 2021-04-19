@@ -1,10 +1,10 @@
-local ReturnBuffTracker = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L                 = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local RBT        = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L          = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 --@debug@
-local LoggingLib        = LibStub("LoggingLib-0.1")
+local LoggingLib = LibStub("LoggingLib-0.1")
 --@end-debug@
 
-local options           = nil
+local options    = nil
 local function getOptions()
     if options then return options end
 
@@ -37,13 +37,13 @@ local function getOptions()
                         name = "reset Configuration",
                         desc = "reset to default",
                         type = "execute",
-                        func = ReturnBuffTracker.ResetConfiguration,
+                        func = RBT.ResetConfiguration,
                     },
                     --set_my_class_only    = {
                     --    name = "my class only",
                     --    desc = "only select buffs applicable to my class",
                     --    type = "execute",
-                    --    func = ReturnBuffTracker.ActivatePlayerClassOnly,
+                    --    func = RBT.ActivatePlayerClassOnly,
                     --},
                     headerGlobalSettings = {
                         name  = L["Global Settings"],
@@ -57,11 +57,11 @@ local function getOptions()
                         type  = "toggle",
                         order = 3,
                         get   = function(self)
-                            return ReturnBuffTracker.db.profile.hideNotInRaid
+                            return RBT.db.profile.hideNotInRaid
                         end,
                         set   = function(self, value)
-                            ReturnBuffTracker.db.profile.hideNotInRaid = value
-                            ReturnBuffTracker:CheckHideIfNotInRaid()
+                            RBT.db.profile.hideNotInRaid = value
+                            RBT:CheckVisible()
                         end
                     },
                     reportConfig         = {
@@ -69,29 +69,43 @@ local function getOptions()
                         type   = "select",
                         desc   = "Report channel",
                         order  = 6,
-                        values = ReturnBuffTracker.Constants.ReportChannel,
+                        values = RBT.Constants.ReportChannel,
                         get    = function(self)
-                            return ReturnBuffTracker.db.profile.reportChannel
+                            return RBT.db.profile.reportChannel
                         end,
                         set    = function(self, v)
-                            ReturnBuffTracker.db.profile.reportChannel = v
+                            RBT.db.profile.reportChannel = v
                         end
                     },
                     --@debug@
+                    logging              = {
+                        name  = "Addon logging",
+                        type  = "toggle",
+                        desc  = "Activate Logging",
+                        order = 6,
+                        get   = function(self)
+                            return RBT.db.profile.logging
+                        end,
+                        set   = function(self, v)
+                            RBT.db.profile.logging = v
+                            if not v then
+                                RBT:SetLogLevel(LoggingLib.INACTIVE)
+                            end
+                        end
+                    },
                     addonLoggerConfig    = {
                         name   = L["Addon logging level"],
                         type   = "select",
                         desc   = "Log level threshold",
                         order  = 6,
-                        --values = ReturnBuffTracker.Constants.LoggingConfig,
+                        --values = RBT.Constants.LoggingConfig,
                         values = LoggingLib.logging_level_to_string,
                         get    = function(self)
-                            return ReturnBuffTracker.db.profile.logLevel
+                            return RBT.db.profile.logLevel
                         end,
                         set    = function(self, v)
-                            ReturnBuffTracker.db.profile.logLevel = v
+                            RBT.db.profile.logLevel = v
                         end
-
                     },
                     --@end-debug@
                     headerBars           = {
@@ -110,13 +124,13 @@ local function getOptions()
                                 name   = "",
                                 desc   = "",
                                 order  = 6,
-                                values = ReturnBuffTracker.OptionBarNames[L["General"]],
+                                values = RBT.OptionBarNames[L["General"]],
                                 get    = function(self, bar)
-                                    return not ReturnBuffTracker.db.profile.deactivatedBars[bar]
+                                    return not RBT.db.profile.deactivatedBars[bar]
                                 end,
                                 set    = function(self, bar, value)
-                                    ReturnBuffTracker.db.profile.deactivatedBars[bar] = not value
-                                    ReturnBuffTracker:UpdateBars()
+                                    RBT.db.profile.deactivatedBars[bar] = not value
+                                    RBT:UpdateBars()
                                 end
                             },
                         },
@@ -125,10 +139,10 @@ local function getOptions()
                         --    desc = "check all buffs",
                         --    type = "execute",
                         --    func = function()
-                        --        for bar, value in pairs(ReturnBuffTracker.OptionBarNames[L["General"]]) do
-                        --            ReturnBuffTracker.db.profile.deactivatedBars[bar] = false
+                        --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
+                        --            RBT.db.profile.deactivatedBars[bar] = false
                         --        end
-                        --        ReturnBuffTracker:UpdateBars()
+                        --        RBT:UpdateBars()
                         --    end,
                         --},
                         --uncheck_all = {
@@ -136,10 +150,10 @@ local function getOptions()
                         --    desc = "uncheck all buffs",
                         --    type = "execute",
                         --    func = function()
-                        --        for bar, value in pairs(ReturnBuffTracker.OptionBarNames[L["General"]]) do
-                        --            ReturnBuffTracker.db.profile.deactivatedBars[bar] = true
+                        --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
+                        --            RBT.db.profile.deactivatedBars[bar] = true
                         --        end
-                        --        ReturnBuffTracker:UpdateBars()
+                        --        RBT:UpdateBars()
                         --    end,
                         --},
 
@@ -155,13 +169,13 @@ local function getOptions()
                                 name   = "",
                                 desc   = "",
                                 order  = 6,
-                                values = ReturnBuffTracker.OptionBarNames[L["Player buffs"]],
+                                values = RBT.OptionBarNames[L["Player buffs"]],
                                 get    = function(self, bar)
-                                    return not ReturnBuffTracker.db.profile.deactivatedBars[bar]
+                                    return not RBT.db.profile.deactivatedBars[bar]
                                 end,
                                 set    = function(self, bar, value)
-                                    ReturnBuffTracker.db.profile.deactivatedBars[bar] = not value
-                                    ReturnBuffTracker:UpdateBars()
+                                    RBT.db.profile.deactivatedBars[bar] = not value
+                                    RBT:UpdateBars()
                                 end
                             },
                         }
@@ -177,13 +191,13 @@ local function getOptions()
                                 name   = "",
                                 desc   = "",
                                 order  = 6,
-                                values = ReturnBuffTracker.OptionBarNames[L["World"]],
+                                values = RBT.OptionBarNames[L["World"]],
                                 get    = function(self, bar)
-                                    return not ReturnBuffTracker.db.profile.deactivatedBars[bar]
+                                    return not RBT.db.profile.deactivatedBars[bar]
                                 end,
                                 set    = function(self, bar, value)
-                                    ReturnBuffTracker.db.profile.deactivatedBars[bar] = not value
-                                    ReturnBuffTracker:UpdateBars()
+                                    RBT.db.profile.deactivatedBars[bar] = not value
+                                    RBT:UpdateBars()
                                 end
                             },
                         }
@@ -199,12 +213,12 @@ local function getOptions()
                                 name   = "",
                                 desc   = "",
                                 order  = 6,
-                                values = ReturnBuffTracker.OptionBarNames[L["Consumable"]],
-                                get    = function(self, bar) return not ReturnBuffTracker.db.profile.deactivatedBars[bar]
+                                values = RBT.OptionBarNames[L["Consumable"]],
+                                get    = function(self, bar) return not RBT.db.profile.deactivatedBars[bar]
                                 end,
                                 set    = function(self, bar, value)
-                                    ReturnBuffTracker.db.profile.deactivatedBars[bar] = not value
-                                    ReturnBuffTracker:UpdateBars()
+                                    RBT.db.profile.deactivatedBars[bar] = not value
+                                    RBT:UpdateBars()
                                 end
                             },
                         }
@@ -218,13 +232,13 @@ local function getOptions()
     return options
 end
 
-function ReturnBuffTracker:ChatCommand(input)
+function RBT:ChatCommand(input)
     if not input or input:trim() == "" then
         InterfaceOptionsFrame_OpenToCategory(
-                ReturnBuffTracker.optFrames.ReturnBuffTracker)
+                RBT.optFrames.ReturnBuffTracker)
         -- Workaround: https://www.wowinterface.com/forums/showthread.php?t=54599
         InterfaceOptionsFrame_OpenToCategory(
-                ReturnBuffTracker.optFrames.ReturnBuffTracker)
+                RBT.optFrames.ReturnBuffTracker)
     else
         LibStub("AceConfigCmd-3.0").HandleCommand(ReturnBuffTracker,
                                                   "ReturnBuffTracker",
@@ -232,13 +246,13 @@ function ReturnBuffTracker:ChatCommand(input)
     end
 end
 
-function ReturnBuffTracker:SetupOptions()
-    ReturnBuffTracker.optFrames = {}
+function RBT:SetupOptions()
+    RBT.optFrames = {}
     LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("ReturnBuffTracker",
                                                           getOptions)
-    ReturnBuffTracker.optFrames.ReturnBuffTracker = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ReturnBuffTracker",
-                                                                                                    "Return Buff Tracker",
-                                                                                                    nil, "general")
-    ReturnBuffTracker:RegisterChatCommand("ReturnBuffTracker", "ChatCommand")
-    ReturnBuffTracker:RegisterChatCommand("rbt", "ChatCommand")
+    RBT.optFrames.ReturnBuffTracker = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ReturnBuffTracker",
+                                                                                      "Return Buff Tracker",
+                                                                                      nil, "general")
+    RBT:RegisterChatCommand("ReturnBuffTracker", "ChatCommand")
+    RBT:RegisterChatCommand("rbt", "ChatCommand")
 end
