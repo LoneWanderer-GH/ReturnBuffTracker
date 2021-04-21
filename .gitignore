@@ -1,3 +1,13 @@
 .vscode/
 scripts/
 
+libs/**/*
+
+.idea/vcs.xml
+.idea/workspace.xml
+
+checks/checks.iml
+
+.idea/modules.xml
+
+.idea/misc.xml

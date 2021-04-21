@@ -1,20 +1,49 @@
-## Title: ReturnBuffTracker
-## Interface: 11302
-## Version: 0.6.3
-## Author: Irpa
+## Title: |cFF22B14CReturnBuffTracker|r v@project-version@
+## Interface: 11306
+## Notes: Shows raid buffs status |cff00b3ff v@project-version@|r modifications by |cff00ffdaLoneWanderer-GH
+## Version: @project-version@
+## Author: Irpa, continued by |cff00ffdaLoneWanderer-GH|r
 ## SavedVariables: ReturnBuffTrackerDB
 ## X-Category: Interface Enhancements
+## X-Curse-Project-ID: 474426
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: delayed
 
+# ## RequiredDeps:
+
+#@debug@
+## OptionalDeps: _DebugLog, LibSharedMedia-3.0
+#@end-debug@
+
+# packaged on @project-date-integer@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\AceGUI-3.0\AceGUI-3.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\AceConfig-3.0\AceConfig-3.0.xml
 libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
-
+#@debug@
+libs\LoggingLib\LoggingLib.xml
+#@end-debug@
+Locales\Locales.xml
+#
 ReturnBuffTracker.lua
 Buffs.lua
 Config.lua
-Constants.lua
+# Constants.lua
 Widget.lua
+#
+checks\CheckAlive.lua
+checks\CheckUselessPlayers.lua
+checks\CheckLootMethod.lua
+checks\CheckPowerType.lua
+checks\CheckCombat.lua
+checks\CheckSoulstones.lua
+checks\CheckPlayerRaidBuffs.lua
+checks\CheckWorldBuffs.lua
+checks\CheckConsumables.lua
+
+
