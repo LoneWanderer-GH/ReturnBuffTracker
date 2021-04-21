@@ -31,12 +31,17 @@ jobs:
       - uses: BigWigsMods/packager@master
         name: Build Classic and upload to CurseForge
         with:
-          args: -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
+          args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
+
+      - name: Find the zip name
+        run: echo 'ZIP_NAME='$(ls .release/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
 
       - name: Store built zip
         uses: actions/upload-artifact@v2
         with:
-          path: .release
+          name: ${{ env.ZIP_NAME }}
+          path: .release/*ReturnBuffTracker*.zip
+
 
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
@@ -50,4 +55,5 @@ jobs:
       - name: Get artifact
         uses: actions/download-artifact@v2
         with:
-          path: .release
+          name: ${{ env.ZIP_NAME }}
+          path: zip
