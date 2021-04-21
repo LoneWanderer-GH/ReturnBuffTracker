@@ -13,13 +13,17 @@ tools-used:
   # https://www.curseforge.com/wow/addons/debuglog
   - debuglog
   - logginglib
+#  - https://www.curseforge.com/wow/addons/logginglib
+
 
 #required-dependencies:
 
-#optional-dependencies:
-#  # https://www.curseforge.com/wow/addons/debuglog
-#  - debuglog
-#
+optional-dependencies:
+  # https://www.curseforge.com/wow/addons/debuglog
+  - debuglog
+#  - https://www.curseforge.com/wow/addons/logginglib
+  - logginglib
+
 
 externals:
   libs/CallbackHandler-1.0:
