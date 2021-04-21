@@ -34,7 +34,7 @@ jobs:
           args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
 
       - name: Find the zip name
-        run: echo 'ZIP_NAME='$(ls .release/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
+        run: echo 'ZIP_NAME='$(ls ./release/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
 
       - name: Store built zip
         uses: actions/upload-artifact@v2
