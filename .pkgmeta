@@ -29,7 +29,7 @@ externals:
   #      url: svn://svn.wowace.com/wow/libsharedmedia-3-0/mainline/trunk/LibSharedMedia-3.0
   #      tag: latest
   libs/LibStub:
-    url: svn://svn.wowace.com/wow/libstub/mainline/trunk/LibStub-1.0
+    url: svn://svn.wowace.com/wow/libstub/mainline/trunk/
     tag: latest
   libs/AceEvent-3.0:
     url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceEvent-3.0
