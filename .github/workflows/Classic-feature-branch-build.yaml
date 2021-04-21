@@ -34,13 +34,16 @@ jobs:
           args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
 
       - name: Find the zip name
-        run: echo 'ZIP_NAME='$(ls ./release/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
+        run: echo 'ZIP_NAME='$(ls ./zip/*ReturnBuffTracker*.zip | xargs -n 1 basename) >> $GITHUB_ENV
+        
+      - name: Find the zip fullpath
+        run: echo 'ZIP_PATH='$(ls ./zip/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
 
       - name: Store built zip
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.ZIP_NAME }}
-          path: ./release/${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_PATH }}
 
 
     env:
@@ -56,4 +59,4 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ env.ZIP_NAME }}
-          path: zip
+          path: ${{ env.ZIP_PATH }}
