@@ -1,4 +1,4 @@
-## Title: |cFF22B14CReturnBuffTracker v@project-version@
+## Title: |cFF22B14CReturnBuffTracker|r v@project-version@
 ## Interface: 11306
 ## Notes: Shows raid buffs status |cff00b3ff v@project-version@|r modifications by |cff00ffdaLoneWanderer-GH
 ## Version: @project-version@
