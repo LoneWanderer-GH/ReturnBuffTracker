@@ -1,0 +1,37 @@
+name: Classic-feature-branch-build
+
+on:
+    push:
+        branches:
+            - 'feature/**'
+        branches-ignore:
+            - 'main'
+            - 'master'
+            - 'releases/**'
+            - 'release/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v1
+
+      #    - uses: BigWigsMods/packager@master
+      #      name: Build Retail and upload to CurseForge
+      #      with:
+      #        args: -l -d
+      - uses: BigWigsMods/packager@master
+        name: Build Classic and upload to CurseForge
+        with:
+          args: -n help
+
+      - uses: BigWigsMods/packager@master
+        name: Build Classic and upload to CurseForge
+        with:
+          args: -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
+
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
