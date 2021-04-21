@@ -3,7 +3,7 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-
+local DMF_specific                        = { [true] = "active", [false] = "inactive" }
 local world_buffs                         = {
     {
         name             = L["Rallying Cry of the Dragonslayer"],
@@ -55,14 +55,30 @@ local world_buffs                         = {
         color            = { r = 0, g = 1, b = 1 },
         buffIDs          = { 23768 },
         buffOptionsGroup = L["World"],
-        classes          = { HUNTER, WARRIOR, ROGUE, WARLOCK, MAGE }
-    },
+        classes          = { HUNTER, WARRIOR, ROGUE, WARLOCK, MAGE },
+        SpecialBarDisplay   = function(buff)
+            local is_active = RBT:isDMFActive()
+            if not is_active then
+                buff.bar.buffNameTextString:SetText("DMF " .. DMF_specific[is_active])
+                local tmp = format("%s (%s)", buff.shortName, DMF_specific[is_active])
+                buff.bar.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
+                buff.bar.buffNameTextString:SetText(tmp)
+                buff.percentage_float = 1.0
+                buff.percentage_str = "0%"
+            end
+        end
+},
 }
+
+--local function SpecialBarDisplay(buff)
+--        if buff.shortName and buff.shortName == L["DMF Damage"] then
+--
+--end
 
 local tmp_c
 for i, c in ipairs(world_buffs) do
-    tmp_c                  = c
-    tmp_c.func             = RBT.CheckBuff
-    tmp_c.BuildToolTipText = RBT.BuildToolTip
-    RBT:RegisterCheck(tmp_c)
+tmp_c = c
+--tmp_c.func             = RBT.CheckBuff
+--tmp_c.BuildToolTipText = RBT.BuildToolTip
+RBT:RegisterCheck(tmp_c)
 end

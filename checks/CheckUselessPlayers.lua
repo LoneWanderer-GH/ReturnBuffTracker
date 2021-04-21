@@ -13,7 +13,7 @@ local function Check(buff)
     --@debug@
     RBT:Debugf("CheckCannotHelpRaid", "CheckCannotHelpRaid")
     --@end-debug@
-    RBT:ResetBuffData(buff)
+    buff:ResetBuffData()
     if buff.deco_players then
         RBT:clearArrayList(buff.deco_players)
     else
@@ -50,7 +50,7 @@ local function Check(buff)
             slacker                  = false -- we assume they are doing good :)
             buff.total               = buff.total + 1
             inInstance, instanceType = IsInInstance(name)
-            if level < MAX_PLAYER_LEVEL then
+            if online and level < MAX_PLAYER_LEVEL then
                 slacker = true
                 --@debug@
                 RBT:Debugf("CheckCannotHelpRaid", "Adding Low Level: %s", name)

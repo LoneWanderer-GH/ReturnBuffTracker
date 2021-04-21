@@ -105,18 +105,21 @@ L["Sayge's Dark Fortune of Damage"]                   = "Sombre Prédiction de S
 L["DMF Damage"]                                       = "+10% dmg Sombrelune"
 
 L["Greater Arcane Elixir"]                            = "Elixir des Arcanes Supérieur"
-L["Greater Arcane E."]                                = "E. d. Arcanes Sup."
-L["+dmg"]                                             = "+dmg"
-L["+magic dmg"]                                       = "+dmg"
-L["+fire dmg"]                                        = "+dmg feu"
+--L["Greater Arcane E."]                                = "+30dmg"--"E. d. Arcanes Sup."
+L["+30dmg"]                                           = "+30dmg"--"E. d. Arcanes Sup."
+--L["+dmg"]                                             = "+20dmg/+30dmg"
+--L["+magic dmg"]                                       = "+20dmg/+30dmg"--"+dmg"
+L["+20dmg||+30dmg"]                                   = "+20dmg||+30dmg"--"+dmg"
+L["+40 fire dmg"]                                     = "+40 dmg feu"
 
 L["Arcane Elixir"]                                    = "Elixir des Arcanes"
-L["Arcane E."]                                        = "E. d. Arcanes"
+--L["Arcane E."]                                        = "E. d. Arcanes"
+L["+20dmg"]                                           = "+20dmg"
 
 L["Consumable"]                                       = "Consommable"
 
-L["Elixir of Shadow Power"]                           = "Elixir de Pouvoir de l'Ombre"
-L["+shadow dmg"]                                      = "+dmg ombre"
+L["Elixir of Shadow Power"]                           = "Elixir de Puissance de l'Ombre"
+L["+40 shadow dmg"]                                   = "+40 dmg ombre"
 
 L["Elixir of Fire Mastery"]                           = "Elixir de Maîtrise du feu Supérieure"
 L["E. Fire Mast."]                                    = "E. de M. Feu sup."
@@ -142,7 +145,7 @@ L["E. Fortitude"]                                     = "E. de Robu."
 
 L["Fire Protection Potions"]                          = "Potions RF"
 L["Fire Protection"]                                  = "Protection contre le Feu"
-L["Fire Prot."]                                       = "Prot. Feu"
+L["Fire Pot."]                                       = "Prot. Feu"
 --L["(Greater) Fire Protection Potion"]   = "Protection contre le Feu (Supérieure)"
 --L["Greater Fire Protection"]            = "Protection contre le Feu Supérieure"
 --L["Greater Fire Prot."]                 = "Prot. Feu Sup."
@@ -150,7 +153,7 @@ L["Fire Prot."]                                       = "Prot. Feu"
 
 L["Nature Protection Potions"]                        = "Potions RN"
 L["Nature Protection"]                                = "Protection contre la Nature"
-L["Nature Prot."]                                     = "Prot. Nat"
+L["Nature Pot."]                                      = "Prot. Nat"
 
 --L["(Greater) Nature Protection Potion"] = "Protection contre la Nature (Supérieure)"
 --L["Greater Nature Protection"]          = "Protection contre la Nature Supérieure"
@@ -159,7 +162,7 @@ L["Nature Prot."]                                     = "Prot. Nat"
 
 L["Shadow Protection Potions"]                        = "Potions RO"
 L["Shadow Protection"]                                = "Protection contre l'ombre"
-L["Shadow Prot."]                                     = "Prot. Ombre"
+L["Shadow Pot."]                                      = "Pot. Ombre"
 
 --L["(Greater) Shadow Protection Potion"] = "Protection contre l'Ombre (Supérieure)"
 --L["Greater Shadow Protection"]          = "Protection contre l'Ombre Supérieure"
@@ -167,14 +170,14 @@ L["Shadow Prot."]                                     = "Prot. Ombre"
 --L["Greater Shadow Protection Potion"]   = "Potion de Protection contre l'Ombre Supérieure"
 
 L["Arcane Protection"]                                = "Protection des arcanes"
-L["Arcane Prot."]                                     = "Prot. arc."
+L["Arcane Pot."]                                      = "Prot. arc."
 L["Arcane Protection Potions"]                        = "Potions RA"
 
 --L["Greater Arcane Protection Potion"]   = "Potion de Protection contre les Arcanes Supérieure"
 
 L["Frost Protection Potions"]                         = "Potions RG"
 L["Frost Protection"]                                 = "Protection contre le Givre"
-L["Frost Prot."]                                      = "Prot. Givre"
+L["Frost Pot."]                                       = "Prot. Givre"
 --L["Greater Frost Protection Potion"]    = "Potion de Protection contre le Givre Supérieure"
 
 L["Dead:"]                                            = "Mort(s) :"
