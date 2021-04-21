@@ -79,19 +79,19 @@ local function ResetBuffData(buff)
 end
 
 function RBT:CheckUnitCannotHelpRaid(name)
-    local slacker                  = false
+    local slacker = false
 
-    local afk                      = false
-    local fd                       = false
-    local inInstance, instanceType = IsInInstance(name)
-    local co                       = UnitIsConnected(name)
-    local not_in_raid              = not inInstance or instanceType ~= "raid"
+    local afk     = false
+    local fd      = false
+    --local inInstance, instanceType = IsInInstance(name)
+    local co      = UnitIsConnected(name)
+    --local not_in_raid              = not inInstance or instanceType ~= "raid"
     if co then
         afk = UnitIsAFK(name)
         fd  = UnitIsFeignDeath(name)
     end
-    slacker = not co or afk or fd or not_in_raid
-    return slacker, not co, fd, not_in_raid
+    slacker = not co or afk or fd -- or not_in_raid
+    return slacker, not co, fd --, not_in_raid
 end
 
 function RBT:CheckUnitIsRealDPS(name)
@@ -211,7 +211,7 @@ local function CheckBuff(buff)
     for i = 1, 40 do
         player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(i)
         if player_class then
-            slacker, disco, fd, not_in_raid = RBT:CheckUnitCannotHelpRaid(player_name)
+            slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
             if slacker then
                 --@debug@
                 RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name))
@@ -298,7 +298,7 @@ function RBT:RegisterCheck(check_conf)
         check_conf.BuildToolTipText = BuildToolTip
     end
     if not check_conf.SpecialBarDisplay then
-        check_conf.SpecialBarDisplay = function ()
+        check_conf.SpecialBarDisplay = function()
             return check_conf.displayText
         end
     end
