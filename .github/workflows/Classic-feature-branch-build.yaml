@@ -1,14 +1,14 @@
 name: Classic-feature-branch-build
 
 on:
-    push:
-        branches:
-            - 'feature/**'
-        branches-ignore:
-            - 'main'
-            - 'master'
-            - 'releases/**'
-            - 'release/**'
+  push:
+    branches:
+      - 'feature/**'
+#        branches-ignore:
+#            - 'main'
+#            - 'master'
+#            - 'releases/**'
+#            - 'release/**'
 
 jobs:
   build:
