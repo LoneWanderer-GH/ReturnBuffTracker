@@ -126,7 +126,7 @@ local player_raid_buffs                   = {
 local tmp_c
 for i, c in ipairs(player_raid_buffs) do
     tmp_c                  = c
-    tmp_c.func             = RBT.CheckBuff
-    tmp_c.BuildToolTipText = RBT.BuildToolTip
+    --tmp_c.func             = RBT.CheckBuff
+    --tmp_c.BuildToolTipText = RBT.BuildToolTip
     RBT:RegisterCheck(tmp_c)
 end

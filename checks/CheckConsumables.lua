@@ -6,8 +6,10 @@ local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALA
 
 local consumables                         = {
     {
+        --name             = L["Greater Arcane Elixir"],
+        --shortName        = L["Greater Arcane E."],
         name             = L["Greater Arcane Elixir"],
-        shortName        = L["Greater Arcane E."],
+        shortName        = L["+30dmg"],
         --optionText       = L["+dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 17539 },
@@ -17,7 +19,7 @@ local consumables                         = {
     },
     {
         name             = L["Arcane Elixir"],
-        shortName        = L["Arcane E."],
+        shortName        = L["+20dmg"],
         --optionText       = L["+dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11390 },
@@ -26,9 +28,9 @@ local consumables                         = {
         classes          = { WARLOCK, MAGE }
     },
     {
-        name             = L["+magic dmg"],
-        shortName        = L["+magic dmg"],
-        optionText       = L["+magic dmg"],
+        name             = L["+20dmg||+30dmg"],
+        shortName        = L["+20dmg||+30dmg"],
+        optionText       = L["+20dmg||+30dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11390, 17539 },
         buffOptionsGroup = L["Consumable"],
@@ -37,8 +39,8 @@ local consumables                         = {
     },
     {
         name             = L["Elixir of Shadow Power"],
-        shortName        = L["+shadow dmg"],
-        optionText       = L["+shadow dmg"],
+        shortName        = L["+40 shadow dmg"],
+        optionText       = L["+40 shadow dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11474 },
         buffOptionsGroup = L["Consumable"],
@@ -47,8 +49,8 @@ local consumables                         = {
     },
     {
         name             = L["Elixir of Fire Mastery"],
-        shortName        = L["+fire dmg"],
-        optionText       = L["+fire dmg"],
+        shortName        = L["+40 fire dmg"],
+        optionText       = L["+40 fire dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 26276 },
         buffOptionsGroup = L["Consumable"],
@@ -129,14 +131,13 @@ local consumables                         = {
     },
     {
         name             = L["Fire Protection"],
-        shortName        = L["Fire Prot."],
+        shortName        = L["Fire Pot."],
         optionText       = L["Fire Protection Potions"],
         color            = { r = 1, g = 0, b = 0 },
         buffIDs          = { 7233, 17543 },
         sourceItemId     = { 6049, 13457 },
         buffOptionsGroup = L["Consumable"],
     },
-
     -- {
     --    name             = L["Greater Fire Protection"],
     --    shortName        = L["Greater Fire Prot."],
@@ -147,14 +148,13 @@ local consumables                         = {
     --},
     {
         name             = L["Nature Protection"],
-        shortName        = L["Nature Prot."],
+        shortName        = L["Nature Pot."],
         optionText       = L["Nature Protection Potions"],
         color            = { r = 0, g = 1, b = 0 },
         buffIDs          = { 7254, 17546 },
         buffOptionsGroup = L["Consumable"],
         sourceItemId     = { 6052, 13458 },
     },
-
     --{
     --    name             = L["Greater Nature Protection"],
     --    shortName        = L["Greater Nature Prot."],
@@ -163,17 +163,15 @@ local consumables                         = {
     --    buffIDs          = { 17546 },
     --    buffOptionsGroup = L["Consumable"]
     --},
-
     {
         name             = L["Shadow Protection"],
-        shortName        = L["Shadow Prot."],
+        shortName        = L["Shadow Pot."],
         optionText       = L["Shadow Protection Potions"],
         color            = { r = 0.5, g = 0, b = 0.5 },
         buffIDs          = { 7242, 17548 },
         buffOptionsGroup = L["Consumable"],
         sourceItemId     = { 6048, 13459 },
     },
-
     --{
     --    name             = L["Greater Shadow Protection"],
     --    shortName        = L["Greater Shadow Prot."],
@@ -184,17 +182,16 @@ local consumables                         = {
     --},
     {
         name             = L["Arcane Protection"],
-        shortName        = L["Arcane Prot."],
+        shortName        = L["Arcane Pot."],
         optionText       = L["Arcane Protection Potions"],
         color            = { r = 0, g = 0, b = 1 },
         buffIDs          = { 17549 },
         buffOptionsGroup = L["Consumable"],
         sourceItemId     = { 13461 },
     },
-
     {
         name             = L["Frost Protection"],
-        shortName        = L["Frost Prot."],
+        shortName        = L["Frost Pot."],
         optionText       = L["Frost Protection Potions"],
         color            = { r = 0, g = 1, b = 1 },
         buffIDs          = { 7239, 17544 },
@@ -205,8 +202,8 @@ local consumables                         = {
 
 local tmp_c
 for i, c in ipairs(consumables) do
-    tmp_c                  = c
-    tmp_c.func             = RBT.CheckBuff
-    tmp_c.BuildToolTipText = RBT.BuildToolTip
+    tmp_c = c
+    --tmp_c.func             = RBT.CheckBuff
+    --tmp_c.BuildToolTipText = RBT.BuildToolTip
     RBT:RegisterCheck(tmp_c)
 end

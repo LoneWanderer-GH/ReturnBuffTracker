@@ -10,7 +10,7 @@ local GetUnitName               = GetUnitName
 local tinsert, tconcat, tremove = table.insert, table.concat, table.remove
 
 local function Check(buff)
-    RBT:ResetBuffData(buff)
+    buff:ResetBuffData()
 
     local name, group, localized_class, class
     if buff.players_having_soulstone then

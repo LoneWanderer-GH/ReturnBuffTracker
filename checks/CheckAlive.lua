@@ -8,10 +8,13 @@ local tinsert, tconcat, tremove = table.insert, table.concat, table.remove
 
 local function Check(buff)
 
-    RBT:ResetBuffData(buff)
+    buff:ResetBuffData()
     if buff.dead_players_by_classes then
-        for _, class in ipairs(RBT.all_classes) do
-            RBT:clearArrayList(buff.dead_players_by_classes[class])
+        --for _, class in ipairs(RBT.all_classes) do
+        --    RBT:clearArrayList(buff.dead_players_by_classes[class])
+        --end
+        for _,v in pairs(buff.dead_players_by_classes) do
+            RBT:clearArrayList(v)
         end
     else
         buff.dead_players_by_classes = {}
@@ -42,7 +45,7 @@ local function BuildToolTip(buff)
     local dead_number             = (buff.total - buff.count)
     local percent                 = RBT:compute_percent_string(dead_number, buff.total)
     buff.tooltip[1]               = format("%s %d/%d - %s", L["Dead:"], dead_number, buff.total, percent)
-    for dead_class, dead_names in ipairs(dead_players_by_classes) do
+    for dead_class, dead_names in pairs(dead_players_by_classes) do
         if #dead_names > 0 then
             buff.tooltip[j] = format("%s: %s",
                                      RBT.localized_classes[dead_class],

@@ -84,7 +84,9 @@ local default_bar_height = 14
 
 
 function RBT:CreateMainFrame()
-    local theFrame = CreateFrame("Frame", "ReturnBuffTrackerUI", UIParent)
+    local theFrame          = CreateFrame("Frame", "ReturnBuffTrackerUI", UIParent)
+    RBT.mainFrame           = theFrame
+    RBT.mainFrame.buff_bars = {}
 
     theFrame:ClearAllPoints()
     if RBT.db.profile.position then
@@ -130,6 +132,10 @@ function RBT:CreateMainFrame()
     resizeButton:SetScript("OnMouseUp", function(self, button)
         theFrame:StopMovingOrSizing()
         RBT.db.profile.width = theFrame:GetWidth()
+        --local totalWidth     = theFrame:GetWidth() - 10
+        for _, b in ipairs(theFrame.buff_bars) do
+            b:UpdateWidth()
+        end
     end)
 
     theFrame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
@@ -140,10 +146,14 @@ function RBT:CreateMainFrame()
         end
         RBT.db.profile.position.x = theFrame:GetLeft()
         RBT.db.profile.position.y = theFrame:GetBottom()
+        --local totalWidth          = theFrame:GetWidth() - 10
+        for _, b in ipairs(theFrame.buff_bars) do
+            b:UpdateWidth()
+        end
     end)
 
     theFrame:Show()
-    RBT.mainFrame = theFrame
+
 end
 
 function RBT:SetNumberOfBarsToDisplay(numOfBars)
@@ -159,7 +169,7 @@ end
 --    theBar.buffNameTextString:SetPoint("CENTER", RBT.mainFrame, "TOP", 0, -7)
 --    theBar.buffNameTextString:SetText(text)
 --end
-local DMF_specific = { [true] = "active", [false] = "inactive" }
+--local DMF_specific = { [true] = "active", [false] = "inactive" }
 function RBT:CreateBuffInfoBar(buff_index, buff)
     -- text, r, g, b)
     local theBar = CreateFrame("Frame", nil, RBT.mainFrame)
@@ -167,7 +177,7 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     theBar.buff  = buff
 
     theBar:SetHeight(default_bar_height)
-    theBar:SetWidth(120)
+    theBar:SetWidth(RBT.mainFrame:GetWidth() - 10)
     theBar:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5)
 
     theBar.texture = theBar:CreateTexture(nil, "BACKGROUND")
@@ -175,19 +185,22 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     theBar.texture:SetColorTexture(buff.color.r, buff.color.g, buff.color.b, 0.9)
     theBar.texture:SetHeight(default_bar_height)
     theBar.texture:Hide()
+    theBar.texture:SetParent(theBar)
 
     theBar.buffNameTextString = theBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     --theBar.textString:SetPoint("CENTER", RBT.mainFrame, "TOP", 0, -7)
     --theBar.buffNameTextString:SetPoint("LEFT", RBT.mainFrame, "TOP", 0, -7)
     theBar.buffNameTextString:SetPoint("LEFT", theBar, "LEFT")
     theBar.buffNameTextString:SetText(buff.displayText)
+    theBar.buffNameTextString:SetParent(theBar)
 
     theBar.percentTextString = theBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     theBar.percentTextString:SetPoint("RIGHT", theBar, "RIGHT")
+    theBar.percentTextString:SetParent(theBar)
     --theBar.percentTextString:SetText(text)
 
 
-    theBar.SetIndex = function(self, index)
+    theBar.SetIndex    = function(self, index)
         if index then
             theBar:Show()
             theBar:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5 - (index * default_bar_height))
@@ -199,24 +212,11 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         end
     end
 
-    theBar.Update   = function(self)
-        --, value, maxValue, tooltip_lines)
-        --local percentage = buff.count / buff.total
-        local percentage_str, percentage_float = RBT:compute_percent_string(self.buff.count, self.buff.total)
-
-        local totalWidth                       = RBT.mainFrame:GetWidth() - 10
-
-        if self.buff.shortName and self.buff.shortName == L["DMF Damage"] then
-            local is_active = RBT:isDMFActive()
-            local tmp       = format("%s (%s)", self.buff.shortName, DMF_specific[is_active])
-            self.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
-            self.buffNameTextString:SetText(tmp)
-            percentage_str = "0%"
-        end
-        if percentage_float then
-            local width = floor(totalWidth * percentage_float)
-            if width > 0 then
-                self.texture:SetWidth(totalWidth * percentage_float)
+    theBar.UpdateWidth = function(self)
+        local w = RBT.mainFrame:GetWidth() - 10
+        if self.percentage_float then
+            if self.percentage_float > 0.1 then
+                self.texture:SetWidth(w * self.percentage_float)
                 self.texture:Show()
             else
                 self.texture:Hide()
@@ -224,7 +224,42 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         else
             self.texture:Hide()
         end
-        self:SetWidth(totalWidth)
+        self:SetWidth(w)
+    end
+
+    theBar.Update      = function(self)
+        --, value, maxValue, tooltip_lines)
+        --local percentage = buff.count / buff.total
+        local percentage_str, percentage_float = RBT:compute_percent_string(self.buff.count, self.buff.total)
+        self.percentage_float = percentage_float
+        self.percentage_str   = percentage_str
+        --local totalWidth                       = RBT.mainFrame:GetWidth() - 10
+        self.buff:SpecialBarDisplay()
+        --if self.buff.shortName and self.buff.shortName == L["DMF Damage"] then
+        --    local is_active = RBT:isDMFActive()
+        --    local tmp       = format("%s (%s)", self.buff.shortName, DMF_specific[is_active])
+        --    self.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
+        --    self.buffNameTextString:SetText(tmp)
+        --    self.percentage_str = "0%"
+        --elseif self.displayText == L["Loot Method"] then
+        --
+        --end
+
+        self:UpdateWidth()
+        --if percentage_float then
+        --    self.percentage_float = percentage_float
+        --    local width           = floor(totalWidth * percentage_float)
+        --    if width > 0 then
+        --        self.texture:SetWidth(totalWidth * percentage_float)
+        --        self.texture:Show()
+        --    else
+        --        self.texture:Hide()
+        --    end
+        --else
+        --    self.texture:Hide()
+        --end
+        --self:SetWidth(totalWidth)
+
         --self.tooltip_lines = theBar.buff.tooltip -- tooltip_lines
         --theBar.percentTextString:SetText(format("%.0f%%", ((value / maxValue) * 100.0)))
         --if percentage ~= percentage then
@@ -233,14 +268,21 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         --    theBar.percentTextString:SetText(format("%.0f%%", percentage * 100.0))
         --end
 
-        self.percentTextString:SetText(percentage_str)
+        self.percentTextString:SetText(self.percentage_str)
     end
+
+    --theBar:SetScript("OnUpdate", function(self, ...)
+    --    --local totalWidth                       = RBT.mainFrame:GetWidth() - 10
+    --    --self.percentTextString:SetText(self.percentTextString:GetText())
+    --    local totalWidth = RBT.mainFrame:GetWidth() - 10
+    --    self:SetWidth(totalWidth)
+    --end)
 
     theBar:SetScript("OnEnter", function(self)
         --GameTooltip:AddLine("Missing " .. self.text .. ": ", 1, 1, 1)
         GameTooltip:AddLine(format(L["Missing %s"], self.buff.displayText), 1, 1, 1)
         --if self.tooltip_lines then
-        self.buff:BuildToolTipText(self.buff)
+        --self.buff:BuildToolTipText()
         if self.buff.tooltip then
             GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
             --for k, v in ipairs(self.tooltip_lines) do
@@ -283,6 +325,8 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
             RBT.db.profile.position.y = RBT.mainFrame:GetBottom()
         end
     end)
+
+    tinsert(RBT.mainFrame.buff_bars, theBar)
 
     return theBar
 end

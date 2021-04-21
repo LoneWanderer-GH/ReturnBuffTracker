@@ -10,7 +10,7 @@ local UnitPowerType                       = UnitPowerType
 
 local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
 
-local POWER_IGNORED_ROLES                 = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK" }
+local POWER_IGNORED_ROLES                 = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK", "CAT" }
 for p, _ in pairs(Enum.PowerType) do
     table.insert(POWER_IGNORED_ROLES, p)
 end
@@ -20,15 +20,20 @@ local function CheckPowerType(buff)
     RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
     --@end-debug@
 
-    RBT:ResetBuffData(buff)
+    buff:ResetBuffData()
     if buff.ignoredPlayers then
-        for _, role in ipairs(POWER_IGNORED_ROLES) do
-            RBT:clearArrayList(buff.ignoredPlayers[role])
+        --for role, name_list in ipairs(POWER_IGNORED_ROLES) do
+        for role, name_list in pairs(buff.ignoredPlayers) do
+            --RBT:clearArrayList(buff.ignoredPlayers[role])
+            RBT:clearArrayList(name_list)
         end
     else
         buff.ignoredPlayers = {}
-        for _, role in ipairs(POWER_IGNORED_ROLES) do
-            buff.ignoredPlayers[role] = {}
+        for _, role_number in ipairs(POWER_IGNORED_ROLES) do
+            buff.ignoredPlayers[role_number] = {}
+            --@debug@
+            RBT:Debugf("CheckPowerType", "Adding power ignore: %s", role_number)
+            --@end-debug@
         end
     end
 
@@ -44,58 +49,64 @@ local function CheckPowerType(buff)
             slacker, disco, fd, not_in_raid = RBT:CheckUnitCannotHelpRaid(name)
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", tostring(name), unitPowerTypeName)
+                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", name) --, unitPowerTypeName)
                 --@end-debug@
                 tinsert(buff.ignoredPlayers["Slacker"], name)
             else
                 unitPowerType, unitPowerTypeName = UnitPowerType(name)
-                --@debug@
-                RBT:Debugf("CheckPowerType", "Checking %s -> %s", tostring(name), unitPowerTypeName)
-                --@end-debug@
-                if unitPowerType ~= buff.powerType then
-                    tinsert(buff.ignoredPlayers[unitPowerType], name)
-                else
-                    --@debug@
-                    RBT:Debugf("CheckPowerType", "%s has the targeted power (%s)", tostring(name), unitPowerTypeName)
-                    --@end-debug@
+                -- --@debug@
+                -- RBT:Debugf("CheckPowerType", "Checking %s -> %s", tostring(name), unitPowerTypeName)
+                -- --@end-debug@
+                --if unitPowerType ~= buff.powerType then
+                --    if not buff.ignoredPlayers[unitPowerType] then
+                --        --@debug@
+                --        RBT:Warningf("CheckPowerType", "Missing energy ?! %s, %s", unitPowerType, unitPowerTypeName)
+                --        buff.ignoredPlayers[unitPowerTypeName] = {}
+                --        --@end-debug@
+                --    end
+                --    tinsert(buff.ignoredPlayers[unitPowerTypeName], name)
+                --else
+                -- --@debug@
+                -- RBT:Debugf("CheckPowerType", "%s has the targeted power (%s)", tostring(name), unitPowerTypeName)
+                -- --@end-debug@
 
-                    --unitPower    = UnitPower(name, buff.powerType)
-                    --unitPowerMax = UnitPowerMax(name, buff.powerType)
-                    --if not UnitIsConnected(name) then
-                    --    if not ignoredPlayers["DISCONNECTED"] then
-                    --        ignoredPlayers["DISCONNECTED"] = {}
-                    --    end
-                    --    tinsert(ignoredPlayers["DISCONNECTED"], name)
-                    --else
+                --unitPower    = UnitPower(name, buff.powerType)
+                --unitPowerMax = UnitPowerMax(name, buff.powerType)
+                --if not UnitIsConnected(name) then
+                --    if not ignoredPlayers["DISCONNECTED"] then
+                --        ignoredPlayers["DISCONNECTED"] = {}
+                --    end
+                --    tinsert(ignoredPlayers["DISCONNECTED"], name)
+                --else
 
 
-                    if buff.shortName == L["Healer"] then
-                        is_real_healer, real_role = RBT:CheckUnitIsRealHealer(name)
-                        if not is_real_healer then
-                            tinsert(buff.ignoredPlayers[real_role], name)
-                        else
-                            unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
-                                                                                           buff.powerType)
-                            buff.count                                = buff.count + unitPower
-                            buff.total                                = buff.total + unitPowerMax
-                        end
-                    elseif buff.shortName == L["DPS"] then
-                        is_real_dps, real_role = RBT:CheckUnitIsRealDPS(name)
-                        if not is_real_dps then
-                            tinsert(buff.ignoredPlayers[real_role], name)
-                        else
-                            unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
-                                                                                           buff.powerType)
-                            --
-                            buff.count                                = buff.count + unitPower
-                            buff.total                                = buff.total + unitPowerMax
-                        end
-                        --@debug@
+                if buff.shortName == L["Healer"] then
+                    is_real_healer, real_role = RBT:CheckUnitIsRealHealer(name)
+                    if not is_real_healer then
+                        tinsert(buff.ignoredPlayers[real_role], name)
                     else
-                        RBT:Debugf("CheckPowerType", "Checking power type that is not DPS mana and not HEALER mana ?!")
-                        --@end-debug@
+                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
+                                                                                       buff.powerType)
+                        buff.count                                = buff.count + unitPower
+                        buff.total                                = buff.total + unitPowerMax
                     end
+                elseif buff.shortName == L["DPS"] then
+                    is_real_dps, real_role = RBT:CheckUnitIsRealDPS(name)
+                    if not is_real_dps then
+                        tinsert(buff.ignoredPlayers[real_role], name)
+                    else
+                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
+                                                                                       buff.powerType)
+                        --
+                        buff.count                                = buff.count + unitPower
+                        buff.total                                = buff.total + unitPowerMax
+                    end
+                    --@debug@
+                else
+                    RBT:Debugf("CheckPowerType", "Checking power type that is not DPS mana and not HEALER mana ?!")
+                    --@end-debug@
                 end
+                --end
             end
         end
     end
@@ -114,7 +125,7 @@ local function BuildToolTip(buff)
         if #player_details > 0 then
             local players_str = tconcat(player_details, " ")
             tinsert(buff.tooltip,
-                    format("Ignoring: %s %s", tostring(reason), players_str))
+                    format(" ||- Ignoring [%s]: %s", tostring(reason), players_str))
         end
     end
 end

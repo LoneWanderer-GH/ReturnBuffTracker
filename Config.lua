@@ -78,152 +78,180 @@ local function getOptions()
                         end
                     },
                     --@debug@
-                    logging              = {
-                        name  = "Addon logging",
-                        type  = "toggle",
-                        desc  = "Activate Logging",
-                        order = 6,
-                        get   = function(self)
-                            return RBT.db.profile.logging
-                        end,
-                        set   = function(self, v)
-                            RBT.db.profile.logging = v
-                            if not v then
-                                RBT:SetLogLevel(LoggingLib.INACTIVE)
-                            end
-                        end
-                    },
-                    addonLoggerConfig    = {
-                        name   = L["Addon logging level"],
-                        type   = "select",
-                        desc   = "Log level threshold",
-                        order  = 6,
-                        --values = RBT.Constants.LoggingConfig,
-                        values = LoggingLib.logging_level_to_string,
-                        get    = function(self)
-                            return RBT.db.profile.logLevel
-                        end,
-                        set    = function(self, v)
-                            RBT.db.profile.logLevel = v
-                        end
-                    },
-                    --@end-debug@
-                    headerBars           = {
-                        name  = L["Bars to show"],
-                        type  = "header",
-                        width = "double",
-                        order = 4
-                    },
-                    generalBuffs         = {
-                        name  = L["General Buffs"],
-                        type  = "group",
-                        order = 5,
-                        args  = {
-                            bars = {
-                                type   = "multiselect",
-                                name   = "",
-                                desc   = "",
-                                order  = 6,
-                                values = RBT.OptionBarNames[L["General"]],
-                                get    = function(self, bar)
-                                    return not RBT.db.profile.deactivatedBars[bar]
+                    debug_group          = {
+                        type   = "group",
+                        name   = "Debug options",
+                        inline = true,
+                        args   = {
+                            logging           = {
+                                name  = "Addon logging",
+                                type  = "toggle",
+                                desc  = "Activate Logging",
+                                order = 6,
+                                get   = function(self)
+                                    return RBT.db.profile.logging
                                 end,
-                                set    = function(self, bar, value)
-                                    RBT.db.profile.deactivatedBars[bar] = not value
-                                    RBT:UpdateBars()
+                                set   = function(self, v)
+                                    RBT.db.profile.logging = v
+                                    if not v then
+                                        RBT.db.profile.mem_profiling = false
+                                        RBT:SetLogLevel(LoggingLib.INACTIVE)
+                                    end
+                                end
+                            },
+                            mem_profiling     = {
+                                name  = "Addon memory profiling (depends on logging)",
+                                type  = "toggle",
+                                desc  = "Activate Logging",
+                                order = 6,
+                                get   = function(self)
+                                    return RBT.db.profile.mem_profiling
+                                end,
+                                set   = function(self, v)
+                                    RBT.db.profile.mem_profiling = v
+                                end
+                            },
+                            addonLoggerConfig = {
+                                name   = L["Addon logging level"],
+                                type   = "select",
+                                desc   = "Log level threshold",
+                                order  = 6,
+                                --values = RBT.Constants.LoggingConfig,
+                                values = LoggingLib.logging_level_to_string,
+                                get    = function(self)
+                                    return RBT.db.profile.logLevel
+                                end,
+                                set    = function(self, v)
+                                    RBT:SetLogLevel(v)
+                                    RBT.db.profile.logLevel = v
                                 end
                             },
                         },
-                        --check_all = {
-                        --    name = "check all",
-                        --    desc = "check all buffs",
-                        --    type = "execute",
-                        --    func = function()
-                        --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                        --            RBT.db.profile.deactivatedBars[bar] = false
-                        --        end
-                        --        RBT:UpdateBars()
-                        --    end,
-                        --},
-                        --uncheck_all = {
-                        --    name = "uncheck all",
-                        --    desc = "uncheck all buffs",
-                        --    type = "execute",
-                        --    func = function()
-                        --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                        --            RBT.db.profile.deactivatedBars[bar] = true
-                        --        end
-                        --        RBT:UpdateBars()
-                        --    end,
-                        --},
-
                     },
-                    playerBuffs          = {
-                        name  = L["Player buffs"],
-                        type  = "group",
-                        order = 6,
-                        args  = {
+                    --@end-debug@
+                    buff_groups          = {
+                        type        = "group",
+                        name        = L["Bars to show"],
+                        inline      = true,
+                        childGroups = "tab",
+                        args        = {
+                            --headerBars   = {
+                            --    name  = L["Bars to show"],
+                            --    type  = "header",
+                            --    width = "double",
+                            --    order = 4
+                            --},
+                            generalBuffs = {
+                                name  = L["General Buffs"],
+                                type  = "group",
+                                order = 5,
+                                args  = {
+                                    bars = {
+                                        type   = "multiselect",
+                                        name   = "",
+                                        desc   = "",
+                                        order  = 6,
+                                        values = RBT.OptionBarNames[L["General"]],
+                                        get    = function(self, bar)
+                                            return not RBT.db.profile.deactivatedBars[bar]
+                                        end,
+                                        set    = function(self, bar, value)
+                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT:UpdateBars()
+                                        end
+                                    },
+                                },
+                                --check_all = {
+                                --    name = "check all",
+                                --    desc = "check all buffs",
+                                --    type = "execute",
+                                --    func = function()
+                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
+                                --            RBT.db.profile.deactivatedBars[bar] = false
+                                --        end
+                                --        RBT:UpdateBars()
+                                --    end,
+                                --},
+                                --uncheck_all = {
+                                --    name = "uncheck all",
+                                --    desc = "uncheck all buffs",
+                                --    type = "execute",
+                                --    func = function()
+                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
+                                --            RBT.db.profile.deactivatedBars[bar] = true
+                                --        end
+                                --        RBT:UpdateBars()
+                                --    end,
+                                --},
 
-                            bars = {
-                                type   = "multiselect",
-                                name   = "",
-                                desc   = "",
-                                order  = 6,
-                                values = RBT.OptionBarNames[L["Player buffs"]],
-                                get    = function(self, bar)
-                                    return not RBT.db.profile.deactivatedBars[bar]
-                                end,
-                                set    = function(self, bar, value)
-                                    RBT.db.profile.deactivatedBars[bar] = not value
-                                    RBT:UpdateBars()
-                                end
                             },
-                        }
-                    },
-                    worldBuffs           = {
-                        name  = L["World Buffs"],
-                        type  = "group",
-                        order = 7,
-                        args  = {
+                            playerBuffs  = {
+                                name  = L["Player buffs"],
+                                type  = "group",
+                                order = 6,
+                                args  = {
 
-                            bars = {
-                                type   = "multiselect",
-                                name   = "",
-                                desc   = "",
-                                order  = 6,
-                                values = RBT.OptionBarNames[L["World"]],
-                                get    = function(self, bar)
-                                    return not RBT.db.profile.deactivatedBars[bar]
-                                end,
-                                set    = function(self, bar, value)
-                                    RBT.db.profile.deactivatedBars[bar] = not value
-                                    RBT:UpdateBars()
-                                end
+                                    bars = {
+                                        type   = "multiselect",
+                                        name   = "",
+                                        desc   = "",
+                                        order  = 6,
+                                        values = RBT.OptionBarNames[L["Player buffs"]],
+                                        get    = function(self, bar)
+                                            return not RBT.db.profile.deactivatedBars[bar]
+                                        end,
+                                        set    = function(self, bar, value)
+                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT:UpdateBars()
+                                        end
+                                    },
+                                }
                             },
-                        }
-                    },
-                    consumables          = {
-                        name  = L["Consumables"],
-                        type  = "group",
-                        order = 8,
-                        args  = {
+                            worldBuffs   = {
+                                name  = L["World Buffs"],
+                                type  = "group",
+                                order = 7,
+                                args  = {
 
-                            bars = {
-                                type   = "multiselect",
-                                name   = "",
-                                desc   = "",
-                                order  = 6,
-                                values = RBT.OptionBarNames[L["Consumable"]],
-                                get    = function(self, bar) return not RBT.db.profile.deactivatedBars[bar]
-                                end,
-                                set    = function(self, bar, value)
-                                    RBT.db.profile.deactivatedBars[bar] = not value
-                                    RBT:UpdateBars()
-                                end
+                                    bars = {
+                                        type   = "multiselect",
+                                        name   = "",
+                                        desc   = "",
+                                        order  = 6,
+                                        values = RBT.OptionBarNames[L["World"]],
+                                        get    = function(self, bar)
+                                            return not RBT.db.profile.deactivatedBars[bar]
+                                        end,
+                                        set    = function(self, bar, value)
+                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT:UpdateBars()
+                                        end
+                                    },
+                                }
                             },
+                            consumables  = {
+                                name  = L["Consumables"],
+                                type  = "group",
+                                order = 8,
+                                args  = {
+
+                                    bars = {
+                                        type   = "multiselect",
+                                        name   = "",
+                                        desc   = "",
+                                        order  = 6,
+                                        values = RBT.OptionBarNames[L["Consumable"]],
+                                        get    = function(self, bar) return not RBT.db.profile.deactivatedBars[bar]
+                                        end,
+                                        set    = function(self, bar, value)
+                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT:UpdateBars()
+                                        end
+                                    },
+                                }
+                            }
                         }
                     }
-
                 }
             }
         }

@@ -26,455 +26,9 @@ end
 
 RBT.Buffs = {}
 
-function RBT:RegisterCheck(check_conf)
-    check_conf.total   = 0
-    check_conf.count   = 0
-    check_conf.tooltip = {}
-    tinsert(RBT.Buffs, check_conf)
-end
-
---RBT.Buffs = {
---{
---    name             = L["Alive"],
---    shortName        = L["Alive"],
---    func             = "CheckAlive",
---    color            = { r = 0.3, g = 1, b = 0.3 },
---    buffOptionsGroup = L["General"],
---    BuildToolTipText = "BuildToolTipTextAlive",
---},
---{
---    name             = L["Useless unit"],
---    shortName        = L["Useless unit"],
---    color            = { r = 1.0, g = 0.3, b = 0.3 },
---    func             = "CheckCannotHelpRaid",
---    buffOptionsGroup = L["General"],
---    BuildToolTipText = "BuildToolTipTextCannotHelpRaid",
---},
---{
---    name             = L["Loot Method"],
---    shortName        = L["Loot Method"],
---    color            = { r = 1.0, g = 0.3, b = 0.3 },
---    func             = "CheckML",
---    buffOptionsGroup = L["General"],
---},
--- --{
--- --    name             = L["Carrot on a stick"],
--- --    shortName        = L["Carrot on a stick"],
--- --    color            = { r = 1.0, g = 0.3, b = 0.3 },
--- --    func             = "CheckCarrot",
--- --    buffOptionsGroup = L["General"],
--- --},
---{
---    name             = L["Healer Mana"],
---    shortName        = L["Healer"],
---    optionText       = L["Healer Mana"],
---    powerType        = Enum.PowerType.Mana,
---    func             = "CheckPowerType",
---    color            = { r = 0.4, g = 0.6, b = 1 },
---    classes          = { PRIEST, PALADIN, DRUID, SHAMAN },
---    buffOptionsGroup = L["General"]
---},
---{
---    name             = L["DPS Mana"],
---    shortName        = L["DPS"],
---    optionText       = L["DPS Mana"],
---    powerType        = Enum.PowerType.Mana,
---    func             = "CheckPowerType",
---    color            = { r = 0.2, g = 0.2, b = 1 },
---    classes          = { HUNTER, WARLOCK, MAGE },
---    buffOptionsGroup = L["General"]
---},
---{
---    name             = L["In Combat"],
---    shortName        = L["In Combat"],
---    color            = { r = 1, g = 1, b = 1 },
---    buffOptionsGroup = L["General"],
---    func             = "CheckInCombat"
---},
---{
---    name             = L["Soulstone Resurrection"],
---    shortName        = L["Soulstones"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 20765 },
---    buffOptionsGroup = L["Player buffs"],
---    func             = "CheckSoulstones",
---    buffingClass     = WARLOCK,
---},
---{
---    name             = L["Arcane Intellect"],
---    shortName        = L["Intellect"],
---    color            = { r = 0.41, g = 0.8, b = 0.94 },
---    buffNames        = { L["Arcane Intellect"], L["Arcane Brilliance"] },
---    buffIDs          = { 10157, 23028 },
---    classes          = { HUNTER, WARLOCK, PRIEST, PALADIN, DRUID, MAGE, SHAMAN },
---    buffOptionsGroup = L["Player buffs"],
---    buffingClass     = MAGE,
---},
---{
---    name             = L["Mark of the Wild"],
---    shortName        = L["MotW"],
---    color            = { r = 1.0, g = 0.49, b = 0.04 },
---    buffIDs          = { 9885, 21850, 16878 },
---    buffNames        = { L["Mark of the Wild"], L["Gift of the Wild"] },
---    buffOptionsGroup = L["Player buffs"],
---    buffingClass     = DRUID,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Power Word: Fortitude"],
---    shortName        = L["Fortitude"],
---    color            = { r = 1.0, g = 1.0, b = 1.0 },
---    buffIDs          = { 10938, 21564 },
---    buffNames        = { L["Power Word: Fortitude"], L["Prayer of Fortitude"] },
---    buffOptionsGroup = L["Player buffs"],
---    buffingClass     = PRIEST,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Divine Spirit"],
---    shortName        = L["Spirit"],
---    color            = { r = 1.0, g = 1.0, b = 1.0 },
---    buffNames        = { L["Divine Spirit"], L["Prayer of Spirit"] },
---    buffIDs          = { 27841, 27681 },
---    classes          = { PRIEST, PALADIN, DRUID, MAGE, SHAMAN, WARLOCK },
---    buffOptionsGroup = L["Player buffs"],
---    buffingClass     = PRIEST,
---},
---{
---    name             = L["Shadow Protection"],
---    shortName        = L["Shadow Prot."],
---    color            = { r = 0.6, g = 0.6, b = 0.6 },
---    buffIDs          = { 10958, 27683 },
---    buffNames        = { L["Shadow Protection"], L["Prayer of Shadow Protection"] },
---    buffOptionsGroup = L["Player buffs"],
---    buffingClass     = PRIEST,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Blessing of Kings"],
---    shortName        = L["Kings"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffNames        = { L["Blessing of Kings"], L["Greater Blessing of Kings"] },
---    buffIDs          = { 20217, 25898 },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Blessing of Salvation"],
---    shortName        = L["Salvation"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffIDs          = { 1038, 25895 },
---    buffNames        = { L["Blessing of Salvation"], L["Greater Blessing of Salvation"] },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---    classes          = { MAGE, WARLOCK, PRIEST, HUNTER, ROGUE },
---},
---{
---    name             = L["Blessing of Wisdom"],
---    shortName        = L["Wisdom"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffNames        = { L["Blessing of Wisdom"], L["Greater Blessing of Wisdom"] },
---    buffIDs          = { 19854, 25290, 25894, 25918 },
---    classes          = { HUNTER, WARLOCK, PRIEST, PALADIN, DRUID, MAGE },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---},
---{
---    name             = L["Blessing of Might"],
---    shortName        = L["Might"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffNames        = { L["Blessing of Might"], L["Greater Blessing of Might"] },
---    buffIDs          = { 19838, 25291, 25782, 25916 },
---    classes          = { WARRIOR, ROGUE },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---},
---{
---    name             = L["Blessing of Light"],
---    shortName        = L["Light"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffIDs          = { 19979, 25890 },
---    buffNames        = { L["Blessing of Light"], L["Greater Blessing of Light"] },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Blessing of Sanctuary"],
---    shortName        = L["Sanctuary"],
---    color            = { r = 0.96, g = 0.55, b = 0.73 },
---    buffIDs          = { 20914, 25899 },
---    buffNames        = { L["Blessing of Sanctuary"], L["Greater Blessing of Sanctuary"] },
---    buffOptionsGroup = L["Player buffs"],
---    missingMode      = L["class"],
---    buffingClass     = PALADIN,
---    classes          = RBT.all_classes,
---},
---{
---    name             = L["Rallying Cry of the Dragonslayer"],
---    shortName        = L["Dragonslayer"],
---    buffIDs          = { 22888 },
---    color            = { r = 0.5, g = 0, b = 0 },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Spirit of Zandalar"],
---    shortName        = L["ZG"],
---    buffIDs          = { 24425 },
---    color            = { r = 0, g = 0.5, b = 0 },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Songflower Serenade"],
---    shortName        = L["Songflower"],
---    buffIDs          = { 15366 },
---    color            = { r = 0, g = 0, b = 0 },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Fengus' Ferocity"],
---    shortName        = L["DMT AP"],
---    color            = { r = 0, g = 1, b = 1 },
---    buffIDs          = { 22817 },
---    classes          = { WARRIOR, ROGUE },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Slip'kik's Savvy"],
---    shortName        = L["DMT Crit"],
---    classes          = { WARLOCK, PRIEST, PALADIN, DRUID, MAGE, SHAMAN },
---    buffIDs          = { 22820 },
---    color            = { r = 0, g = 1, b = 1 },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Mol'dar's Moxie"],
---    shortName        = L["DMT Stamina"],
---    buffIDs          = { 22818 },
---    color            = { r = 0, g = 1, b = 1 },
---    buffOptionsGroup = L["World"]
---},
---{
---    name             = L["Sayge's Dark Fortune of Damage"],
---    shortName        = L["DMF Damage"],
---    color            = { r = 0, g = 1, b = 1 },
---    buffIDs          = { 23768 },
---    buffOptionsGroup = L["World"],
---    classes          = { HUNTER, WARRIOR, ROGUE, WARLOCK, MAGE }
---},
---{
---    name             = L["Greater Arcane Elixir"],
---    shortName        = L["Greater Arcane E."],
---    --optionText       = L["+dmg"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 17539 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 13454 },
---    classes          = { WARLOCK, MAGE }
---},
---{
---    name             = L["Arcane Elixir"],
---    shortName        = L["Arcane E."],
---    --optionText       = L["+dmg"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 11390 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 9155 },
---    classes          = { WARLOCK, MAGE }
---},
---{
---    name             = L["+magic dmg"],
---    shortName        = L["+magic dmg"],
---    optionText       = L["+magic dmg"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 11390, 17539 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 9155, 13454 },
---    classes          = { WARLOCK, MAGE }
---},
---{
---    name             = L["Elixir of Shadow Power"],
---    shortName        = L["+shadow dmg"],
---    optionText       = L["+shadow dmg"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 11474 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARLOCK },
---    sourceItemId     = { 9264 },
---},
---{
---    name             = L["Elixir of Fire Mastery"],
---    shortName        = L["+fire dmg"],
---    optionText       = L["+fire dmg"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 26276 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { MAGE, WARLOCK },
---    sourceItemId     = { 21546 },
---},
---{
---    name             = L["Elixir of the Mongoose"],
---    shortName        = L["Mongoose"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 17538 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE, HUNTER },
---    sourceItemId     = { 21546 },
---},
---{
---    name             = L["Juju Power"],
---    shortName        = L["Juju Power"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 16323 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---    sourceItemId     = { 12451 },
---},
---{
---    name             = L["Giant Elixir"],
---    shortName        = L["Giant Elixir"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 11405 },
---    sourceItemId     = { 9206 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---},
---{
---    name             = L["Juju Power || Giant Elixir"],
---    --shortName        = L["Strength Buff"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 11405, 16323 },
---    sourceItemId     = { 9206, 12451 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---},
---{
---    name             = L["Juju Might"],
---    shortName        = L["Juju Might"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 16329 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE, HUNTER },
---    sourceItemId     = { 12460 },
---},
---{
---    name             = L["Winterfall Firewater"],
---    shortName        = L["Firewater"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 17038 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---    sourceItemId     = { 12820 },
---},
---{
---    name             = L["Juju Might || Firewater"],
---    --shortName        = L["AP Buff"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 16329, 17038 },
---    sourceItemId     = { 12460, 17205 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---},
---{
---    name             = L["Elixir of Fortitude"],
---    shortName        = L["E. Fortitude"],
---    color            = { r = 0.58, g = 0.51, b = 0.79 },
---    buffIDs          = { 3593 },
---    buffOptionsGroup = L["Consumable"],
---    classes          = { WARRIOR, ROGUE },
---    sourceItemId     = { 3825 },
---},
---{
---    name             = L["Fire Protection"],
---    shortName        = L["Fire Prot."],
---    optionText       = L["Fire Protection Potions"],
---    color            = { r = 1, g = 0, b = 0 },
---    buffIDs          = { 7233, 17543 },
---    sourceItemId     = { 6049, 13457 },
---    buffOptionsGroup = L["Consumable"],
---},
---
----- {
-----    name             = L["Greater Fire Protection"],
-----    shortName        = L["Greater Fire Prot."],
-----    optionText       = L["Greater Fire Protection Potion"],
-----    color            = { r = 1, g = 0, b = 0 },
-----    buffIDs          = { 17543 },
-----    buffOptionsGroup = L["Consumable"]
-----},
---{
---    name             = L["Nature Protection"],
---    shortName        = L["Nature Prot."],
---    optionText       = L["Nature Protection Potions"],
---    color            = { r = 0, g = 1, b = 0 },
---    buffIDs          = { 7254, 17546 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 6052, 13458 },
---},
---
-----{
-----    name             = L["Greater Nature Protection"],
-----    shortName        = L["Greater Nature Prot."],
-----    optionText       = L["Greater Nature Protection Potion"],
-----    color            = { r = 0, g = 1, b = 0 },
-----    buffIDs          = { 17546 },
-----    buffOptionsGroup = L["Consumable"]
-----},
---
---{
---    name             = L["Shadow Protection"],
---    shortName        = L["Shadow Prot."],
---    optionText       = L["Shadow Protection Potions"],
---    color            = { r = 0.5, g = 0, b = 0.5 },
---    buffIDs          = { 7242, 17548 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 6048, 13459 },
---},
---
-----{
-----    name             = L["Greater Shadow Protection"],
-----    shortName        = L["Greater Shadow Prot."],
-----    optionText       = L["Greater Shadow Protection Potion"],
-----    color            = { r = 0.5, g = 0, b = 0.5 },
-----    buffIDs          = { 17548 },
-----    buffOptionsGroup = L["Consumable"]
-----},
---{
---    name             = L["Arcane Protection"],
---    shortName        = L["Arcane Prot."],
---    optionText       = L["Arcane Protection Potions"],
---    color            = { r = 0, g = 0, b = 1 },
---    buffIDs          = { 17549 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 13461 },
---},
---
---{
---    name             = L["Frost Protection"],
---    shortName        = L["Frost Prot."],
---    optionText       = L["Frost Protection Potions"],
---    color            = { r = 0, g = 1, b = 1 },
---    buffIDs          = { 7239, 17544 },
---    buffOptionsGroup = L["Consumable"],
---    sourceItemId     = { 6050, 13456 },
---},
---}
-
---for i, b in ipairs(RBT.Buffs) do
---    b.total   = 0
---    b.count   = 0
---    b.tooltip = {}
---end
-
 function RBT:compute_percent_string(nb, total)
     --@debug@
-    RBT:Debugf("compute_percent_string", "compute_percent_string(%s, %s)", tostring(nb), tostring(total))
+    -- RBT:Debugf("compute_percent_string", "compute_percent_string(%s, %s)", tostring(nb), tostring(total))
     --@end-debug@
     local return_value_str = "NA"
     local return_value_f
@@ -504,7 +58,8 @@ function RBT:clearTable(t)
     end
 end
 
-function RBT:ClearBuffTooltipTable(buff)
+--function RBT:ClearBuffTooltipTable(buff)
+local function ClearBuffTooltipTable(buff)
     if buff.tooltip then
         local t = buff.tooltip
         --local count = #t
@@ -515,63 +70,13 @@ function RBT:ClearBuffTooltipTable(buff)
     end
 end
 
-function RBT:ResetBuffData(buff)
+--function RBT:ResetBuffData(buff)
+local function ResetBuffData(buff)
     buff.count = 0
     buff.total = 0
-    RBT:ClearBuffTooltipTable(buff)
+    --RBT:ClearBuffTooltipTable(buff)
+    ClearBuffTooltipTable(buff)
 end
---
---function RBT:CheckAlive(buff)
---
---    --local tooltip                 = {}
---
---    --local tooltip = RBT:ClearBuffTooltipTable(buff)
---    --RBT:ClearBuffTooltipTable(buff)
---    RBT:ResetBuffData(buff)
---    if buff.dead_players_by_classes then
---        --RBT:clearTable(buff.dead_players_by_classes)
---        for _, class in ipairs(all_classes) do
---            RBT:clearArrayList(buff.dead_players_by_classes[class])
---        end
---    else
---        buff.dead_players_by_classes = {}
---        for _, class in ipairs(all_classes) do
---            buff.dead_players_by_classes[class] = {}
---        end
---    end
---
---    local dead_players_by_classes = buff.dead_players_by_classes
---    local j                       = 2
---
---    local name, localized_class, class, isDead
---    for i = 1, 40 do
---        name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
---        if name then
---            buff.total = buff.total + 1
---            if not isDead then
---                buff.count = buff.count + 1
---            else
---                tinsert(dead_players_by_classes[class], name)
---            end
---        end
---    end
---    local dead_number = (buff.total - buff.count)
---    local percent     = RBT:compute_percent_string(dead_number, buff.total)
---    buff.tooltip[1]   = format("%s %d/%d - %s", L["Dead:"], dead_number, buff.total, percent)
---    for dead_class, dead_names in ipairs(dead_players_by_classes) do
---        if #dead_names > 0 then
---            buff.tooltip[j] = format("%s: %s",
---                                     RBT.localized_classes[dead_class],
---                                     tconcat(dead_names, " "))
---            j               = j + 1
---        end
---    end
---    --return buff.count, buff.total, buff.tooltip
---end
---
---function RBT:BuildToolTipTextAlive(buff)
---
---end
 
 function RBT:CheckUnitCannotHelpRaid(name)
     local slacker                  = false
@@ -588,33 +93,6 @@ function RBT:CheckUnitCannotHelpRaid(name)
     slacker = not co or afk or fd or not_in_raid
     return slacker, not co, fd, not_in_raid
 end
---
---function RBT:CheckML(buff)
---    --local tooltip                              = {}
---    --local tooltip                              = RBT:ClearBuffTooltipTable(buff)
---    RBT:ResetBuffData(buff)
---    local method, partyMaster, raid_unit_index = GetLootMethod()
---    local loot_threshold                       = GetLootThreshold()
---    --local count                                = 0
---    buff.count                                 = 0
---    buff.total                                 = 1
---    local ML_name
---    local r, g, b, hex                         = GetItemQualityColor(loot_threshold)
---    tinsert(buff.tooltip, format("Method: %s", method))
---    --tinsert(tooltip, format("Threshold: |c%s%s|r", hex, _G[format("ITEM_QUALITY%d_DESC", loot_threshold)]))
---    tinsert(buff.tooltip, format("Threshold: |c%s%s|r", hex, ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[loot_threshold]))
---    if buff.bar then
---        buff.bar.texture:SetColorTexture(r, g, b, 0.9)
---    end
---    if method ~= "master" then
---        tinsert(buff.tooltip, "NO ML !")
---    else
---        buff.count = 1
---        ML_name    = GetUnitName("raid" .. raid_unit_index, false)
---        tinsert(buff.tooltip, format("ML: %s", ML_name))
---    end
---    --return buff.count, buff.total, buff.tooltip
---end
 
 function RBT:CheckUnitIsRealDPS(name)
     local is_real_dps = true
@@ -639,9 +117,12 @@ function RBT:CheckUnitIsRealHealer(name)
     if RBT:CheckUnitBuff(name, { buffIDs = { 15473 } }) then
         is_real_healer = false
         real_role      = "SHADOWPRIEST"
-    elseif RBT:CheckUnitBuff(name, { buffIDs = { 24907 } }) then
+    elseif RBT:CheckUnitBuff(name, { buffIDs = { 24858 } }) then
         is_real_healer = false
         real_role      = "MOONKIN"
+    elseif RBT:CheckUnitBuff(name, { buffIDs = { 768 } }) then
+        is_real_healer = false
+        real_role      = "CAT"
     elseif GetPartyAssignment("MAINTANK", name) then
         is_real_healer = false
         real_role      = "MAINTANK"
@@ -658,291 +139,21 @@ function RBT:CountUnitPower(name, power_type, current_power_type)
     return unitPower, unitPowerMax, unitPower / unitPowerMax
 end
 
---local POWER_IGNORED_ROLES = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK" }
---for p, _ in pairs(Enum.PowerType) do
---    table.insert(POWER_IGNORED_ROLES, p)
---end
---
---function RBT:CheckPowerType(buff)
---    --@debug@
---    RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
---    --@end-debug@
---    --local tooltip_lines = RBT:ClearBuffTooltipTable(buff)
---    RBT:ResetBuffData(buff)
---    if buff.ignoredPlayers then
---        for _, role in ipairs(POWER_IGNORED_ROLES) do
---            RBT:clearArrayList(buff.ignoredPlayers[role])
---        end
---    else
---        buff.ignoredPlayers = {}
---        for _, role in ipairs(POWER_IGNORED_ROLES) do
---            --buff.ignoredPlayers = { ["Slacker"]      = {},
---            --                        ["HEALER"]       = {},
---            --                        ["SHADOWPRIEST"] = {},
---            --                        ["MOONKIN"]      = {},
---            --                        ["MAINTANK"]     = {},
---            --}
---            buff.ignoredPlayers[role] = {}
---        end
---    end
---    --local current_power  = 0
---    --local total_power    = 0
---    local unitPower, unitPowerMax, unitPowerPercent, unitPowerType, unitPowerTypeName
---    --local ignoredPlayers = buff.ignoredPlayers
---    local name, localized_class, class
---    local slacker, disco, fd, not_in_raid
---    local is_real_healer, is_real_dps, real_role
---    for i = 1, 40 do
---        name, _, _, _, localized_class, class = GetRaidRosterInfo(i)
---
---        if class and RBT:Contains(buff.classes, class) then
---            slacker, disco, fd, not_in_raid = RBT:CheckUnitCannotHelpRaid(name)
---            if slacker then
---                --@debug@
---                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", tostring(name), unitPowerTypeName)
---                --@end-debug@
---                tinsert(buff.ignoredPlayers["Slacker"], name)
---            else
---                unitPowerType, unitPowerTypeName = UnitPowerType(name)
---                --@debug@
---                RBT:Debugf("CheckPowerType", "Checking %s -> %s", tostring(name), unitPowerTypeName)
---                --@end-debug@
---                if unitPowerType ~= buff.powerType then
---                    tinsert(buff.ignoredPlayers[unitPowerType], name)
---                else
---                    --@debug@
---                    RBT:Debugf("CheckPowerType", "%s has the targeted power (%s)", tostring(name), unitPowerTypeName)
---                    --@end-debug@
---
---                    --unitPower    = UnitPower(name, buff.powerType)
---                    --unitPowerMax = UnitPowerMax(name, buff.powerType)
---                    --if not UnitIsConnected(name) then
---                    --    if not ignoredPlayers["DISCONNECTED"] then
---                    --        ignoredPlayers["DISCONNECTED"] = {}
---                    --    end
---                    --    tinsert(ignoredPlayers["DISCONNECTED"], name)
---                    --else
---
---
---                    if buff.shortName == L["Healer"] then
---                        is_real_healer, real_role = RBT:CheckUnitIsRealHealer(name)
---                        if not is_real_healer then
---                            tinsert(buff.ignoredPlayers[real_role], name)
---                        else
---                            unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
---                                                                                                         buff.powerType)
---                            buff.count                                = buff.count + unitPower
---                            buff.total                                = buff.total + unitPowerMax
---                        end
---                    elseif buff.shortName == L["DPS"] then
---                        is_real_dps, real_role = RBT:CheckUnitIsRealDPS(name)
---                        if not is_real_dps then
---                            tinsert(buff.ignoredPlayers[real_role], name)
---                        else
---                            unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
---                                                                                                         buff.powerType)
---                            buff.count                                = buff.count + unitPower
---                            buff.total                                = buff.total + unitPowerMax
---                        end
---                        --@debug@
---                    else
---                        RBT:Debugf("CheckPowerType", "Checking power type that is not DPS mana and not HEALER mana ?!")
---                        --@end-debug@
---                    end
---                end
---            end
---        end
---    end
---    local percent_string = RBT:compute_percent_string(buff.count, buff.total)
---    local header         = format("%s: %s", tostring(buff.name), percent_string)
---    --local tooltip_lines  = {}
---    tinsert(buff.tooltip, header)
---
---    --RBT:Debugf("ADDON", "Ignored players %d", #ignoredPlayers)
---    for reason, player_details in pairs(buff.ignoredPlayers) do
---        --@debug@
---        RBT:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
---        --@end-debug@
---        if #player_details > 0 then
---            local players_str = tconcat(player_details, " ")
---            tinsert(buff.tooltip,
---                    format("Ignoring: %s %s", tostring(reason), players_str))
---        end
---    end
---    --return buff.count, buff.total, buff.tooltip
---end
---
---local MAX_GROUPS_IN_RAID = 8
---function RBT:CheckInCombat(buff)
---    --local tooltip = RBT:ClearBuffTooltipTable(buff)
---    RBT:ResetBuffData(buff)
---    if buff.groups_array then
---        for i = 1, MAX_GROUPS_IN_RAID do
---            RBT:clearArrayList(buff.groups_array[i])
---        end
---    else
---        buff.groups_array = {}
---        for i = 1, MAX_GROUPS_IN_RAID do
---            buff.groups_array[i] = {}
---        end
---    end
---    buff.count = 0
---    buff.total = 0
---
---    local player_name, player_group
---    for i = 1, 40 do
---        player_name, _, player_group = GetRaidRosterInfo(i)
---        if player_name and not UnitIsDead(player_name) then
---            buff.total = buff.total + 1
---            if UnitAffectingCombat(player_name) then
---                buff.count = buff.count + 1
---            else
---                tinsert(buff.groups_array[player_group], player_name)
---            end
---        end
---    end
---
---    buff.tooltip[1]              = L["Not in Combat: "]
---    local tool_tip_index         = 2
---    buff.tooltip[tool_tip_index] = L["no one."]
---
---    for i = 1, MAX_GROUPS_IN_RAID do
---        if #buff.groups_array[i] > 0 then
---            buff.tooltip[tool_tip_index] = tconcat(buff.groups_array[i], " ")
---            tool_tip_index               = tool_tip_index + 1
---        end
---    end
---end
-
---function RBT:CheckSoulstones(buff)
---    RBT:ResetBuffData(buff)
---    local j         = 2
---    buff.tooltip[j] = L["none."]
---    local name, group, localized_class, class
---    if buff.players_having_soulstone then
---        RBT:clearArrayList(buff.players_having_soulstone)
---    else
---        buff.players_having_soulstone = {}
---    end
---    local present, caster
---    for i = 1, 40 do
---        name, _, group, _, localized_class, class = GetRaidRosterInfo(i)
---        if name then
---            if class == buff.buffingClass then
---                buff.total = buff.total + 1
---            end
---            present, caster = RBT:CheckUnitBuff(name, buff)
---            if caster then
---                caster = GetUnitName(caster)
---            end
---            if present then
---                buff.count = buff.count + 1
---                tinsert(buff.players_having_soulstone, format("%s (from %s)", name, tostring(caster)))
---                --j = j + 1
---            end
---        end
---    end
---    buff.tooltip[1] = format("%s (%d %s)", L["Soulstones: "], buff.total, RBT.localized_classes[buff.buffingClass])
---    if #buff.players_having_soulstone > 0 then
---        buff.tooltip[j] = tconcat(buff.players_having_soulstone, " ")
---    end
---
---    -- override for bar display
---    if buff.count <= 0 then
---        buff.count = 0
---        buff.total = 1
---    else
---        buff.count = 1
---        buff.total = 1
---    end
---end
-
---function RBT:CheckCarrot(_)
---    RBT:Debug("ADDON", "CheckCarrot")
---    local inCombat              = 0
---    local total                 = 0
---    local group_names_map       = {}
---    local player_name, _, group_nb
---    local current_speed, current_max_ground_speed, current_flight_speed, current_swim_speed
---    local carrot_multiplier     = 1.03
---    local mount_60_perc         = 11.2
---    local mount_100_perc        = 14.0
---    local carrot_mount_60_perc  = mount_60_perc * carrot_multiplier
---    local carrot_mount_100_perc = mount_100_perc * carrot_multiplier
---
---    -- Walking: 2.5
---    -- Running backwards: 4.5
---    -- Normal Running: 7
---    -- Ground Mount, 60% speed (Apprentice): 11.2
---    -- Ground Mount, 100% speed (Journeyman): 14
---    -- Flying Mount, 150% speed (Expert): 17.5
---    -- Flying Mount, 280% speed (Artisan): 26.6
---    -- Flying Mount, 310% speed (Master): 28.7
---
---    for i = 1, 40 do
---        player_name, _, group_nb                                                          = GetRaidRosterInfo(i)
---        current_speed, current_max_ground_speed, current_flight_speed, current_swim_speed = GetUnitSpeed("raid" .. i)
---        if player_name then
---            total = total + 1
---            if current_max_ground_speed > 0.0 then
---                RBT:Debugf("ADDON", "%s - %2.2f", player_name, current_max_ground_speed)
---            end
---            if not group_names_map[group_nb] then
---                --group_names_map[group_nb] = {}
---                tinsert(group_names_map, group_nb, {})
---            end
---            local player_list = group_names_map[group_nb]
---            if current_max_ground_speed >= carrot_mount_100_perc then
---                RBT:Debugf("ADDON", "Wiht carrot: %s - %2.2f", player_name, current_max_ground_speed)
---                --players[name] = { name = name .. "(100%) ", group = group }
---                tinsert(player_list, player_name)
---                inCombat = inCombat + 1
---            elseif current_max_ground_speed >= carrot_mount_60_perc then
---                RBT:Debugf("ADDON", "Wiht carrot: %s - %2.2f", player_name, current_max_ground_speed)
---                --players[name] = { name = name .. "(60%)", group = group }
---                tinsert(player_list, player_name)
---                inCombat = inCombat + 1
---            else
---                --
---            end
---        end
---
---    end
---
---    local tooltip = {}
---    tooltip[1]    = L["Possible carrot on a stick: "]
---    local i       = 2
---    tooltip[i]    = L["no one."]
---    local grp_str, names_str
---    for group, names in pairs(group_names_map) do
---        if #names > 0 then
---            grp_str    = format(L["Group %d:"], group)
---            names_str  = tconcat(names, " ")
---            tooltip[i] = format("%s %s", grp_str, names_str)
---            RBT:Debugf("ADDON", "%s %s", grp_str, names_str)
---            i = i + 1
---        else
---            RBT:Debugf("ADDON", "Group %d has no carrots (%d)", group, #names)
---        end
---    end
---
---    return inCombat, total, tooltip
---end
-
 local function fill_tooltip_data_array(buff,
                                        tool_tip_index)
-    local group_players = buff.bad_players
+    local player_name_data_map = buff.bad_players
     local p_class
+    local tmp                  = {}
     if buff.missingMode == L["class"] then
-        for _, player in pairs(group_players) do
+        for _, player in pairs(player_name_data_map) do
             p_class = player.class
-            if not group_players[p_class] then
-                group_players[p_class] = {}
+            if not tmp[p_class] then
+                tmp[p_class] = {}
             end
-            tinsert(group_players[p_class], player.name)
+            tinsert(tmp[p_class], player.name)
         end
 
-        for cls, player_names_array in pairs(group_players) do
+        for cls, player_names_array in pairs(tmp) do
             if #player_names_array > 0 then
                 buff.tooltip[tool_tip_index] = format("%s : %s",
                                                       RBT.localized_classes[cls],
@@ -952,20 +163,24 @@ local function fill_tooltip_data_array(buff,
         end
     else
         local player_group_nb
-        for _, player in pairs(group_players) do
+        for _, player in pairs(player_name_data_map) do
             player_group_nb = tonumber(player.group)
-            if not group_players[player_group_nb] then
-                group_players[player_group_nb] = {}
+            if not tmp[player_group_nb] then
+                tmp[player_group_nb] = {}
             end
-            tinsert(group_players[player_group_nb], player.name)
+            tinsert(tmp[player_group_nb], player.name)
         end
 
-        table.sort(group_players) -- its a table of <group number ; list>
+        --table.sort(tmp) -- its a table of <group number ; list>
 
-        for group_nb, player_names_array in ipairs(group_players) do
-            if #player_names_array > 0 then
-                buff.tooltip[tool_tip_index] = format("%d : %s",
-                                                      group_nb,
+        --for group_nb, player_names_array in ipairs(tmp) do
+        local player_names_array
+        for group_nb = 1, 8 do
+            player_names_array = tmp[group_nb]
+            if player_names_array and #player_names_array > 0 then
+
+                buff.tooltip[tool_tip_index] = format("%s %s",
+                                                      format(L["Group %d:"], group_nb),
                                                       tconcat(player_names_array, " "))
                 tool_tip_index               = tool_tip_index + 1
             end
@@ -974,8 +189,9 @@ local function fill_tooltip_data_array(buff,
     return tool_tip_index
 end
 
-function RBT:CheckBuff(buff)
-    RBT:ResetBuffData(buff)
+--function RBT:CheckBuff(buff)
+local function CheckBuff(buff)
+    buff:ResetBuffData()
 
     local slacker, disco, fd, not_in_raid
     local player_name, player_group, player_localized_class, player_class
@@ -1014,53 +230,16 @@ function RBT:CheckBuff(buff)
                         buff.bad_players[player_name] = { name  = player_name,
                                                           group = player_group,
                                                           class = player_class,
-                        } --localized_class = player_localized_class }
+                        }
                     end
                 end
             end
         end
     end
-
-    --if buff.classes and #buff.classes >= 1 then
-    --    local nb_of_players_concerned = 0
-    --    local concerned_classes_names = ""
-    --    for _, v in pairs(buff.classes) do
-    --        concerned_classes_names = concerned_classes_names .. " " .. v
-    --        if class_count[v] ~= 0 then
-    --            nb_of_players_concerned = nb_of_players_concerned + class_count[v]
-    --        end
-    --    end
-    --    -- print("Total class count for buff: " .. (buff.name or buff.text or "??") .. " = " .. nb_of_players_concerned)
-    --    if nb_of_players_concerned == 0 then
-    --        tooltip[1] = "No relevant classes:"
-    --        tooltip[2] = concerned_classes_names
-    --        return buffs, totalBuffs, tooltip
-    --    end
-    --else
-    --    --
-    --end
-
-
-    --buff.tooltip[1]              = format("{rt7}" .. L["Missing %s"], (buff.name or buff.shortName or str(buff.buffIDs[1])))
-    --local tool_tip_index         = 2
-    --buff.tooltip[tool_tip_index] = L["no one."]
-    --
-    --tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
-    --
-    --local players_str
-    --for reason, player_details in pairs(buff.ignoredPlayers) do
-    --    --@debug@
-    --    RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
-    --    --@end-debug@
-    --    if #player_details > 0 then
-    --        players_str = tconcat(player_details, " ")
-    --        tinsert(buff.tooltip,
-    --                format("Ignoring: %s %s", tostring(reason), players_str))
-    --    end
-    --end
 end
 
-function RBT:BuildToolTip(buff)
+--function RBT:BuildToolTip(buff)
+local function BuildToolTip(buff)
     buff.tooltip[1]              = format("{rt7}" .. L["Missing %s"],
                                           (buff.name or buff.shortName or tostring(buff.buffIDs[1])))
     local tool_tip_index         = 2
@@ -1076,7 +255,7 @@ function RBT:BuildToolTip(buff)
         if #player_details > 0 then
             players_str = tconcat(player_details, " ")
             tinsert(buff.tooltip,
-                    format("Ignoring: %s %s", tostring(reason), players_str))
+                    format("Ignoring [%s]: %s", tostring(reason), players_str))
         end
     end
 end
@@ -1106,4 +285,23 @@ function RBT:CheckUnitBuff(unit, buff)
 
     end
     return false, nil
+end
+
+function RBT:RegisterCheck(check_conf)
+    check_conf.total   = 0
+    check_conf.count   = 0
+    check_conf.tooltip = {}
+    if not check_conf.func then
+        check_conf.func = CheckBuff
+    end
+    if not check_conf.BuildToolTipText then
+        check_conf.BuildToolTipText = BuildToolTip
+    end
+    if not check_conf.SpecialBarDisplay then
+        check_conf.SpecialBarDisplay = function ()
+            return check_conf.displayText
+        end
+    end
+    check_conf.ResetBuffData = ResetBuffData
+    tinsert(RBT.Buffs, check_conf)
 end

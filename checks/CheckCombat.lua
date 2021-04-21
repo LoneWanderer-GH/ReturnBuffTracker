@@ -10,7 +10,7 @@ local tinsert, tconcat, tremove       = table.insert, table.concat, table.remove
 local MAX_GROUPS_IN_RAID              = 8
 local function Check(buff)
 
-    RBT:ResetBuffData(buff)
+    buff:ResetBuffData()
     if buff.groups_array then
         for i = 1, MAX_GROUPS_IN_RAID do
             RBT:clearArrayList(buff.groups_array[i])

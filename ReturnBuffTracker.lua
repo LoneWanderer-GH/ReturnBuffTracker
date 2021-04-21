@@ -155,6 +155,7 @@ local defaults                            = {
         --@debug@
         logLevel        = LoggingLib.TRACE,
         logging         = true,
+        mem_profiling   = false,
         --@end-debug@
     }
 }
@@ -171,7 +172,9 @@ function RBT:OnInitialize()
     self.OptionBarClassesToBarNames = {}
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+    self.buff_id_to_buff_count_data = {}
     for k, buff in pairs(self.Buffs) do
+
         --@debug@
         RBT:Debugf("OnInitialize", "Treating buff at index: %d", k)
         --@end-debug@
@@ -221,6 +224,9 @@ function RBT:OnInitialize()
                         --    buff.name = buff_name
                         --else
                         --    RBT:Debugf("OnInitialize", "index=%d several buffs IDs (%d)", k, #buff.buffIDs)
+                        --end
+                        --for _, id in ipairs(buff.buffIDs) do
+                        --    self.buff_id_to_buff_count_data[id] = { count = 0, total = 0, buff_definition = buff }
                         --end
                     else
                         --@debug@
@@ -318,9 +324,9 @@ function RBT:OnInitialize()
         buff.bar = RBT:CreateBuffInfoBar(index, buff)
     end
 
-    self.nextTime = 0
+    self.nextTime          = 0
+    RBT.current_buff_index = 1
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
-
     RBT:UpdateBars()
     RBT:CheckVisible()
 end
@@ -348,33 +354,133 @@ function RBT:UpdateBars()
     RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
+--function RBT:AggregateAllRaidUnitBuffs()
+--    local buff_name, caster, spellId
+--    RBT.raid_player_cache = {}
+--    local player_name, player_group, player_localized_class, player_class
+--    local buff_id_data
+--    --
+--    for raid_index = 1, 40 do
+--        player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(raid_index)
+--        if player_name then
+--            local player_counted = false
+--            --table.insert(RBT.raid_player_cache, {})
+--
+--            --
+--            for buff_index = 1, BUFF_MAX_DISPLAY do
+--                buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
+--
+--                buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
+--                if buff_id_data then
+--
+--                    --
+--                    if buff_id_data.buff_definition then
+--                        if buff_id_data.buff_definition.classes then
+--                            -- class specific buff
+--                            for _, c in ipairs(buff_id_data.buff_definition.classes) do
+--                                if c == player_class then -- match
+--                                    -- count player in total once
+--                                    if not player_counted then
+--                                        buff_id_data.total = buff_id_data.total + 1
+--                                        player_counted     = true
+--                                    end
+--                                    -- count buff occurrence
+--                                    buff_id_data.count = buff_id_data.count + 1
+--                                end -- other iterations won't do anything
+--                            end
+--                        else
+--                            -- general buff
+--                            -- count player in total once
+--                            if not player_counted then
+--                                buff_id_data.total = buff_id_data.total + 1
+--                                player_counted     = true
+--                            end
+--                            -- count player buff occurrence
+--                            buff_id_data.count = buff_id_data.count + 1
+--                        end
+--                    end -- buff is to be analyzed (robustness)
+--                end -- end buff is to be analyzed
+--            end -- end loop payer auras
+--        end
+--
+--    end
+--end
+
 function RBT:OnUpdate(self)
     local currentTime = GetTime()
     if RBT.nextTime and currentTime < RBT.nextTime then
         return
     end
-    --RBT.nextTime = currentTime + 0.500
-    RBT.nextTime = currentTime + 1 -- 1 sec refresh rate
+    RBT.nextTime = currentTime + 0.180
+    --RBT.nextTime = currentTime + 1 -- 1 sec refresh rate
 
     if not RBT:CheckVisible() then
         return
     end
-    if RBT.mainFrame:IsVisible() then
-        for _, buff in ipairs(RBT.Buffs) do
-
-            if RBT.db.profile.deactivatedBars[buff.displayText] then
-                return
-            end
-
-            --if buff.func then
-            --    buff.func(ReturnBuffTracker, buff)
-            --else
-            --    RBT:CheckBuff(buff)
-            --end
-            buff:func(buff)
-            buff.bar:Update()
-        end
+    --if RBT.mainFrame:IsVisible() then
+    --@debug@
+    local mem_before_g, mem_after_g, mem_before, mem_after, diff
+    if RBT.db.profile.mem_profiling then
+        mem_before_g = GetAddOnMemoryUsage(addonName)
     end
+    --@end-debug@
+
+    --for _, buff in ipairs(RBT.Buffs) do
+    --    buff.count = 0
+    --    buff.total = 0
+    --end
+    --@debug@
+    RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
+    --@end-debug@
+    local buff             = RBT.Buffs[RBT.current_buff_index]
+    RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
+    --for _, buff in ipairs(RBT.Buffs) do
+    if RBT.db.profile.deactivatedBars[buff.displayText] then
+        --@debug@
+        RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+        --@end-debug@
+        return
+    end
+    --@debug@
+    if RBT.db.profile.mem_profiling then
+        mem_before = GetAddOnMemoryUsage(addonName)
+    end
+    --@end-debug@
+
+    buff:func()
+    buff:BuildToolTipText()
+
+    --@debug@
+    if RBT.db.profile.mem_profiling then
+        UpdateAddOnMemoryUsage()
+        mem_after = GetAddOnMemoryUsage(addonName)
+        diff      = (mem_after - mem_before)
+    end
+    --@end-debug@
+
+    --@debug@
+    if RBT.db.profile.mem_profiling and diff > 2.0 then
+        RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
+                  buff.displayText,
+                  mem_before,
+                  mem_after,
+                  diff)
+    end
+    --@end-debug@
+
+    buff.bar:Update()
+    --end -- end for loop
+    -- --@debug@
+    -- if RBT.db.profile.mem_profiling then
+    --     UpdateAddOnMemoryUsage()
+    --     mem_after_g = GetAddOnMemoryUsage(addonName)
+    --     RBT:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
+    --               mem_before_g,
+    --               mem_after_g,
+    --               (mem_after_g - mem_before_g))
+    --
+    -- end
+    -- --@end-debug@
 end
 
 function RBT:Contains(tab, val)
@@ -555,48 +661,10 @@ end
 --- Taken from NWB
 function RBT:isDMFActive()
     local dmfStart, dmfEnd = RBT:getDmfStartEnd();
-    --local timestamp, timeLeft, type;
     local isActive         = false
-    --local zone
-    --local locale = GetLocale();
-    --OCE region only just for now.
     local cur_time         = GetServerTime()
     if (dmfStart and dmfEnd) then
-
-        return cur_time >= dmfStart and cur_time <= dmfEnd
-        --if (GetServerTime() < dmfStart) then
-        --	--It's before the start of dmf.
-        --	timestamp = dmfStart;
-        --	type = "start";
-        --	timeLeft = dmfStart - GetServerTime();
-        --	--NWB.isDmfUp = nil;
-        --    isActive = false
-        --elseif (GetServerTime() < dmfEnd) then
-        --	--It's after dmf started and before the end.
-        --	timestamp = dmfEnd;
-        --	type = "end";
-        --	timeLeft = dmfEnd - GetServerTime();
-        --	isActive = true
-        --elseif (GetServerTime() > dmfEnd) then
-        --	--It's after dmf ended so calc next months dmf instead.
-        --	--local data = date("!*t", GetServerTime());
-        --	--if (data.month == 12) then
-        --	--	dmfStart, dmfEnd = NWB:getDmfStartEnd(1, true);
-        --	--else
-        --	--	dmfStart, dmfEnd = NWB:getDmfStartEnd(data.month + 1);
-        --	--end
-        --	--timestamp = dmfStart;
-        --	--type = "start";
-        --	--timeLeft = dmfStart - GetServerTime();
-        --	isActive = false
-        --end
-        ----if (date("%m", dmfStart) % 2 == 0) then
-        ----    zone = "Mulgore";
-        ----else
-        ----    zone = "Elwynn Forest";
-        ----end
-        ----NWB.dmfZone = zone;
-        ---- --Timestamp of next start or end event, seconds left untill that event, and type of event.
-        --return isActive -- timestamp, timeLeft, type;
+        isActive = cur_time >= dmfStart and cur_time <= dmfEnd
     end
+    return isActive
 end
