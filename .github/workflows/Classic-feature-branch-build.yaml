@@ -36,7 +36,7 @@ jobs:
         name: Build Classic
         with:
           # args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
-          args: -r ./zip -z -l -d -g classic -L
+          args: -r ./zip -z -d -g classic
 
       # todo: get rid of package creation and use hash ourselves
       # - name: Find the zip name
