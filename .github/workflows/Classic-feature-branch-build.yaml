@@ -20,7 +20,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
-        
+
       - uses: actions/checkout@v1
 
       #    - uses: BigWigsMods/packager@master
@@ -33,10 +33,10 @@ jobs:
       #          args: -n help
 
       - uses: BigWigsMods/packager@master
-        name: Build Classic and upload to CurseForge
+        name: Build Classic
         with:
           # args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
-          args: -r ./zip -z -l -d -g classic
+          args: -r ./zip -z -l -d -g classic -L
 
       # todo: get rid of package creation and use hash ourselves
       # - name: Find the zip name
