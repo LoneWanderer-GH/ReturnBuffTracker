@@ -5,7 +5,7 @@
 ## Author: Irpa, continued by |cff00ffdaLoneWanderer-GH|r
 ## SavedVariables: ReturnBuffTrackerDB
 ## X-Category: Interface Enhancements
-## X-Curse-Project-ID: TBD
+## X-Curse-Project-ID: 474426
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 
