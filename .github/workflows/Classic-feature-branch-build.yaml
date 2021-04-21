@@ -23,10 +23,10 @@ jobs:
       #      name: Build Retail and upload to CurseForge
       #      with:
       #        args: -l -d
-      - uses: BigWigsMods/packager@master
-        name: Build Classic and upload to CurseForge
-        with:
-          args: -n help
+      #      - uses: BigWigsMods/packager@master
+      #        name: Build Classic and upload to CurseForge
+      #        with:
+      #          args: -n help
 
       - uses: BigWigsMods/packager@master
         name: Build Classic and upload to CurseForge
