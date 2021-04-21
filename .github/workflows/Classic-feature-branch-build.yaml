@@ -31,19 +31,25 @@ jobs:
       - uses: BigWigsMods/packager@master
         name: Build Classic and upload to CurseForge
         with:
-          args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
+          # args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
+          args: -r ./zip -z -l -d -g classic
 
-      - name: Find the zip name
-        run: echo 'ZIP_NAME='$(ls ./zip/*ReturnBuffTracker*.zip | xargs -n 1 basename) >> $GITHUB_ENV
-        
-      - name: Find the zip fullpath
-        run: echo 'ZIP_PATH='$(ls ./zip/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
+      # todo: get rid of package creation and use hash ourselves
+      # - name: Find the zip name
+      #   run: echo 'ZIP_NAME='$(ls ./zip/*ReturnBuffTracker*.zip | xargs -n 1 basename) >> $GITHUB_ENV
+      - name: Name artifact with git hash
+        run: echo 'ARTIFACT_NAME='$(git -C ./zip show --no-patch --format="%H") >> $GITHUB_ENV
+
+        #      - name: Find the zip fullpath
+        #        run: echo 'ZIP_PATH='$(ls ./zip/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
 
       - name: Store built zip
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.ZIP_NAME }}
-          path: ${{ env.ZIP_PATH }}
+          #name: ${{ env.ZIP_NAME }}
+          name : ${{ env.ARTIFACT_NAME }}
+            #          path: ${{ env.ZIP_PATH }}
+          path: ./zip/
 
 
     env:
@@ -58,5 +64,7 @@ jobs:
       - name: Get artifact
         uses: actions/download-artifact@v2
         with:
-          name: ${{ env.ZIP_NAME }}
-          path: ${{ env.ZIP_PATH }}
+          #name: ${{ env.ZIP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
+          #          path: ${{ env.ZIP_PATH }}
+          path: ./zip/
