@@ -299,6 +299,7 @@ function RBT:OnInitialize()
                     --@debug@
                 else
                     RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
+                    --@end-debug@
                 end
                 --@debug@
             else
