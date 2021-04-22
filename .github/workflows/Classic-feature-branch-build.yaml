@@ -11,56 +11,38 @@ on:
 #            - 'release/**'
 
 jobs:
-  build:
+  build-classic:
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: echo "$GITHUB_CONTEXT"
+      #- name: Dump GitHub context
+      #  env:
+      #    GITHUB_CONTEXT: ${{ toJSON(github) }}
+      #  run: echo "$GITHUB_CONTEXT"
 
       - uses: actions/checkout@v1
-
-      #    - uses: BigWigsMods/packager@master
-      #      name: Build Retail and upload to CurseForge
-      #      with:
-      #        args: -l -d
-      #      - uses: BigWigsMods/packager@master
-      #        name: Build Classic and upload to CurseForge
-      #        with:
-      #          args: -n help
 
       - uses: BigWigsMods/packager@master
         name: Build Classic
         with:
-          # args: -r ./zip -l -d -g classic -n "{project-date-iso}-{package-name}-{project-revision}-{project-hash}"
           args: -r ./zip -z -d -g classic
 
-      # todo: get rid of package creation and use hash ourselves
-      # - name: Find the zip name
-      #   run: echo 'ZIP_NAME='$(ls ./zip/*ReturnBuffTracker*.zip | xargs -n 1 basename) >> $GITHUB_ENV
       - name: Name artifact with git hash
         run: echo 'ARTIFACT_NAME=${{ github.event.repository.name }}-'$(git -C ./zip show --no-patch --format="%H") >> $GITHUB_ENV
-
-        #      - name: Find the zip fullpath
-        #        run: echo 'ZIP_PATH='$(ls ./zip/*ReturnBuffTracker*.zip) >> $GITHUB_ENV
 
       - name: Store built zip
         uses: actions/upload-artifact@v2
         with:
-          #name: ${{ env.ZIP_NAME }}
           name : ${{ env.ARTIFACT_NAME }}
-            #          path: ${{ env.ZIP_PATH }}
           path: ./zip/
 
 
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
 
-  deploy:
-    needs: build
+  deploy-classic:
+    needs: build-classic
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -68,7 +50,5 @@ jobs:
       - name: Get artifact
         uses: actions/download-artifact@v2
         with:
-          #name: ${{ env.ZIP_NAME }}
           name: ${{ env.ARTIFACT_NAME }}
-          #          path: ${{ env.ZIP_PATH }}
           path: ./zip/
