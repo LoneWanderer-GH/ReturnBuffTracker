@@ -29,11 +29,11 @@ local function Check(buff)
     else
         buff.fd_players = {}
     end
-    if buff.not_raid_instance_players then
-        RBT:clearArrayList(buff.not_raid_instance_players)
-    else
-        buff.not_raid_instance_players = {}
-    end
+    --if buff.not_raid_instance_players then
+    --    RBT:clearArrayList(buff.not_raid_instance_players)
+    --else
+    --    buff.not_raid_instance_players = {}
+    --end
     if buff.low_level_players then
         RBT:clearArrayList(buff.low_level_players)
     else
@@ -49,7 +49,7 @@ local function Check(buff)
         if name then
             slacker                  = false -- we assume they are doing good :)
             buff.total               = buff.total + 1
-            inInstance, instanceType = IsInInstance(name)
+            --inInstance, instanceType = IsInInstance(name)
             if online and level < MAX_PLAYER_LEVEL then
                 slacker = true
                 --@debug@
@@ -73,13 +73,13 @@ local function Check(buff)
                     --@end-debug@
                     tinsert(buff.fd_players, name)
                 end
-                if not inInstance or instanceType ~= "raid" then
-                    tinsert(buff.not_raid_instance_players, name)
-                    --@debug@
-                    RBT:Debugf("CheckCannotHelpRaid", "Adding No in raid instance: %s", name)
-                    --@end-debug@
-                    slacker = true
-                end
+                --if not inInstance or instanceType ~= "raid" then
+                --    tinsert(buff.not_raid_instance_players, name)
+                --    --@debug@
+                --    RBT:Debugf("CheckCannotHelpRaid", "Adding No in raid instance: %s", name)
+                --    --@end-debug@
+                --    slacker = true
+                --end
                 if slacker then
                     buff.count = buff.count + 1
                 end
@@ -110,7 +110,7 @@ local function BuildToolTip(buff)
     local mapping = { [" ||- Deco:"]                 = buff.deco_players,
                       [" ||- AFK :"]                 = buff.afk_players,
                       [" ||- FD  :"]                 = buff.fd_players,
-                      [" ||- Not in raid instance:"] = buff.not_raid_instance_players,
+                      --[" ||- Not in raid instance:"] = buff.not_raid_instance_players,
                       [low_str]                      = buff.low_level_players,
     }
     local tmp_str

@@ -15,7 +15,7 @@ local function Check(buff)
     buff.count                       = 0
     buff.total                       = 1
     buff.method                      = method
-    buff.ML_name                     = "undefined"
+    buff.ML_name                     = nil
     if buff.method == "master" then
         buff.count   = 1
         buff.ML_name = GetUnitName("raid" .. raid_unit_index, false)
@@ -42,19 +42,23 @@ local function SpecialBarDisplay(buff)
     if buff.bar then
         buff.bar.texture:SetColorTexture(0.1, 0.1, 0.1, 0.9) --buff.rgb.r, buff.rgb.g, buff.rgb.b, 0.9)
     end
-    buff.bar.buffNameTextString:SetText(format("[%s] @ %s %s",
+    local ML_str = ""
+    if buff.ML_name then
+        ML_str = format("@ %s", buff.ML_name)
+    end
+    buff.bar.buffNameTextString:SetText(format("[%s] %s %s",
                                                buff.method,
-                                               buff.ML_name or "",
+                                               ML_str,
                                                buff.coloredStr))
 end
 
 local check_conf = {
-    name             = L["Loot Method"],
-    shortName        = L["Loot Method"],
-    color            = { r = 1.0, g = 0.3, b = 0.3 },
-    func             = Check,
-    buffOptionsGroup = L["General"],
-    BuildToolTipText = BuildToolTip,
-    SpecialBarDisplay   = SpecialBarDisplay
+    name              = L["Loot Method"],
+    shortName         = L["Loot Method"],
+    color             = { r = 1.0, g = 0.3, b = 0.3 },
+    func              = Check,
+    buffOptionsGroup  = L["General"],
+    BuildToolTipText  = BuildToolTip,
+    SpecialBarDisplay = SpecialBarDisplay
 }
 RBT:RegisterCheck(check_conf)
