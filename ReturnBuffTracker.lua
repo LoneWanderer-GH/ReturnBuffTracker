@@ -1,8 +1,11 @@
 local addonName, T                        = ...;
 local RBT                                 = LibStub("AceAddon-3.0"):NewAddon("ReturnBuffTracker",
                                                                              "AceConsole-3.0",
-                                                                             "AceEvent-3.0",
-                                                                             "LoggingLib-0.1")
+                                                                             "AceEvent-3.0"
+                                                                             --@debug@
+                                                                             ,"LoggingLib-0.1"
+                                                                             --@end-debug@
+)
 --@debug@
 local LoggingLib                          = LibStub("LoggingLib-0.1")
 --@end-debug@
