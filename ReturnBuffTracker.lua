@@ -1,8 +1,11 @@
 local addonName, T                        = ...;
 local RBT                                 = LibStub("AceAddon-3.0"):NewAddon("ReturnBuffTracker",
                                                                              "AceConsole-3.0",
-                                                                             "AceEvent-3.0",
-                                                                             "LoggingLib-0.1")
+                                                                             "AceEvent-3.0"
+                                                                             --@debug@
+                                                                             ,"LoggingLib-0.1"
+                                                                             --@end-debug@
+)
 --@debug@
 local LoggingLib                          = LibStub("LoggingLib-0.1")
 --@end-debug@
@@ -299,6 +302,7 @@ function RBT:OnInitialize()
                     --@debug@
                 else
                     RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
+                    --@end-debug@
                 end
                 --@debug@
             else
