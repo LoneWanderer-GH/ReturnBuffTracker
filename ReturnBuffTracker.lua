@@ -162,6 +162,7 @@ local defaults                            = {
         --@end-debug@
     }
 }
+defaults.char                             = defaults.profile
 
 function RBT:RaidOrGroupChanged()
     if IsInRaid() then
