@@ -6,9 +6,9 @@ local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALA
 
 local aggregated_spell_bonuses            = {
     {
-        name             = L["+20dmg||+30dmg"],
-        shortName        = L["+20dmg||+30dmg"],
-        optionText       = L["+20dmg||+30dmg"],
+        name             = L["+20dmg OR +30dmg"],
+        shortName        = L["+20dmg OR +30dmg"],
+        optionText       = L["+20dmg OR +30dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11390, 17539 },
         buffOptionsGroup = L["Consumable"],
@@ -18,7 +18,7 @@ local aggregated_spell_bonuses            = {
 }
 local aggregated_elemental_spell_bonuses  = {
     {
-        name             = L["Elixir of Shadow Power"],
+        name             = L["+40 fire OR shadow dmg"],
         shortName        = L["+40 fire OR shadow dmg"],
         optionText       = L["+40 fire OR shadow dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
@@ -30,11 +30,8 @@ local aggregated_elemental_spell_bonuses  = {
 }
 local spell_bonuses                       = {
     {
-        --name             = L["Greater Arcane Elixir"],
-        --shortName        = L["Greater Arcane E."],
         name             = L["Greater Arcane Elixir"],
         shortName        = L["+30dmg"],
-        --optionText       = L["+dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 17539 },
         buffOptionsGroup = L["Consumable"],
@@ -119,7 +116,7 @@ local strength_ap                         = {
 }
 local aggregated_strength_ap              = {
     {
-        name             = L["Juju Power || Giant Elixir"],
+        name             = L["Juju Power OR Giant Elixir"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11405, 16323 },
         sourceItemId     = { 9206, 12451 },
@@ -127,7 +124,7 @@ local aggregated_strength_ap              = {
         classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
     {
-        name             = L["Juju Might || Firewater"],
+        name             = L["Juju Might  OR  Firewater"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 16329, 17038 },
         sourceItemId     = { 12460, 17205 },

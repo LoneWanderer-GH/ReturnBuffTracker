@@ -180,7 +180,7 @@ local function fill_tooltip_data_array(buff,
             if player_names_array and #player_names_array > 0 then
 
                 buff.tooltip[tool_tip_index] = format("%s %s",
-                                                      format(L["Group %d:"], group_nb),
+                                                      format("%s: %d", L["Group"], group_nb),
                                                       tconcat(player_names_array, " "))
                 tool_tip_index               = tool_tip_index + 1
             end
@@ -238,12 +238,13 @@ local function CheckBuff(buff)
     end
 end
 
---function RBT:BuildToolTip(buff)
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = format("{rt7}" .. L["Missing %s"],
+    buff.tooltip[1]              = format("%s %s --> %s",
+                                          "{rt7}",
+                                          L["Missing"],
                                           (buff.name or buff.shortName or tostring(buff.buffIDs[1])))
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one."]
+    buff.tooltip[tool_tip_index] = L["no one"].."."
 
     tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
 

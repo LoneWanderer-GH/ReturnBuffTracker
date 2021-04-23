@@ -49,8 +49,8 @@ end
 
 local function BuildToolTip(buff)
     local j         = 2
-    buff.tooltip[j] = L["none."]
-    buff.tooltip[1] = format("%s (%d %s)", L["Soulstones: "],
+    buff.tooltip[j] = L["none"].."."
+    buff.tooltip[1] = format("%s: (%d %s)", L["Soulstones"],
                              buff.total,
                              RBT.localized_classes[buff.buffingClass])
     if #buff.players_having_soulstone > 0 then

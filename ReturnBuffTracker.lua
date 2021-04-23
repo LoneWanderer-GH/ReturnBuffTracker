@@ -359,6 +359,8 @@ function RBT:OnInitialize()
     --RBT:CheckVisible()
 end
 
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateBars")
+
 function RBT:UpdateBars()
     --@debug@
     RBT:Debugf("UpdateBars", "UpdateBars")
