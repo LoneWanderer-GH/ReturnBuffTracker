@@ -164,6 +164,7 @@ local defaults                            = {
         --@end-debug@
     },
 }
+defaults.char                             = defaults.profile
 
 defaults.char                             = defaults.profile
 
