@@ -137,6 +137,16 @@ local aggregated_dmf_buffs = {
     },
 }
 
+local chronolol            = {
+    {
+        name             = L["Chronolol"],
+        shortName        = L["Chronolol"],
+        color            = { r = 0.6, g = 0.2, b = 0.2 },
+        buffIDs          = { 349981 },
+        buffOptionsGroup = L["World"]
+    },
+}
+
 --local function SpecialBarDisplay(buff)
 --        if buff.shortName and buff.shortName == L["DMF Damage"] then
 --
@@ -144,7 +154,9 @@ local aggregated_dmf_buffs = {
 local all                  = table.concat(world_buffs,
                                           dm_buffs,
                                           dmf_buffs,
-                                          aggregated_dmf_buffs)
+                                          aggregated_dmf_buffs,
+                                          chronolol
+)
 
 local tmp_c
 for i, c in ipairs(all) do
