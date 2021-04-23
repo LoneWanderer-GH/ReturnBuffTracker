@@ -155,6 +155,7 @@ local defaults                            = {
         hideFrameWhenNotInRaid = true,
         deactivatedBars        = {  },
         reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
+        refresh_rate           = 0.2,
         --@debug@
         logLevel               = LoggingLib.TRACE,
         logging                = true,
@@ -189,14 +190,14 @@ end
 
 RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "RaidOrGroupChanged")
 
-local function check_already_in(t, o)
-    for _, existing_o in ipairs(t) do
-        if existing_o == o then
-            return true
-        end
-    end
-    return false
-end
+--local function check_already_in(t, o)
+--    for _, existing_o in ipairs(t) do
+--        if existing_o == o then
+--            return true
+--        end
+--    end
+--    return false
+--end
 
 function RBT:OnInitialize()
     --@debug@
@@ -373,9 +374,9 @@ function RBT:OnInitialize()
         --buff.bar = RBT:CreateInfoBar(buff.text or buff.shortName, buff.color.r, buff.color.g, buff.color.b)
         buff.bar = RBT:CreateBuffInfoBar(index, buff)
     end
-    RBT.raid_player_cache  = {}
-    self.nextTime          = 0
-    RBT.current_buff_index = 1
+    RBT.raid_player_cache = {}
+    self.nextTime         = 0
+    --RBT.current_buff_index = 1
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     RBT:UpdateBars()
     --RBT:CheckVisible()
@@ -404,23 +405,33 @@ function RBT:UpdateBars()
     RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
-function RBT:AggregateAllRaidUnitBuffs()
+function RBT:AggregateAllRequiredRaidUnitBuffs()
     local buff_name, caster, spellId
     RBT.raid_player_cache = {}
-    local player_name, player_group, player_localized_class, player_class
+    local player_name, player_group, player_localized_class, player_class, isDead
     local buff_id_data
     --
     for raid_index = 1, 40 do
-        player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(raid_index)
+        player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
         if player_name then
+
+            local slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
             if not RBT.raid_player_cache[player_name] then
-                RBT.raid_player_cache[player_name] = {}
+                RBT.raid_player_cache[player_name] = {
+                    slack_status    = { slacker, disco, fd },
+                    -- player_group = player_group,
+                    class           = player_class,
+                    group           = player_group,
+                    raid_index      = raid_index,
+                    dead            = isDead,
+                    combat          = UnitAffectingCombat(player_name),
+                    active_buff_ids = {}
+                }
             end
             for buff_index = 1, BUFF_MAX_DISPLAY do
                 buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
                 if self.buff_id_to_buff_count_data[spellId] then
-                    RBT.raid_player_cache[player_name][spellId] = {
-                        -- player_group = player_group,
+                    RBT.raid_player_cache[player_name].active_buff_ids[spellId] = {
                         caster    = caster,
                         buff_name = buff_name,
                     }
@@ -442,11 +453,14 @@ end
 
 function RBT:OnUpdate(self)
     local currentTime = GetTime()
+    --@debug@
+    RBT:Infof("OnUpdate", "Start Current time %.3f", currentTime)
+    --@end-debug@
+
     if RBT.nextTime and currentTime < RBT.nextTime then
         return
     end
-    RBT.nextTime = currentTime + 0.180
-    --RBT.nextTime = currentTime + 1 -- 1 sec refresh rate
+    RBT.nextTime = currentTime + RBT.db.char.refresh_rate
 
     --if not RBT:CheckVisible() then
     --    return
@@ -459,51 +473,55 @@ function RBT:OnUpdate(self)
         end
         --@end-debug@
 
+        RBT:AggregateAllRequiredRaidUnitBuffs()
+
+
+
         --for _, buff in ipairs(RBT.Buffs) do
         --    buff.count = 0
         --    buff.total = 0
         --end
         --@debug@
-        RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
+        --RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
         --@end-debug@
-        local buff             = RBT.Buffs[RBT.current_buff_index]
-        RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
-        --for _, buff in ipairs(RBT.Buffs) do
-        if RBT.db.char.deactivatedBars[buff.displayText] then
+        --local buff             = RBT.Buffs[RBT.current_buff_index]
+        --RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
+        for _, buff in ipairs(RBT.Buffs) do
+            if RBT.db.char.deactivatedBars[buff.displayText] then
+                --@debug@
+                RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+                --@end-debug@
+                return
+            end
             --@debug@
-            RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+            if RBT.db.char.mem_profiling then
+                mem_before = GetAddOnMemoryUsage(addonName)
+            end
             --@end-debug@
-            return
-        end
-        --@debug@
-        if RBT.db.char.mem_profiling then
-            mem_before = GetAddOnMemoryUsage(addonName)
-        end
-        --@end-debug@
 
-        buff:func()
-        buff:BuildToolTipText()
+            buff:func()
+            buff:BuildToolTipText()
 
-        --@debug@
-        if RBT.db.char.mem_profiling then
-            UpdateAddOnMemoryUsage()
-            mem_after = GetAddOnMemoryUsage(addonName)
-            diff      = (mem_after - mem_before)
-        end
-        --@end-debug@
+            --@debug@
+            if RBT.db.char.mem_profiling then
+                UpdateAddOnMemoryUsage()
+                mem_after = GetAddOnMemoryUsage(addonName)
+                diff      = (mem_after - mem_before)
+            end
+            --@end-debug@
 
-        --@debug@
-        if RBT.db.char.mem_profiling and diff > 2.0 then
-            RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
-                      buff.displayText,
-                      mem_before,
-                      mem_after,
-                      diff)
-        end
-        --@end-debug@
+            --@debug@
+            if RBT.db.char.mem_profiling and diff > 2.0 then
+                RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
+                          buff.displayText,
+                          mem_before,
+                          mem_after,
+                          diff)
+            end
+            --@end-debug@
 
-        buff.bar:Update()
-        --end -- end for loop
+            buff.bar:Update()
+        end -- end for loop
         -- --@debug@
         -- if RBT.db.char.mem_profiling then
         --     UpdateAddOnMemoryUsage()
@@ -516,6 +534,11 @@ function RBT:OnUpdate(self)
         -- end
         -- --@end-debug@
     end -- end frame visible
+
+    --@debug@
+    currentTime = GetTime()
+    RBT:Infof("OnUpdate", "End Current time %.3f", currentTime)
+    --@end-debug@
 end
 
 function RBT:Contains(tab, val)

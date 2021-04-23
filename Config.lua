@@ -94,12 +94,28 @@ local function getOptions()
                             RBT.db.char.reportChannel = v
                         end
                     },
+                    refresh_rate           = {
+                        name      = L["Full raid players buffs refresh rate"],
+                        type      = "range",
+                        min       = 0.1,
+                        max       = 5.0,
+                        softMin   = 0.2,
+                        --softMax = 5.0
+                        step      = 0.1,
+                        bigStep   = 0.2,
+                        order     = 9,
+                        get       = function(self) return RBT.db.char.refresh_rate end,
+                        set       = function(self, v)
+                            RBT.db.char.refresh_rate = v
+                        end,
+                        isPercent = false,
+                    },
                     --@debug@
                     debug_group            = {
                         type   = "group",
                         name   = "Debug options",
                         inline = true,
-                        order  = 9,
+                        order  = 20,
                         args   = {
                             logging           = {
                                 name  = "Addon logging",
@@ -152,7 +168,7 @@ local function getOptions()
                         name        = L["Bars to show"],
                         inline      = true,
                         childGroups = "tab",
-                        order       = 10,
+                        order       = 30,
                         args        = {
                             --headerBars   = {
                             --    name  = L["Bars to show"],

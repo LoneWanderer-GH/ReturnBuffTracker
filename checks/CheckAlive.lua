@@ -25,18 +25,26 @@ local function Check(buff)
 
     local dead_players_by_classes = buff.dead_players_by_classes
 
-    local name, localized_class, class, isDead
-    for i = 1, 40 do
-        name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
-        if name then
-            buff.total = buff.total + 1
-            if not isDead then
-                buff.count = buff.count + 1
-            else
-                tinsert(dead_players_by_classes[class], name)
-            end
+    -- local name, localized_class, class, isDead
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        buff.total = buff.total + 1
+        if not player_cache_data.dead then
+            buff.count = buff.count + 1
+        else
+            tinsert(dead_players_by_classes[player_name.class], player_name)
         end
     end
+    --for i = 1, 40 do
+    --    name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
+    --    if name then
+    --        buff.total = buff.total + 1
+    --        if not isDead then
+    --            buff.count = buff.count + 1
+    --        else
+    --            tinsert(dead_players_by_classes[class], name)
+    --        end
+    --    end
+    --end
 end
 
 local function BuildToolTip(buff)

@@ -39,21 +39,21 @@ local function CheckPowerType(buff)
 
     local unitPower, unitPowerMax, unitPowerPercent, unitPowerType, unitPowerTypeName
 
-    local name, localized_class, class
-    local slacker, disco, fd, not_in_raid
+    --local player_name, localized_class, class
+    local slacker, disco, fd --, not_in_raid
     local is_real_healer, is_real_dps, real_role
-    for i = 1, 40 do
-        name, _, _, _, localized_class, class = GetRaidRosterInfo(i)
-
-        if class and RBT:Contains(buff.classes, class) then
-            slacker, disco, fd, not_in_raid = RBT:CheckUnitCannotHelpRaid(name)
+    --for i = 1, 40 do
+    --    name, _, _, _, localized_class, class = GetRaidRosterInfo(i)
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        if player_cache_data.class and RBT:Contains(buff.classes, player_cache_data.class) then
+            slacker, disco, fd = unpack(player_cache_data.slack_status)
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", name) --, unitPowerTypeName)
+                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", player_name) --, unitPowerTypeName)
                 --@end-debug@
-                tinsert(buff.ignoredPlayers["Slacker"], name)
+                tinsert(buff.ignoredPlayers["Slacker"], player_name)
             else
-                unitPowerType, unitPowerTypeName = UnitPowerType(name)
+                unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 -- --@debug@
                 -- RBT:Debugf("CheckPowerType", "Checking %s -> %s", tostring(name), unitPowerTypeName)
                 -- --@end-debug@
@@ -81,21 +81,21 @@ local function CheckPowerType(buff)
 
 
                 if buff.shortName == L["Healer"] then
-                    is_real_healer, real_role = RBT:CheckUnitIsRealHealer(name)
+                    is_real_healer, real_role = RBT:CheckUnitIsRealHealer(player_name)
                     if not is_real_healer then
-                        tinsert(buff.ignoredPlayers[real_role], name)
+                        tinsert(buff.ignoredPlayers[real_role], player_name)
                     else
-                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
+                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(player_name,
                                                                                        buff.powerType)
                         buff.count                                = buff.count + unitPower
                         buff.total                                = buff.total + unitPowerMax
                     end
                 elseif buff.shortName == L["DPS"] then
-                    is_real_dps, real_role = RBT:CheckUnitIsRealDPS(name)
+                    is_real_dps, real_role = RBT:CheckUnitIsRealDPS(player_name)
                     if not is_real_dps then
-                        tinsert(buff.ignoredPlayers[real_role], name)
+                        tinsert(buff.ignoredPlayers[real_role], player_name)
                     else
-                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(name,
+                        unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(player_name,
                                                                                        buff.powerType)
                         --
                         buff.count                                = buff.count + unitPower
