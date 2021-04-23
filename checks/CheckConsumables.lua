@@ -4,7 +4,31 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
 
-local consumables                         = {
+local aggregated_spell_bonuses            = {
+    {
+        name             = L["+20dmg||+30dmg"],
+        shortName        = L["+20dmg||+30dmg"],
+        optionText       = L["+20dmg||+30dmg"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 11390, 17539 },
+        buffOptionsGroup = L["Consumable"],
+        sourceItemId     = { 9155, 13454 },
+        classes          = { WARLOCK, MAGE }
+    },
+}
+local aggregated_elemental_spell_bonuses  = {
+    {
+        name             = L["Elixir of Shadow Power"],
+        shortName        = L["+40 fire OR shadow dmg"],
+        optionText       = L["+40 fire OR shadow dmg"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 11474, 26276 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARLOCK, MAGE },
+        sourceItemId     = { 9264, 21546 },
+    },
+}
+local spell_bonuses                       = {
     {
         --name             = L["Greater Arcane Elixir"],
         --shortName        = L["Greater Arcane E."],
@@ -28,16 +52,6 @@ local consumables                         = {
         classes          = { WARLOCK, MAGE }
     },
     {
-        name             = L["+20dmg||+30dmg"],
-        shortName        = L["+20dmg||+30dmg"],
-        optionText       = L["+20dmg||+30dmg"],
-        color            = { r = 0.58, g = 0.51, b = 0.79 },
-        buffIDs          = { 11390, 17539 },
-        buffOptionsGroup = L["Consumable"],
-        sourceItemId     = { 9155, 13454 },
-        classes          = { WARLOCK, MAGE }
-    },
-    {
         name             = L["Elixir of Shadow Power"],
         shortName        = L["+40 shadow dmg"],
         optionText       = L["+40 shadow dmg"],
@@ -57,24 +71,42 @@ local consumables                         = {
         classes          = { MAGE, WARLOCK },
         sourceItemId     = { 21546 },
     },
+}
+
+local aggregated_agility                  = {
+    {
+        name             = L["+25 AGI OR Moongose"],
+        shortName        = L["+25 AGI OR Moongose"],
+        color            = { r = 0.51, g = 0.79, b = 0.51 },
+        buffIDs          = { 11334, 17538 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, ROGUE, HUNTER, "CAT", "MAINTANK" },
+        sourceItemId     = { 9187, 21546 },
+    },
+}
+
+local agility                             = {
     {
         name             = L["Elixir of the Mongoose"],
         shortName        = L["Mongoose"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 17538 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE, HUNTER },
+        classes          = { WARRIOR, ROGUE, HUNTER, "CAT", "MAINTANK" },
         sourceItemId     = { 21546 },
     },
     {
-        name             = L["Juju Power"],
-        shortName        = L["Juju Power"],
-        color            = { r = 0.58, g = 0.51, b = 0.79 },
-        buffIDs          = { 16323 },
+        name             = L["Elixir of Greater Agility"],
+        color            = { r = 0.51, g = 0.79, b = 0.51 },
+        shortName        = L["+25 AGI"],
+        buffIDs          = { 11334 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
-        sourceItemId     = { 12451 },
+        classes          = { WARRIOR, ROGUE, HUNTER, "CAT", "MAINTANK" },
+        sourceItemId     = { 9187 },
     },
+}
+
+local strength_ap                         = {
     {
         name             = L["Giant Elixir"],
         shortName        = L["Giant Elixir"],
@@ -82,53 +114,95 @@ local consumables                         = {
         buffIDs          = { 11405 },
         sourceItemId     = { 9206 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
+        classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
+}
+local aggregated_strength_ap              = {
     {
         name             = L["Juju Power || Giant Elixir"],
-        --shortName        = L["Strength Buff"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11405, 16323 },
         sourceItemId     = { 9206, 12451 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
-    },
-    {
-        name             = L["Juju Might"],
-        shortName        = L["Juju Might"],
-        color            = { r = 0.58, g = 0.51, b = 0.79 },
-        buffIDs          = { 16329 },
-        buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE, HUNTER },
-        sourceItemId     = { 12460 },
-    },
-    {
-        name             = L["Winterfall Firewater"],
-        shortName        = L["Firewater"],
-        color            = { r = 0.58, g = 0.51, b = 0.79 },
-        buffIDs          = { 17038 },
-        buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
-        sourceItemId     = { 12820 },
+        classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
     {
         name             = L["Juju Might || Firewater"],
-        --shortName        = L["AP Buff"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 16329, 17038 },
         sourceItemId     = { 12460, 17205 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
+        classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
+}
+
+local physical_mitigation                 = {
     {
         name             = L["Elixir of Fortitude"],
         shortName        = L["E. Fortitude"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 3593 },
         buffOptionsGroup = L["Consumable"],
-        classes          = { WARRIOR, ROGUE },
+        classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
         sourceItemId     = { 3825 },
     },
+    {
+        name             = L["Elixir of Superior Defense"],
+        shortName        = L["+450 armor"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 11348 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, "MAINTANK" },
+        sourceItemId     = { 13445 },
+    }
+}
+
+local aggregated_life_regen               = {
+    {
+        name             = L["Troll's Blood Potions"],
+        shortName        = L["+12/20 HP5"],
+        color            = { r = 0.60, g = 0.85, b = 0.60 },
+        buffIDs          = { 3223, 24361 },
+        buffOptionsGroup = L["Consumable"],
+        --classes          = { MAGE, WARLOCK, DRUID, SHAMAN, PALADIN, PRIEST, HUNTER },
+        sourceItemId     = { 3826, 20004 },
+    }
+}
+
+local life_regen                          = {
+    {
+        name             = L["Major Troll's Blood Potion"],
+        shortName        = L["+20 MP5"],
+        color            = { r = 0.60, g = 0.85, b = 0.60 },
+        buffIDs          = { 24361 },
+        buffOptionsGroup = L["Consumable"],
+        --classes          = { MAGE, WARLOCK, DRUID, SHAMAN, PALADIN, PRIEST, HUNTER },
+        sourceItemId     = { 20004 },
+    },
+    {
+        name             = L["Mighty Troll's Blood Potion"],
+        shortName        = L["+12 HP5"],
+        color            = { r = 0.60, g = 0.85, b = 0.60 },
+        buffIDs          = { 3223 },
+        buffOptionsGroup = L["Consumable"],
+        --classes          = { MAGE, WARLOCK, DRUID, SHAMAN, PALADIN, PRIEST, HUNTER },
+        sourceItemId     = { 3826 },
+    }
+}
+
+local mana_regen                          = {
+    {
+        name             = L["Mageblood Potion"],
+        shortName        = L["+12 MP5"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 24363 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { MAGE, WARLOCK, DRUID, SHAMAN, PALADIN, PRIEST, HUNTER },
+        sourceItemId     = { 20007 },
+    }
+}
+
+local protection_potions                  = {
     {
         name             = L["Fire Protection"],
         shortName        = L["Fire Pot."],
@@ -198,7 +272,183 @@ local consumables                         = {
         buffOptionsGroup = L["Consumable"],
         sourceItemId     = { 6050, 13456 },
     },
+    {
+        name             = L["Gift of Arthas"],
+        shortName        = L["Arthas 10 RO"],
+        --optionText       = L["Frost Protection Potions"],
+        color            = { r = 0, g = 0.1, b = 0.9 },
+        buffIDs          = { 11371 },
+        buffOptionsGroup = L["Consumable"],
+        sourceItemId     = { 9088 },
+    }
 }
+
+local flasks                              = {
+    {
+        name             = L["Flask of Distilled Wisdom"],
+        shortName        = L["+Mana Flask"],
+        color            = { r = 0.45, g = 0.45, b = 0.79 },
+        buffIDs          = { 17627 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { PRIEST, DRUID, PALADIN, SHAMAN },
+        sourceItemId     = { 13511 },
+    },
+    {
+        name             = L["Flask of Supreme Power"],
+        shortName        = L["+dmg Flask"],
+        color            = { r = 0.75, g = 0.45, b = 0.45 },
+        buffIDs          = { 17628 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { MAGE, WARLOCK },
+        sourceItemId     = { 13512 },
+    },
+    {
+        name             = L["Flask of the Titans"],
+        shortName        = L["+HP Flask"],
+        color            = { r = 0.20, g = 0.70, b = 0.70 },
+        buffIDs          = { 17626 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, "MAINTANK" },
+        sourceItemId     = { 13510 },
+    },
+
+}
+
+local zanza                               = {
+    {
+        name             = L["Spirit of Zanza"],
+        shortName        = L["+50 STA/SPI"],
+        color            = { r = 0.70, g = 0.10, b = 0.70 },
+        buffIDs          = { 24382 },
+        buffOptionsGroup = L["Consumable"],
+        --classes          = ,
+        sourceItemId     = { 20079 },
+    },
+}
+local aggregated_blasted_lands            = {
+    {
+        name             = L["+25 stat (Blasted Lands)"],
+        shortName        = L["+25 stat (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10667, 10699, 10668, 10692, 10693 },
+        buffOptionsGroup = L["Consumable"],
+        sourceItemId     = { 8410, 8412, 8411, 8423, 8424 },
+    },
+}
+local blasted_lands                       = {
+    {
+        name             = L["+25 STR (R.O.I.D.S)"],
+        shortName        = L["+25 STR (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10667 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR },
+        sourceItemId     = { 8410 },
+    },
+    {
+        name             = L["+25 AGI (Ground Scorpok Assay)"],
+        shortName        = L["+25 AGI (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10699 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { ROGUE, HUNTER, "CAT" },
+        sourceItemId     = { 8412 },
+    },
+    {
+        name             = L["+25 STA (Lung Juice Cocktail)"],
+        shortName        = L["+25 STA (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10668 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, "MAINTANK" },
+        sourceItemId     = { 8411 },
+    },
+    {
+        name             = L["+25 INT (Cerebral Cortex Compound)"],
+        shortName        = L["+25 INT (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10692 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { MAGE, WARLOCK, "MOONKIN" },
+        sourceItemId     = { 8423 },
+    },
+    {
+        name             = L["+25 SPI (Gizzard Gum)"],
+        shortName        = L["+25 SPI (BL)"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 10693 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { PRIEST, SHAMAN, PALADIN, DRUID },
+        sourceItemId     = { 8424 },
+    },
+}
+
+local winter_fall                         = {
+
+    {
+        name             = L["Winterfall Firewater"],
+        shortName        = L["Firewater"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 17038 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, ROGUE },
+        sourceItemId     = { 12820 },
+    },
+
+    {
+        name             = L["Juju Power"],
+        shortName        = L["Juju Power"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 16323 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, ROGUE },
+        sourceItemId     = { 12451 },
+    },
+
+    {
+        name             = L["Juju Might"],
+        shortName        = L["Juju Might"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 16329 },
+        buffOptionsGroup = L["Consumable"],
+        classes          = { WARRIOR, ROGUE, HUNTER },
+        sourceItemId     = { 12460 },
+    },
+    {
+        name             = L["Juju Chill"],
+        shortName        = L["Juju Chill"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 16325 },
+        buffOptionsGroup = L["Consumable"],
+        sourceItemId     = { 12457 }
+    },
+    {
+        name             = L["Juju Ember"],
+        shortName        = L["Juju Ember"],
+        color            = { r = 0.58, g = 0.51, b = 0.79 },
+        buffIDs          = { 16326 },
+        buffOptionsGroup = L["Consumable"],
+        sourceItemId     = { 12455 }
+    },
+}
+
+local consumables                         = table.concat(aggregated_spell_bonuses,
+                                                         aggregated_elemental_spell_bonuses,
+                                                         spell_bonuses,
+                                                         aggregated_agility,
+                                                         agility,
+                                                         strength_ap,
+                                                         aggregated_strength_ap,
+                                                         physical_mitigation,
+                                                         aggregated_life_regen,
+                                                         life_regen,
+                                                         mana_regen,
+                                                         protection_potions,
+                                                         flasks,
+                                                         zanza,
+                                                         aggregated_blasted_lands,
+                                                         blasted_lands,
+                                                         winter_fall)
 
 local tmp_c
 for i, c in ipairs(consumables) do
