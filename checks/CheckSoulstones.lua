@@ -12,28 +12,27 @@ local tinsert, tconcat, tremove = table.insert, table.concat, table.remove
 local function Check(buff)
     buff:ResetBuffData()
 
-    local name, group, localized_class, class
+    local player_name, group, localized_class, class
     if buff.players_having_soulstone then
         RBT:clearArrayList(buff.players_having_soulstone)
     else
         buff.players_having_soulstone = {}
     end
     local present, caster
-    for i = 1, 40 do
-        name, _, group, _, localized_class, class = GetRaidRosterInfo(i)
-        if name then
-            if class == buff.buffingClass then
-                buff.total = buff.total + 1
-            end
-            present, caster = RBT:CheckUnitBuff(name, buff)
-            if caster then
-                caster = GetUnitName(caster)
-            end
-            if present then
-                buff.count = buff.count + 1
-                tinsert(buff.players_having_soulstone, format("%s (from %s)", name, tostring(caster)))
-                --j = j + 1
-            end
+    --for i = 1, 40 do
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        --player_name, _, group, _, localized_class, class = GetRaidRosterInfo(i)
+        if class == buff.buffingClass then
+            buff.total = buff.total + 1
+        end
+        present, caster = RBT:CheckUnitBuff(player_name, buff)
+        if caster then
+            caster = GetUnitName(caster)
+        end
+        if present then
+            buff.count = buff.count + 1
+            tinsert(buff.players_having_soulstone, format("%s (from %s)", player_name, tostring(caster)))
+            --j = j + 1
         end
     end
 
