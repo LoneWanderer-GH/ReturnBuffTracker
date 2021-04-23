@@ -160,8 +160,10 @@ local defaults                            = {
         logging                = true,
         mem_profiling          = false,
         --@end-debug@
-    }
+    },
 }
+
+defaults.char                             = defaults.profile
 
 function RBT:RaidOrGroupChanged()
     if IsInRaid() then
@@ -186,6 +188,15 @@ for _, raid_event_name in ipairs({ "GROUP_JOINED",
 end
 
 RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "RaidOrGroupChanged")
+
+local function check_already_in(t, o)
+    for _, existing_o in ipairs(t) do
+        if existing_o == o then
+            return true
+        end
+    end
+    return false
+end
 
 function RBT:OnInitialize()
     --@debug@
@@ -252,9 +263,20 @@ function RBT:OnInitialize()
                         --else
                         --    RBT:Debugf("OnInitialize", "index=%d several buffs IDs (%d)", k, #buff.buffIDs)
                         --end
-                        --for _, id in ipairs(buff.buffIDs) do
-                        --    self.buff_id_to_buff_count_data[id] = { count = 0, total = 0, buff_definition = buff }
-                        --end
+                        for _, id in ipairs(buff.buffIDs) do
+                            if not self.buff_id_to_buff_count_data[id] then
+                                self.buff_id_to_buff_count_data[id] = { count   = 0,
+                                                                        total   = 0,
+                                                                        players = {},
+                                }
+                                --buff_definitions = { buff } }
+                                --else
+                                --    local current_buff_list = self.buff_id_to_buff_count_data[id].buff_definitions
+                                --    if not check_already_in(current_buff_list, buff) then
+                                --        table.concat(current_buff_list, buff)
+                                --    end
+                            end
+                        end
                     else
                         --@debug@
                         RBT:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
@@ -351,7 +373,7 @@ function RBT:OnInitialize()
         --buff.bar = RBT:CreateInfoBar(buff.text or buff.shortName, buff.color.r, buff.color.g, buff.color.b)
         buff.bar = RBT:CreateBuffInfoBar(index, buff)
     end
-
+    RBT.raid_player_cache  = {}
     self.nextTime          = 0
     RBT.current_buff_index = 1
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
@@ -382,57 +404,41 @@ function RBT:UpdateBars()
     RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
---function RBT:AggregateAllRaidUnitBuffs()
---    local buff_name, caster, spellId
---    RBT.raid_player_cache = {}
---    local player_name, player_group, player_localized_class, player_class
---    local buff_id_data
---    --
---    for raid_index = 1, 40 do
---        player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(raid_index)
---        if player_name then
---            local player_counted = false
---            --table.insert(RBT.raid_player_cache, {})
---
---            --
---            for buff_index = 1, BUFF_MAX_DISPLAY do
---                buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
---
---                buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
---                if buff_id_data then
---
---                    --
---                    if buff_id_data.buff_definition then
---                        if buff_id_data.buff_definition.classes then
---                            -- class specific buff
---                            for _, c in ipairs(buff_id_data.buff_definition.classes) do
---                                if c == player_class then -- match
---                                    -- count player in total once
---                                    if not player_counted then
---                                        buff_id_data.total = buff_id_data.total + 1
---                                        player_counted     = true
---                                    end
---                                    -- count buff occurrence
---                                    buff_id_data.count = buff_id_data.count + 1
---                                end -- other iterations won't do anything
---                            end
---                        else
---                            -- general buff
---                            -- count player in total once
---                            if not player_counted then
---                                buff_id_data.total = buff_id_data.total + 1
---                                player_counted     = true
---                            end
---                            -- count player buff occurrence
---                            buff_id_data.count = buff_id_data.count + 1
---                        end
---                    end -- buff is to be analyzed (robustness)
---                end -- end buff is to be analyzed
---            end -- end loop payer auras
---        end
---
---    end
---end
+function RBT:AggregateAllRaidUnitBuffs()
+    local buff_name, caster, spellId
+    RBT.raid_player_cache = {}
+    local player_name, player_group, player_localized_class, player_class
+    local buff_id_data
+    --
+    for raid_index = 1, 40 do
+        player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(raid_index)
+        if player_name then
+            if not RBT.raid_player_cache[player_name] then
+                RBT.raid_player_cache[player_name] = {}
+            end
+            for buff_index = 1, BUFF_MAX_DISPLAY do
+                buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
+                if self.buff_id_to_buff_count_data[spellId] then
+                    RBT.raid_player_cache[player_name][spellId] = {
+                        -- player_group = player_group,
+                        caster    = caster,
+                        buff_name = buff_name,
+                    }
+                end
+                --buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
+                --if RBT.db.char.deactivatedBars[buff_id_data.WTF_BBQ.displayText] then
+                --    -- we don't need to analyze thisbuff
+                --else
+                --    if buff_id_data then
+                --    else
+                --        -- not a known buff to analyze
+                --        -- not a buff the player wants to track
+                --    end -- end buff is to be analyzed
+                --end
+            end -- end loop payer auras
+        end
+    end
+end
 
 function RBT:OnUpdate(self)
     local currentTime = GetTime()
