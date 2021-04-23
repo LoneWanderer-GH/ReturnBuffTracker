@@ -17,7 +17,7 @@ local function getOptions()
                 name   = L["General"],
                 inline = true,
                 args   = {
-                    description          = {
+                    description            = {
                         name        = "",
                         type        = "description",
                         image       = "Interface\\AddOns\\ReturnBuffTracker\\media\\return",
@@ -26,18 +26,35 @@ local function getOptions()
                         width       = "half",
                         order       = 1
                     },
-                    descriptiontext      = {
+                    descriptiontext        = {
                         --name  = L["Return Buff Tracker by Irpa\nDiscord: https://discord.gg/SZYAKFy\nGithub: https://github.com/zorkqz/ReturnBuffTracker\n"],
                         name  = "Return Buff Tracker by Irpa - Enhanced by LoneWanderer-GH",
                         type  = "description",
                         width = "full",
-                        order = 1
+                        order = 2
                     },
-                    resetConf            = {
-                        name = "reset Configuration",
-                        desc = "reset to default",
-                        type = "execute",
-                        func = RBT.ResetConfiguration,
+                    resetConf              = {
+                        name  = "reset Configuration",
+                        desc  = "reset to default",
+                        type  = "execute",
+                        func  = RBT.ResetConfiguration,
+                        order = 3
+                    },
+                    showFrame              = {
+                        name      = "Show frame",
+                        desc      = "Force frame to show. Caution : it may show/hide again if you join/leave a raid depending on other options",
+                        descStyle = "inline",
+                        order     = 4,
+                        type      = "execute",
+                        func      = function() RBT.mainFrame:Show() end
+                    },
+                    hideFrame              = {
+                        name      = "Hide frame",
+                        descStyle = "inline",
+                        desc      = "Force frame to hide. Caution : it may show/hide again if you join/leave a raid depending on other options",
+                        order     = 5,
+                        type      = "execute",
+                        func      = function() RBT.mainFrame:Hide() end
                     },
                     --set_my_class_only    = {
                     --    name = "my class only",
@@ -45,43 +62,44 @@ local function getOptions()
                     --    type = "execute",
                     --    func = RBT.ActivatePlayerClassOnly,
                     --},
-                    headerGlobalSettings = {
+                    headerGlobalSettings   = {
                         name  = L["Global Settings"],
                         type  = "header",
                         width = "double",
-                        order = 2
+                        order = 6
                     },
-                    hideNotInRaid        = {
+                    hideFrameWhenNotInRaid = {
                         name  = L["Hide when not in raid"],
                         desc  = L["The buff tracker does not work outside of raids."],
                         type  = "toggle",
-                        order = 3,
+                        order = 7,
                         get   = function(self)
-                            return RBT.db.profile.hideNotInRaid
+                            return RBT.db.char.hideFrameWhenNotInRaid
                         end,
                         set   = function(self, value)
-                            RBT.db.profile.hideNotInRaid = value
-                            RBT:CheckVisible()
+                            RBT.db.char.hideFrameWhenNotInRaid = value
+                            RBT:RaidOrGroupChanged()
                         end
                     },
-                    reportConfig         = {
+                    reportConfig           = {
                         name   = L["Report config"],
                         type   = "select",
                         desc   = "Report channel",
-                        order  = 6,
+                        order  = 8,
                         values = RBT.Constants.ReportChannel,
                         get    = function(self)
-                            return RBT.db.profile.reportChannel
+                            return RBT.db.char.reportChannel
                         end,
                         set    = function(self, v)
-                            RBT.db.profile.reportChannel = v
+                            RBT.db.char.reportChannel = v
                         end
                     },
                     --@debug@
-                    debug_group          = {
+                    debug_group            = {
                         type   = "group",
                         name   = "Debug options",
                         inline = true,
+                        order  = 9,
                         args   = {
                             logging           = {
                                 name  = "Addon logging",
@@ -89,12 +107,12 @@ local function getOptions()
                                 desc  = "Activate Logging",
                                 order = 6,
                                 get   = function(self)
-                                    return RBT.db.profile.logging
+                                    return RBT.db.char.logging
                                 end,
                                 set   = function(self, v)
-                                    RBT.db.profile.logging = v
+                                    RBT.db.char.logging = v
                                     if not v then
-                                        RBT.db.profile.mem_profiling = false
+                                        RBT.db.char.mem_profiling = false
                                         RBT:SetLogLevel(LoggingLib.INACTIVE)
                                     end
                                 end
@@ -105,10 +123,10 @@ local function getOptions()
                                 desc  = "Activate Logging",
                                 order = 6,
                                 get   = function(self)
-                                    return RBT.db.profile.mem_profiling
+                                    return RBT.db.char.mem_profiling
                                 end,
                                 set   = function(self, v)
-                                    RBT.db.profile.mem_profiling = v
+                                    RBT.db.char.mem_profiling = v
                                 end
                             },
                             addonLoggerConfig = {
@@ -119,21 +137,22 @@ local function getOptions()
                                 --values = RBT.Constants.LoggingConfig,
                                 values = LoggingLib.logging_level_to_string,
                                 get    = function(self)
-                                    return RBT.db.profile.logLevel
+                                    return RBT.db.char.logLevel
                                 end,
                                 set    = function(self, v)
                                     RBT:SetLogLevel(v)
-                                    RBT.db.profile.logLevel = v
+                                    RBT.db.char.logLevel = v
                                 end
                             },
                         },
                     },
                     --@end-debug@
-                    buff_groups          = {
+                    buff_groups            = {
                         type        = "group",
                         name        = L["Bars to show"],
                         inline      = true,
                         childGroups = "tab",
+                        order       = 10,
                         args        = {
                             --headerBars   = {
                             --    name  = L["Bars to show"],
@@ -144,7 +163,7 @@ local function getOptions()
                             generalBuffs = {
                                 name  = L["General Buffs"],
                                 type  = "group",
-                                order = 5,
+                                order = 1,
                                 args  = {
                                     bars = {
                                         type   = "multiselect",
@@ -153,10 +172,10 @@ local function getOptions()
                                         order  = 6,
                                         values = RBT.OptionBarNames[L["General"]],
                                         get    = function(self, bar)
-                                            return not RBT.db.profile.deactivatedBars[bar]
+                                            return not RBT.db.char.deactivatedBars[bar]
                                         end,
                                         set    = function(self, bar, value)
-                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT.db.char.deactivatedBars[bar] = not value
                                             RBT:UpdateBars()
                                         end
                                     },
@@ -167,7 +186,7 @@ local function getOptions()
                                 --    type = "execute",
                                 --    func = function()
                                 --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.profile.deactivatedBars[bar] = false
+                                --            RBT.db.char.deactivatedBars[bar] = false
                                 --        end
                                 --        RBT:UpdateBars()
                                 --    end,
@@ -178,7 +197,7 @@ local function getOptions()
                                 --    type = "execute",
                                 --    func = function()
                                 --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.profile.deactivatedBars[bar] = true
+                                --            RBT.db.char.deactivatedBars[bar] = true
                                 --        end
                                 --        RBT:UpdateBars()
                                 --    end,
@@ -188,7 +207,7 @@ local function getOptions()
                             playerBuffs  = {
                                 name  = L["Player buffs"],
                                 type  = "group",
-                                order = 6,
+                                order = 2,
                                 args  = {
 
                                     bars = {
@@ -198,10 +217,10 @@ local function getOptions()
                                         order  = 6,
                                         values = RBT.OptionBarNames[L["Player buffs"]],
                                         get    = function(self, bar)
-                                            return not RBT.db.profile.deactivatedBars[bar]
+                                            return not RBT.db.char.deactivatedBars[bar]
                                         end,
                                         set    = function(self, bar, value)
-                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT.db.char.deactivatedBars[bar] = not value
                                             RBT:UpdateBars()
                                         end
                                     },
@@ -210,7 +229,7 @@ local function getOptions()
                             worldBuffs   = {
                                 name  = L["World Buffs"],
                                 type  = "group",
-                                order = 7,
+                                order = 3,
                                 args  = {
 
                                     bars = {
@@ -220,10 +239,10 @@ local function getOptions()
                                         order  = 6,
                                         values = RBT.OptionBarNames[L["World"]],
                                         get    = function(self, bar)
-                                            return not RBT.db.profile.deactivatedBars[bar]
+                                            return not RBT.db.char.deactivatedBars[bar]
                                         end,
                                         set    = function(self, bar, value)
-                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT.db.char.deactivatedBars[bar] = not value
                                             RBT:UpdateBars()
                                         end
                                     },
@@ -232,7 +251,7 @@ local function getOptions()
                             consumables  = {
                                 name  = L["Consumables"],
                                 type  = "group",
-                                order = 8,
+                                order = 4,
                                 args  = {
 
                                     bars = {
@@ -241,10 +260,10 @@ local function getOptions()
                                         desc   = "",
                                         order  = 6,
                                         values = RBT.OptionBarNames[L["Consumable"]],
-                                        get    = function(self, bar) return not RBT.db.profile.deactivatedBars[bar]
+                                        get    = function(self, bar) return not RBT.db.char.deactivatedBars[bar]
                                         end,
                                         set    = function(self, bar, value)
-                                            RBT.db.profile.deactivatedBars[bar] = not value
+                                            RBT.db.char.deactivatedBars[bar] = not value
                                             RBT:UpdateBars()
                                         end
                                     },
@@ -268,9 +287,10 @@ function RBT:ChatCommand(input)
         InterfaceOptionsFrame_OpenToCategory(
                 RBT.optFrames.ReturnBuffTracker)
     else
-        LibStub("AceConfigCmd-3.0").HandleCommand(ReturnBuffTracker,
+        LibStub("AceConfigCmd-3.0").HandleCommand(RBT,
                                                   "ReturnBuffTracker",
-                                                  "ReturnBuffTracker", input)
+                                                  "ReturnBuffTracker",
+                                                  input)
     end
 end
 

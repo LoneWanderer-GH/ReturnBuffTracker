@@ -89,14 +89,14 @@ function RBT:CreateMainFrame()
     RBT.mainFrame.buff_bars = {}
 
     theFrame:ClearAllPoints()
-    if RBT.db.profile.position then
-        theFrame:SetPoint("BOTTOMLEFT", RBT.db.profile.position.x, RBT.db.profile.position.y)
+    if RBT.db.char.position then
+        theFrame:SetPoint("BOTTOMLEFT", RBT.db.char.position.x, RBT.db.char.position.y)
     else
         theFrame:SetPoint("CENTER", UIParent)
     end
 
     --theFrame:SetHeight(80)
-    theFrame:SetWidth(RBT.db.profile.width)
+    theFrame:SetWidth(RBT.db.char.width)
     --theFrame:SetMinResize(100, 0)
     --theFrame:SetMaxResize(1000, 1000)
 
@@ -131,7 +131,7 @@ function RBT:CreateMainFrame()
     end)
     resizeButton:SetScript("OnMouseUp", function(self, button)
         theFrame:StopMovingOrSizing()
-        RBT.db.profile.width = theFrame:GetWidth()
+        RBT.db.char.width = theFrame:GetWidth()
         --local totalWidth     = theFrame:GetWidth() - 10
         for _, b in ipairs(theFrame.buff_bars) do
             b:UpdateWidth()
@@ -141,11 +141,11 @@ function RBT:CreateMainFrame()
     theFrame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
     theFrame:SetScript("OnMouseUp", function(self)
         self:StopMovingOrSizing()
-        if not RBT.db.profile.position then
-            RBT.db.profile.position = {}
+        if not RBT.db.char.position then
+            RBT.db.char.position = {}
         end
-        RBT.db.profile.position.x = theFrame:GetLeft()
-        RBT.db.profile.position.y = theFrame:GetBottom()
+        RBT.db.char.position.x = theFrame:GetLeft()
+        RBT.db.char.position.y = theFrame:GetBottom()
         --local totalWidth          = theFrame:GetWidth() - 10
         for _, b in ipairs(theFrame.buff_bars) do
             b:UpdateWidth()
@@ -313,16 +313,16 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
                 --for k, v in ipairs(self.tooltip_lines) do
                 for k, v in ipairs(self.buff.tooltip) do
                     tmp_str = stripColors(v)
-                    SendChatMessage(tmp_str, RBT.db.profile.reportChannel)
+                    SendChatMessage(tmp_str, RBT.db.char.reportChannel)
                 end
             end
         else
             RBT.mainFrame:StopMovingOrSizing()
-            if not RBT.db.profile.position then
-                RBT.db.profile.position = {}
+            if not RBT.db.char.position then
+                RBT.db.char.position = {}
             end
-            RBT.db.profile.position.x = RBT.mainFrame:GetLeft()
-            RBT.db.profile.position.y = RBT.mainFrame:GetBottom()
+            RBT.db.char.position.x = RBT.mainFrame:GetLeft()
+            RBT.db.char.position.y = RBT.mainFrame:GetBottom()
         end
     end)
 
