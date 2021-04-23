@@ -2,9 +2,9 @@ local addonName, T                        = ...;
 local RBT                                 = LibStub("AceAddon-3.0"):NewAddon("ReturnBuffTracker",
                                                                              "AceConsole-3.0",
                                                                              "AceEvent-3.0"
-                                                                             --@debug@
-                                                                             ,"LoggingLib-0.1"
-                                                                             --@end-debug@
+--@debug@
+, "LoggingLib-0.1"
+--@end-debug@
 )
 --@debug@
 local LoggingLib                          = LibStub("LoggingLib-0.1")
@@ -150,18 +150,42 @@ RBT.Constants.ReportChannel               = {
 
 local defaults                            = {
     profile = {
-        position        = nil,
-        width           = 180,
-        hideNotInRaid   = true,
-        deactivatedBars = {  },
-        reportChannel   = RBT.Constants.ReportChannel["RAID_WARNING"],
+        position               = nil,
+        width                  = 180,
+        hideFrameWhenNotInRaid = true,
+        deactivatedBars        = {  },
+        reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
         --@debug@
-        logLevel        = LoggingLib.TRACE,
-        logging         = true,
-        mem_profiling   = false,
+        logLevel               = LoggingLib.TRACE,
+        logging                = true,
+        mem_profiling          = false,
         --@end-debug@
     }
 }
+
+function RBT:RaidOrGroupChanged()
+    if IsInRaid() then
+        RBT.mainFrame:Show()
+    else
+        if RBT.db.char.hideFrameWhenNotInRaid then
+            RBT.mainFrame:Hide()
+        else
+            RBT.mainFrame:Show()
+        end
+    end
+    RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
+for _, raid_event_name in ipairs({ "GROUP_JOINED",
+                                   "GROUP_FORMED",
+                                   "GROUP_LEFT",
+                                     --"PARTY_CONVERTED_TO_RAID",
+                                   "GROUP_ROSTER_UPDATE",
+                                   "RAID_ROSTER_UPDATE" }) do
+    RBT:RegisterEvent(raid_event_name, "RaidOrGroupChanged")
+end
+
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "RaidOrGroupChanged")
 
 function RBT:OnInitialize()
     --@debug@
@@ -332,7 +356,7 @@ function RBT:OnInitialize()
     RBT.current_buff_index = 1
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     RBT:UpdateBars()
-    RBT:CheckVisible()
+    --RBT:CheckVisible()
 end
 
 function RBT:UpdateBars()
@@ -341,8 +365,8 @@ function RBT:UpdateBars()
     --@end-debug@
     local nb_of_bars_to_display = 0
     for _, buff in ipairs(RBT.Buffs) do
-        --if RBT.db.profile.deactivatedBars[buff.optionText or buff.text or buff.name] then
-        if RBT.db.profile.deactivatedBars[buff.displayText] then
+        --if RBT.db.char.deactivatedBars[buff.optionText or buff.text or buff.name] then
+        if RBT.db.char.deactivatedBars[buff.displayText] then
             --@debug@
             RBT:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
             --@end-debug@
@@ -418,73 +442,74 @@ function RBT:OnUpdate(self)
     RBT.nextTime = currentTime + 0.180
     --RBT.nextTime = currentTime + 1 -- 1 sec refresh rate
 
-    if not RBT:CheckVisible() then
-        return
-    end
-    --if RBT.mainFrame:IsVisible() then
-    --@debug@
-    local mem_before_g, mem_after_g, mem_before, mem_after, diff
-    if RBT.db.profile.mem_profiling then
-        mem_before_g = GetAddOnMemoryUsage(addonName)
-    end
-    --@end-debug@
-
-    --for _, buff in ipairs(RBT.Buffs) do
-    --    buff.count = 0
-    --    buff.total = 0
+    --if not RBT:CheckVisible() then
+    --    return
     --end
-    --@debug@
-    RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
-    --@end-debug@
-    local buff             = RBT.Buffs[RBT.current_buff_index]
-    RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
-    --for _, buff in ipairs(RBT.Buffs) do
-    if RBT.db.profile.deactivatedBars[buff.displayText] then
+    if RBT.mainFrame:IsVisible() then
         --@debug@
-        RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+        local mem_before_g, mem_after_g, mem_before, mem_after, diff
+        if RBT.db.char.mem_profiling then
+            mem_before_g = GetAddOnMemoryUsage(addonName)
+        end
         --@end-debug@
-        return
-    end
-    --@debug@
-    if RBT.db.profile.mem_profiling then
-        mem_before = GetAddOnMemoryUsage(addonName)
-    end
-    --@end-debug@
 
-    buff:func()
-    buff:BuildToolTipText()
+        --for _, buff in ipairs(RBT.Buffs) do
+        --    buff.count = 0
+        --    buff.total = 0
+        --end
+        --@debug@
+        RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
+        --@end-debug@
+        local buff             = RBT.Buffs[RBT.current_buff_index]
+        RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
+        --for _, buff in ipairs(RBT.Buffs) do
+        if RBT.db.char.deactivatedBars[buff.displayText] then
+            --@debug@
+            RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+            --@end-debug@
+            return
+        end
+        --@debug@
+        if RBT.db.char.mem_profiling then
+            mem_before = GetAddOnMemoryUsage(addonName)
+        end
+        --@end-debug@
 
-    --@debug@
-    if RBT.db.profile.mem_profiling then
-        UpdateAddOnMemoryUsage()
-        mem_after = GetAddOnMemoryUsage(addonName)
-        diff      = (mem_after - mem_before)
-    end
-    --@end-debug@
+        buff:func()
+        buff:BuildToolTipText()
 
-    --@debug@
-    if RBT.db.profile.mem_profiling and diff > 2.0 then
-        RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
-                  buff.displayText,
-                  mem_before,
-                  mem_after,
-                  diff)
-    end
-    --@end-debug@
+        --@debug@
+        if RBT.db.char.mem_profiling then
+            UpdateAddOnMemoryUsage()
+            mem_after = GetAddOnMemoryUsage(addonName)
+            diff      = (mem_after - mem_before)
+        end
+        --@end-debug@
 
-    buff.bar:Update()
-    --end -- end for loop
-    -- --@debug@
-    -- if RBT.db.profile.mem_profiling then
-    --     UpdateAddOnMemoryUsage()
-    --     mem_after_g = GetAddOnMemoryUsage(addonName)
-    --     RBT:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
-    --               mem_before_g,
-    --               mem_after_g,
-    --               (mem_after_g - mem_before_g))
-    --
-    -- end
-    -- --@end-debug@
+        --@debug@
+        if RBT.db.char.mem_profiling and diff > 2.0 then
+            RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
+                      buff.displayText,
+                      mem_before,
+                      mem_after,
+                      diff)
+        end
+        --@end-debug@
+
+        buff.bar:Update()
+        --end -- end for loop
+        -- --@debug@
+        -- if RBT.db.char.mem_profiling then
+        --     UpdateAddOnMemoryUsage()
+        --     mem_after_g = GetAddOnMemoryUsage(addonName)
+        --     RBT:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
+        --               mem_before_g,
+        --               mem_after_g,
+        --               (mem_after_g - mem_before_g))
+        --
+        -- end
+        -- --@end-debug@
+    end -- end frame visible
 end
 
 function RBT:Contains(tab, val)
@@ -500,37 +525,37 @@ function RBT:Contains(tab, val)
     return false
 end
 
-function RBT:CheckVisible()
-    --if not RBT.db.profile.hideNotInRaid or IsInRaid() then
-    if IsInRaid() then
-        --if not RBT.mainFrame:IsVisible() then
-        RBT.mainFrame:Show()
-        --end
-        return true
-    end
-    if RBT.db.profile.hideNotInRaid then
-        --if RBT.mainFrame:IsVisible() then
-        RBT.mainFrame:Hide()
-        --end
-        return false
-    else
-        RBT.mainFrame:Show()
-        --end
-        return true
-    end
-end
+--function RBT:CheckVisible()
+--    --if not RBT.db.char.hideFrameWhenNotInRaid or IsInRaid() then
+--    if IsInRaid() then
+--        --if not RBT.mainFrame:IsVisible() then
+--        RBT.mainFrame:Show()
+--        --end
+--        return true
+--    end
+--    if RBT.db.char.hideFrameWhenNotInRaid then
+--        --if RBT.mainFrame:IsVisible() then
+--        RBT.mainFrame:Hide()
+--        --end
+--        return false
+--    else
+--        RBT.mainFrame:Show()
+--        --end
+--        return true
+--    end
+--end
 
 function RBT:ResetConfiguration()
     --@debug@
     RBT:Debug("ResetConfiguration", "ResetConfiguration")
     --@end-debug@
-    for bar_name, _ in pairs(RBT.db.profile.deactivatedBars) do
+    for bar_name, _ in pairs(RBT.db.char.deactivatedBars) do
         --@debug@
         RBT:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
         --@end-debug@
-        RBT.db.profile.deactivatedBars[bar_name] = true
+        RBT.db.char.deactivatedBars[bar_name] = true
     end
-    RBT.db.profile = defaults.profile
+    RBT.db.char = defaults.profile
     RBT:UpdateBars()
 end
 
@@ -543,7 +568,7 @@ function RBT:ActivatePlayerClassOnly()
     RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - deactivating all")
 
     for _, buff in ipairs(RBT.Buffs) do
-        RBT.db.profile.deactivatedBars[buff.displayText] = (
+        RBT.db.char.deactivatedBars[buff.displayText] = (
                 (buff.buffingClass and buff.buffingClass ~= player_class) or true)
     end
     --@debug@
@@ -558,7 +583,7 @@ function RBT:ActivatePlayerClassOnly()
                 --@debug@
                 RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Activating bar %s", bar_name_to_activate)
                 --@end-debug@
-                RBT.db.profile.deactivatedBars[bar_name_to_activate] = false
+                RBT.db.char.deactivatedBars[bar_name_to_activate] = false
             end
         end
     end
