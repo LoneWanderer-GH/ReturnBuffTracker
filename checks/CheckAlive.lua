@@ -52,7 +52,7 @@ local function BuildToolTip(buff)
     local dead_players_by_classes = buff.dead_players_by_classes
     local dead_number             = (buff.total - buff.count)
     local percent                 = RBT:compute_percent_string(dead_number, buff.total)
-    buff.tooltip[1]               = format("%s %d/%d - %s", L["Dead:"], dead_number, buff.total, percent)
+    buff.tooltip[1]               = format("%s: %d/%d - %s", L["Dead"], dead_number, buff.total, percent)
     for dead_class, dead_names in pairs(dead_players_by_classes) do
         if #dead_names > 0 then
             buff.tooltip[j] = format("%s: %s",

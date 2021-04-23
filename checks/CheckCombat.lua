@@ -49,9 +49,9 @@ local function Check(buff)
 end
 
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = L["Not in Combat: "]
+    buff.tooltip[1]              = L["Not in Combat"]..":"
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one."]
+    buff.tooltip[tool_tip_index] = L["no one"].."."
 
     for i = 1, MAX_GROUPS_IN_RAID do
         if #buff.groups_array[i] > 0 then

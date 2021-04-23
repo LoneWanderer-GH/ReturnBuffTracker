@@ -280,7 +280,7 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
 
     theBar:SetScript("OnEnter", function(self)
         --GameTooltip:AddLine("Missing " .. self.text .. ": ", 1, 1, 1)
-        GameTooltip:AddLine(format(L["Missing %s"], self.buff.displayText), 1, 1, 1)
+        GameTooltip:AddLine(format("%s %s", L["Missing"], self.buff.displayText), 1, 1, 1)
         --if self.tooltip_lines then
         --self.buff:BuildToolTipText()
         if self.buff.tooltip then
