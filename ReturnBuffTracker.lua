@@ -109,17 +109,18 @@ local colors                              = {
 --@end-debug@
 --@debug@
 local logging_categories_colors           = {
-    ["ADDON"]                   = colors[GOLD],
-    ["OnInitialize"]            = colors[SEXGREEN],
-    ["OnUpdate"]                = colors[SEXPINK],
-    ["UpdateBars"]              = colors[YELLOW],
-    ["ResetConfiguration"]      = colors[CYAN],
-    ["ActivatePlayerClassOnly"] = colors[LIGHTBLUE],
-    ["compute_percent_string"]  = colors[ORANGEY],
-    ["CheckAlive"]              = colors[GOLD2],
-    ["CheckCannotHelpRaid"]     = colors[GREY],
-    ["CheckPowerType"]          = colors[MAGE],
-    ["CheckBuff"]               = colors[PALADIN],
+    ["ADDON"]                             = colors[GOLD],
+    ["OnInitialize"]                      = colors[SEXGREEN],
+    ["OnUpdate"]                          = colors[SEXPINK],
+    ["UpdateBars"]                        = colors[YELLOW],
+    ["ResetConfiguration"]                = colors[CYAN],
+    ["ActivatePlayerClassOnly"]           = colors[LIGHTBLUE],
+    ["compute_percent_string"]            = colors[ORANGEY],
+    ["CheckAlive"]                        = colors[GOLD2],
+    ["CheckCannotHelpRaid"]               = colors[GREY],
+    ["CheckPowerType"]                    = colors[MAGE],
+    ["CheckBuff"]                         = colors[PALADIN],
+    ["AggregateAllRequiredRaidUnitBuffs"] = colors[PINK];
 }
 --@end-debug@
 
@@ -228,6 +229,23 @@ function RBT:OnInitialize()
                 if not self.OptionBarNames[buff.buffOptionsGroup] then
                     self.OptionBarNames[buff.buffOptionsGroup] = {}
                 end
+                if type(buff.buffIDs) == "table" then
+                    for _, id in ipairs(buff.buffIDs) do
+                        if not self.buff_id_to_buff_count_data[id] then
+                            RBT:Debugf("OnInitialize", "Tracking spellid: %s", id)
+                            self.buff_id_to_buff_count_data[id] = { count   = 0,
+                                                                    total   = 0,
+                                                                    players = {},
+                            }
+                            --buff_definitions = { buff } }
+                            --else
+                            --    local current_buff_list = self.buff_id_to_buff_count_data[id].buff_definitions
+                            --    if not check_already_in(current_buff_list, buff) then
+                            --        table.concat(current_buff_list, buff)
+                            --    end
+                        end
+                    end
+                end
                 -- try to put exact buff name if ID availabe and its a unique buff
                 if not buff.shortName and not buff.buffOptionsGroup == L["Consumable"] then
                     --@debug@
@@ -264,20 +282,7 @@ function RBT:OnInitialize()
                         --else
                         --    RBT:Debugf("OnInitialize", "index=%d several buffs IDs (%d)", k, #buff.buffIDs)
                         --end
-                        for _, id in ipairs(buff.buffIDs) do
-                            if not self.buff_id_to_buff_count_data[id] then
-                                self.buff_id_to_buff_count_data[id] = { count   = 0,
-                                                                        total   = 0,
-                                                                        players = {},
-                                }
-                                --buff_definitions = { buff } }
-                                --else
-                                --    local current_buff_list = self.buff_id_to_buff_count_data[id].buff_definitions
-                                --    if not check_already_in(current_buff_list, buff) then
-                                --        table.concat(current_buff_list, buff)
-                                --    end
-                            end
-                        end
+
                     else
                         --@debug@
                         RBT:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
@@ -408,45 +413,50 @@ end
 function RBT:AggregateAllRequiredRaidUnitBuffs()
     local buff_name, caster, spellId
     RBT.raid_player_cache = {}
-    local player_name, player_group, player_localized_class, player_class, isDead
-    local buff_id_data
-    --
-    for raid_index = 1, 40 do
-        player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
-        if player_name then
+    if IsInRaid() then
+        local player_name, player_group, player_localized_class, player_class, isDead
+        local buff_id_data
+        --
+        for raid_index = 1, 40 do
+            player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
+            if player_name then
 
-            local slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
-            if not RBT.raid_player_cache[player_name] then
-                RBT.raid_player_cache[player_name] = {
-                    slack_status    = { slacker, disco, fd },
-                    -- player_group = player_group,
-                    class           = player_class,
-                    group           = player_group,
-                    raid_index      = raid_index,
-                    dead            = isDead,
-                    combat          = UnitAffectingCombat(player_name),
-                    active_buff_ids = {}
-                }
-            end
-            for buff_index = 1, BUFF_MAX_DISPLAY do
-                buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
-                if self.buff_id_to_buff_count_data[spellId] then
-                    RBT.raid_player_cache[player_name].active_buff_ids[spellId] = {
-                        caster    = caster,
-                        buff_name = buff_name,
+                local slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
+                if not RBT.raid_player_cache[player_name] then
+                    RBT.raid_player_cache[player_name] = {
+                        slack_status    = { slacker, disco, fd },
+                        -- player_group = player_group,
+                        class           = player_class,
+                        group           = player_group,
+                        raid_index      = raid_index,
+                        dead            = isDead,
+                        combat          = UnitAffectingCombat(player_name),
+                        active_buff_ids = {}
                     }
                 end
-                --buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
-                --if RBT.db.char.deactivatedBars[buff_id_data.WTF_BBQ.displayText] then
-                --    -- we don't need to analyze thisbuff
-                --else
-                --    if buff_id_data then
-                --    else
-                --        -- not a known buff to analyze
-                --        -- not a buff the player wants to track
-                --    end -- end buff is to be analyzed
-                --end
-            end -- end loop payer auras
+                for buff_index = 1, BUFF_MAX_DISPLAY do
+                    buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
+                    if self.buff_id_to_buff_count_data[spellId] then
+                        --@debug@
+                        RBT:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
+                        --@end-debug@
+                        RBT.raid_player_cache[player_name].active_buff_ids[spellId] = {
+                            caster    = caster,
+                            buff_name = buff_name,
+                        }
+                    end
+                    --buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
+                    --if RBT.db.char.deactivatedBars[buff_id_data.WTF_BBQ.displayText] then
+                    --    -- we don't need to analyze thisbuff
+                    --else
+                    --    if buff_id_data then
+                    --    else
+                    --        -- not a known buff to analyze
+                    --        -- not a buff the player wants to track
+                    --    end -- end buff is to be analyzed
+                    --end
+                end -- end loop payer auras
+            end
         end
     end
 end
@@ -487,6 +497,7 @@ function RBT:OnUpdate(self)
         --local buff             = RBT.Buffs[RBT.current_buff_index]
         --RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
         for _, buff in ipairs(RBT.Buffs) do
+            buff:ResetBuffData()
             if RBT.db.char.deactivatedBars[buff.displayText] then
                 --@debug@
                 RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
@@ -578,13 +589,13 @@ function RBT:ResetConfiguration()
     --@debug@
     RBT:Debug("ResetConfiguration", "ResetConfiguration")
     --@end-debug@
-    for bar_name, _ in pairs(RBT.db.char.deactivatedBars) do
-        --@debug@
-        RBT:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
-        --@end-debug@
-        RBT.db.char.deactivatedBars[bar_name] = true
-    end
-    RBT.db.char = defaults.profile
+    --for bar_name, _ in pairs(RBT.db.char.deactivatedBars) do
+    --    --@debug@
+    --    RBT:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
+    --    --@end-debug@
+    --    RBT.db.char.deactivatedBars[bar_name] = true
+    --end
+    RBT.db.char = defaults.char
     RBT:UpdateBars()
 end
 

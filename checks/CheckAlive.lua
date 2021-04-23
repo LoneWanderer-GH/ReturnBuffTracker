@@ -31,7 +31,7 @@ local function Check(buff)
         if not player_cache_data.dead then
             buff.count = buff.count + 1
         else
-            tinsert(dead_players_by_classes[player_name.class], player_name)
+            tinsert(dead_players_by_classes[player_cache_data.class], player_name)
         end
     end
     --for i = 1, 40 do
