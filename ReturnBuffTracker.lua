@@ -181,16 +181,45 @@ function RBT:RaidOrGroupChanged()
     RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
 end
 
-for _, raid_event_name in ipairs({ "GROUP_JOINED",
-                                   "GROUP_FORMED",
-                                   "GROUP_LEFT",
-                                     --"PARTY_CONVERTED_TO_RAID",
-                                   "GROUP_ROSTER_UPDATE",
-                                   "RAID_ROSTER_UPDATE" }) do
-    RBT:RegisterEvent(raid_event_name, "RaidOrGroupChanged")
+--for _, raid_event_name in ipairs({ "GROUP_JOINED",
+--                                   "GROUP_FORMED",
+--                                   "GROUP_LEFT",
+--                                     --"PARTY_CONVERTED_TO_RAID",
+--                                   "GROUP_ROSTER_UPDATE",
+--                                   "RAID_ROSTER_UPDATE" }) do
+--    RBT:RegisterEvent(raid_event_name, "RaidOrGroupChanged")
+--end
+
+function RBT:ResetPlayerCache()
+    RBT.raid_player_cache = {}
 end
 
-RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "RaidOrGroupChanged")
+function RBT:GROUP_JOINED(...)
+    RBT:ResetPlayerCache()
+    RBT:RaidOrGroupChanged()
+end
+
+function RBT:GROUP_LEFT(...)
+    RBT:ResetPlayerCache()
+    RBT:RaidOrGroupChanged()
+end
+
+function RBT:GROUP_FORMED(...)
+    RBT:ResetPlayerCache()
+    RBT:RaidOrGroupChanged()
+end
+
+function RBT:PLAYER_ENTERING_WORLD(...)
+    RBT:UpdateBars()
+end
+
+function RBT:GROUP_ROSTER_UPDATE(...)
+    RBT:RaidOrGroupChanged()
+end
+
+function RBT:RAID_ROSTER_UPDATE(...)
+    RBT:RaidOrGroupChanged()
+end
 
 --local function check_already_in(t, o)
 --    for _, existing_o in ipairs(t) do
@@ -388,8 +417,6 @@ function RBT:OnInitialize()
     --RBT:CheckVisible()
 end
 
-RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateBars")
-
 function RBT:UpdateBars()
     --@debug@
     RBT:Debugf("UpdateBars", "UpdateBars")
@@ -413,28 +440,35 @@ function RBT:UpdateBars()
     RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
+--RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateBars")
+
 function RBT:AggregateAllRequiredRaidUnitBuffs()
     local buff_name, caster, spellId
-    RBT.raid_player_cache = {}
+    --RBT.raid_player_cache = {}
     if IsInRaid() then
         local player_name, player_group, player_localized_class, player_class, isDead
-        local buff_id_data
-        --
+        --local buff_id_data
+        local slacker, disco, fd
         for raid_index = 1, 40 do
             player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
 
-                local slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
+                slacker, disco, fd               = RBT:CheckUnitCannotHelpRaid(player_name)
+                --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 if not RBT.raid_player_cache[player_name] then
                     RBT.raid_player_cache[player_name] = {
-                        slack_status    = { slacker, disco, fd },
+                        slack_status     = { slacker, disco, fd },
                         -- player_group = player_group,
-                        class           = player_class,
-                        group           = player_group,
-                        raid_index      = raid_index,
-                        dead            = isDead,
-                        combat          = UnitAffectingCombat(player_name),
-                        active_buff_ids = {}
+                        class            = player_class,
+                        group            = player_group,
+                        raid_index       = raid_index,
+                        dead             = isDead,
+                        combat           = UnitAffectingCombat(player_name),
+                        active_buff_ids  = {},
+                        --unit_power_infos = {
+                        --    unitPowerType     = unitPowerType,
+                        --    unitPowerTypeName = unitPowerTypeName
+                        --}
                     }
                 end
                 for buff_index = 1, BUFF_MAX_DISPLAY do
@@ -599,6 +633,7 @@ function RBT:ResetConfiguration()
     --    RBT.db.char.deactivatedBars[bar_name] = true
     --end
     RBT.db.char = defaults.char
+    RBT:ResetPlayerCache()
     RBT:UpdateBars()
 end
 
@@ -740,3 +775,10 @@ function RBT:isDMFActive()
     end
     return isActive
 end
+
+RBT:RegisterEvent("GROUP_JOINED")
+RBT:RegisterEvent("GROUP_LEFT")
+RBT:RegisterEvent("GROUP_FORMED")
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD")
+RBT:RegisterEvent("GROUP_ROSTER_UPDATE")
+RBT:RegisterEvent("RAID_ROSTER_UPDATE")

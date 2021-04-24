@@ -1,6 +1,7 @@
 local RBT                                 = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
+local tconcat                             = tconcat
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
 local DMF_specific                        = { [true] = "active", [false] = "inactive" }
@@ -151,17 +152,14 @@ local chronolol            = {
 --        if buff.shortName and buff.shortName == L["DMF Damage"] then
 --
 --end
-local all                  = table.concat(world_buffs,
-                                          dm_buffs,
-                                          dmf_buffs,
-                                          aggregated_dmf_buffs,
-                                          chronolol
-)
+local all                  = { world_buffs,
+                               dm_buffs,
+                               dmf_buffs,
+                               aggregated_dmf_buffs,
+                               chronolol }
 
-local tmp_c
-for i, c in ipairs(all) do
-    tmp_c = c
-    --tmp_c.func             = RBT.CheckBuff
-    --tmp_c.BuildToolTipText = RBT.BuildToolTip
-    RBT:RegisterCheck(tmp_c)
+for _, conf_list in ipairs(all) do
+    for _, conf in ipairs(conf_list) do
+        RBT:RegisterCheck(conf)
+    end
 end

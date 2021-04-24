@@ -72,8 +72,8 @@ local spell_bonuses                       = {
 
 local aggregated_agility                  = {
     {
-        name             = L["+25 AGI OR Moongose"],
-        shortName        = L["+25 AGI OR Moongose"],
+        name             = L["+25 AGI OR Mongoose"],
+        shortName        = L["+25 AGI OR Mongoose"],
         color            = { r = 0.51, g = 0.79, b = 0.51 },
         buffIDs          = { 11334, 17538 },
         buffOptionsGroup = L["Consumable"],
@@ -124,7 +124,7 @@ local aggregated_strength_ap              = {
         classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
     {
-        name             = L["Juju Might  OR  Firewater"],
+        name             = L["Juju Might OR Firewater"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 16329, 17038 },
         sourceItemId     = { 12460, 17205 },
@@ -429,28 +429,26 @@ local winter_fall                         = {
     },
 }
 
-local consumables                         = table.concat(aggregated_spell_bonuses,
-                                                         aggregated_elemental_spell_bonuses,
-                                                         spell_bonuses,
-                                                         aggregated_agility,
-                                                         agility,
-                                                         strength_ap,
-                                                         aggregated_strength_ap,
-                                                         physical_mitigation,
-                                                         aggregated_life_regen,
-                                                         life_regen,
-                                                         mana_regen,
-                                                         protection_potions,
-                                                         flasks,
-                                                         zanza,
-                                                         aggregated_blasted_lands,
-                                                         blasted_lands,
-                                                         winter_fall)
+local all                                 = { aggregated_spell_bonuses,
+                                              aggregated_elemental_spell_bonuses,
+                                              spell_bonuses,
+                                              aggregated_agility,
+                                              agility,
+                                              strength_ap,
+                                              aggregated_strength_ap,
+                                              physical_mitigation,
+                                              aggregated_life_regen,
+                                              life_regen,
+                                              mana_regen,
+                                              protection_potions,
+                                              flasks,
+                                              zanza,
+                                              aggregated_blasted_lands,
+                                              blasted_lands,
+                                              winter_fall }
 
-local tmp_c
-for i, c in ipairs(consumables) do
-    tmp_c = c
-    --tmp_c.func             = RBT.CheckBuff
-    --tmp_c.BuildToolTipText = RBT.BuildToolTip
-    RBT:RegisterCheck(tmp_c)
+for _, conf_list in ipairs(all) do
+    for _, conf in ipairs(conf_list) do
+        RBT:RegisterCheck(conf)
+    end
 end

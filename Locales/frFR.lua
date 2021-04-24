@@ -91,9 +91,9 @@ L["Greater Blessing of Salvation"]                    = "Bénédiction de Salut 
 L["Blessing of Wisdom"]                               = "Bénédiction de Sagesse"
 L["Wisdom"]                                           = "Bén. Sagesse"
 L["Greater Blessing of Wisdom"]                       = "Bénédiction de Sagesse Supérieure"
-L["Blessing of Might"]                                = "Blessing of Might"
+L["Blessing of Might"]                                = "Bénédiction de Puissance"
 L["Might"]                                            = "Bén. Puissance"
-L["Greater Blessing of Might"]                        = "Greater Blessing of Might"
+L["Greater Blessing of Might"]                        = "Bénédiction de Puissance Supérieure"
 L["Blessing of Light"]                                = "Bénédiction de Lumière"
 L["Light"]                                            = "Bén. Lumière"
 L["Greater Blessing of Light"]                        = "Bénédiction de Lumière Supérieure"
@@ -147,10 +147,8 @@ L["Elixir of the Mongoose"]                           = "Elixir de la Mangouste"
 L["Mongoose"]                                         = "Mangouste"
 
 L["Giant Elixir"]                                     = "Elixir des géants"
-L["Juju Power  OR  Giant Elixir"]                     = "Pouvoir de Juju  OU  Elixir de Géant"
 L["Strength Buff"]                                    = "Buff Force"
 
-L["Juju Might  OR  Firewater"]                        = "Puissance de Juju  OR  Eau de feu"
 L["AP Buff"]                                          = "Buff PA"
 
 L["Elixir of Fortitude"]                              = "Elixir de Robustesse"
@@ -190,11 +188,17 @@ L["DMF Spi."]                                         = "Foire +10% Esp"
 L["Sayge's Dark Fortune of Armor"]                    = "Sombre prédiction d'Armure de Sayge"
 L["DMF Armor"]                                        = "Foire +10% Armure"
 
+--
 L["+40 fire OR shadow dmg"]                           = "+40 dmg feu OU ombre"
 L["+25 AGI"]                                          = "+25 AGI"
-L["+25 AGI OR Moongose"]                              = format("%s %s %s", L["+25 AGI"], "OU", L["Moongose"]) -- "+25 AGI OU Mangouste"
-L["Juju Power OR Giant Elixir"]                       = format("%s %s %s", L["Juju Power"], "OU", L["Giant Elixir"])
-L["Juju Might OR Firewater"]                          = format("%s %s %s", L["Juju Might"], "OU", L["Firewater"])
+--L["+25 AGI OR Mongoose"]                              = format("%s %s %s", L["+25 AGI"], "OU", L["Mongoose"]) -- "+25 AGI OU Mangouste"
+L["+25 AGI OR Mongoose"]                              = "+25 AGI OU Mangouste" -- "+25 AGI OU Mangouste"
+--L["Juju Power OR Giant Elixir"]                       = format("%s %s %s", L["Juju Power"], "OU", L["Giant Elixir"])
+--L["Juju Power OR Giant Elixir"]                       = "Pouvoir de Juju OU Elixir des Géants"
+L["Juju Power OR Giant Elixir"]                       = "Pouvoir de Juju  OU  Elixir de Géant"
+
+--L["Juju Might OR Firewater"]                          = format("%s %s %s", L["Juju Might"], "OU", L["Firewater"])
+L["Juju Might OR Firewater"]                          = "Puissance de Juju OU Eau de feu"
 
 L["Elixir of Superior Defense"]                       = "Elixir de défense supérieure"
 L["+450 armor"]                                       = "+450 armure"
@@ -225,24 +229,41 @@ L["+50 STA/SPI"]                                      = "+50 END/ESP"
 -- Terres foudroyées
 L["Blasted Lands"]                                    = "Terres Foudroyées"
 L["BL"]                                               = "TF"
-L["+25 stat (Blasted Lands)"]                         = format("+25 stat (%s)", L["Blasted Lands"])
-L["+25 stat (BL)"]                                    = format("+25 %s (%s)", L["stat"], L["BL"])
+--L["+25 stat (Blasted Lands)"]                         = format("+25 stat (%s)", L["Blasted Lands"])
+--L["+25 stat (BL)"]                                    = format("+25 %s (%s)", L["stat"], L["BL"])
+--
+--L["+25 STR (R.O.I.D.S)"]                              = format("+25 %s (R.O.I.D.S)", L["STR"])
+--L["+25 STR (BL)"]                                     = format("+25 %s (%s)", L["STR"], L["BL"])
+--
+--L["+25 AGI (Ground Scorpok Assay)"]                   = format("+25 %s (Ground Scorpok Assay)", L["AGI"])
+--L["+25 AGI (BL)"]                                     = format("+25 %s (%s)", L["AGI"], L["BL"])
+--
+--L["+25 STA (Lung Juice Cocktail)"]                    = format("+25 %s (Lung Juice Cocktail)", L["STA"])
+--L["+25 STA (BL)"]                                     = format("+25 %s (%s)", L["STA"], L["BL"])
+--
+--L["+25 INT (Cerebral Cortex Compound)"]               = format("+25 %s (Cerebral Cortex Compound)", L["INT"])
+--L["+25 INT (BL)"]                                     = format("+25 %s (%s)", L["INT"], L["BL"])
+--
+--L["+25 SPI (Gizzard Gum)"]                            = format("+25 %s (Gizzard Gum)", L["SPI"])
+--L["+25 SPI (BL)"]                                     = format("+25 %s (%s)", L["SPI"], L["BL"])
 
-L["+25 STR (R.O.I.D.S)"]                              = format("+25 %s (R.O.I.D.S)", L["STR"])
-L["+25 STR (BL)"]                                     = format("+25 %s (%s)", L["STR"], L["BL"])
+L["+25 stat (Blasted Lands)"]                         = "+25 stat (Terres Foudroyées)"
+L["+25 stat (BL)"]                                    = "+25 stat (TF)"
 
-L["+25 AGI (Ground Scorpok Assay)"]                   = format("+25 %s (Ground Scorpok Assay)", L["AGI"])
-L["+25 AGI (BL)"]                                     = format("+25 %s (%s)", L["AGI"], L["BL"])
+L["+25 STR (R.O.I.D.S)"]                              = "+25 FOR (R.O.I.D.S)"
+L["+25 STR (BL)"]                                     = "+25 FOR (TF)"
 
-L["+25 STA (Lung Juice Cocktail)"]                    = format("+25 %s (Lung Juice Cocktail)", L["STA"])
-L["+25 STA (BL)"]                                     = format("+25 %s (%s)", L["STA"], L["BL"])
+L["+25 AGI (Ground Scorpok Assay)"]                   = "+25 AGI (Ground Scorpok Assay)"
+L["+25 AGI (BL)"]                                     = "+25 AGI (TF)"
 
-L["+25 INT (Cerebral Cortex Compound)"]               = format("+25 %s (Cerebral Cortex Compound)", L["INT"])
-L["+25 INT (BL)"]                                     = format("+25 %s (%s)", L["INT"], L["BL"])
+L["+25 STA (Lung Juice Cocktail)"]                    = "+25 END (Lung Juice Cocktail)"
+L["+25 STA (BL)"]                                     = "+25 END (TF)"
 
-L["+25 SPI (Gizzard Gum)"]                            = format("+25 %s (Gizzard Gum)", L["SPI"])
-L["+25 SPI (BL)"]                                     = format("+25 %s (%s)", L["SPI"], L["BL"])
+L["+25 INT (Cerebral Cortex Compound)"]               = "+25 INT (Cerebral Cortex Compound)"
+L["+25 INT (BL)"]                                     = "+25 INT (TF)"
 
+L["+25 SPI (Gizzard Gum)"]                            = "+25 SPI (Gizzard Gum)"
+L["+25 SPI (BL)"]                                     = "+25 SPI (TF)"
 
 
 
