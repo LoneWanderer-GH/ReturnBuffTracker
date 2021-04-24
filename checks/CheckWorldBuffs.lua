@@ -17,7 +17,14 @@ local function DMF_Special(buff)
         buff.percentage_str   = "0%"
     end
 end
-local world_buffs          = {
+local world_buffs = {
+    {
+        name             = L["Warchief's Blessing"],
+        shortName        = L["Rend"],
+        buffIDs          = { 16609 },
+        color            = { r = 0.5, g = 0, b = 0 },
+        buffOptionsGroup = L["World"]
+    },
     {
         name             = L["Rallying Cry of the Dragonslayer"],
         shortName        = L["Dragonslayer"],
@@ -32,6 +39,13 @@ local world_buffs          = {
         color            = { r = 0, g = 0.5, b = 0 },
         buffOptionsGroup = L["World"]
     },
+
+}
+for _, conf in ipairs(world_buffs) do
+    conf.buffOptionsSubGroup = L["Capitals"]
+end
+
+local felwood = {
     {
         name             = L["Songflower Serenade"],
         shortName        = L["Songflower"],
@@ -39,9 +53,12 @@ local world_buffs          = {
         color            = { r = 0, g = 0, b = 0 },
         buffOptionsGroup = L["World"]
     },
-
 }
-local dm_buffs             = {
+for _, conf in ipairs(felwood) do
+    conf.buffOptionsSubGroup = L["Felwood"]
+end
+
+local dm_buffs = {
     {
         name             = L["Fengus' Ferocity"],
         shortName        = L["DMT AP"],
@@ -66,9 +83,12 @@ local dm_buffs             = {
         buffOptionsGroup = L["World"]
     },
 }
+for _, conf in ipairs(dm_buffs) do
+    conf.buffOptionsSubGroup = L["Dire Maul"]
+end
 
 -- try not to have classes overlap (1 DMF possible at a time)
-local dmf_buffs            = {
+local dmf_buffs = {
     {
         name              = L["Sayge's Dark Fortune of Damage"],
         shortName         = L["DMF Damage"],
@@ -126,6 +146,9 @@ local dmf_buffs            = {
         SpecialBarDisplay = DMF_Special
     },
 }
+for _, conf in ipairs(dmf_buffs) do
+    conf.buffOptionsSubGroup = L["DMF"]
+end
 
 local aggregated_dmf_buffs = {
     {
@@ -137,8 +160,11 @@ local aggregated_dmf_buffs = {
         SpecialBarDisplay = DMF_Special
     },
 }
+for _, conf in ipairs(aggregated_dmf_buffs) do
+    conf.buffOptionsSubGroup = L["DMF"]
+end
 
-local chronolol            = {
+local chronolol = {
     {
         name             = L["Chronolol"],
         shortName        = L["Chronolol"],
@@ -152,11 +178,11 @@ local chronolol            = {
 --        if buff.shortName and buff.shortName == L["DMF Damage"] then
 --
 --end
-local all                  = { world_buffs,
-                               dm_buffs,
-                               dmf_buffs,
-                               aggregated_dmf_buffs,
-                               chronolol }
+local all       = { world_buffs,
+                    dm_buffs,
+                    dmf_buffs,
+                    aggregated_dmf_buffs,
+                    chronolol }
 
 for _, conf_list in ipairs(all) do
     for _, conf in ipairs(conf_list) do

@@ -11,6 +11,7 @@ L["INT"]                                              = "INT"
 L["STR"]                                              = "FOR"
 
 -- addon texts
+L["Main Options"]                                     = "Options principages"
 L["Global Settings"]                                  = "Paramètres globaux"
 L["Hide when not in raid"]                            = "Cacher si pas en raid"
 L["The buff tracker does not work outside of raids."] = "Ne fonctionne pas en dehors des raids"
@@ -44,6 +45,8 @@ L["DPS Mana"]                                         = "Mana DPS"
 L["DPS"]                                              = "DPS"
 L["In Combat"]                                        = "En combat"
 
+L["Raid buffs data refresh rate"]                     = "Taux de rafraichissement des buffs de raid"
+
 L["Soulstone Resurrection"]                           = "Résurrection Pierre d'Âme"
 
 L["Soulstones"]                                       = "Pierres d'Âme"
@@ -62,6 +65,9 @@ L["none"]                                             = "aucun(e)"
 L["Missing"]                                          = "Manquant"
 L["class"]                                            = "classe"
 
+L["Capitals"]                                         = "Capitales"
+L["Dire Maul"]                                        = "Hache-Tripes"
+L["DMF"]                                              = "Foire de Sombrelune"
 
 -- player buffs
 L["Arcane Intellect"]                                 = "Intelligence des Arcanes"
@@ -102,6 +108,8 @@ L["Sanctuary"]                                        = "Bén. Sanctuaire"
 L["Greater Blessing of Sanctuary"]                    = "Bénédiction de Sanctuaire"
 
 -- world buffs
+L["Warchief's Blessing"]                              = "Bénédiction du chef de guerre"
+L["Rend"]                                             = true
 L["Rallying Cry of the Dragonslayer"]                 = "Cri de ralliement du tueur de dragon"
 L["Dragonslayer"]                                     = "Buff Ony/Nef"
 L["Spirit of Zandalar"]                               = "Esprit des Zandalar"
@@ -143,6 +151,7 @@ L["+40 shadow dmg"]                                   = "+40 dmg ombre"
 L["Elixir of Fire Mastery"]                           = "Elixir de Maîtrise du feu Supérieure"
 L["E. Fire Mast."]                                    = "E. de M. Feu sup."
 
+L["Elixir of Greater Agility"]                        = "Elixir d'agilité supérieure"
 L["Elixir of the Mongoose"]                           = "Elixir de la Mangouste"
 L["Mongoose"]                                         = "Mangouste"
 
@@ -173,9 +182,11 @@ L["Arcane Protection Potions"]                        = "Potions RA"
 L["Frost Protection Potions"]                         = "Potions RG"
 L["Frost Protection"]                                 = "Protection contre le Givre"
 L["Frost Pot."]                                       = "Pot. Givre"
+L["Arthas 10 RO"]                                     = "Arthas 10 RO"
+L["Gift of Arthas"]                                   = "Don d'Arthas"
 
 -- DMF
-L["DMF buffs"]                                        = "Buffs HT"
+L["DMF buffs"]                                        = "Buffs Foire"
 L["Chronolol"]                                        = "Chronolol"
 L["Sayge's Dark Fortune of Damage"]                   = "Sombre prédiction de dégâts de Sayge"
 L["DMF Damage"]                                       = "Foire +10% Damage"
@@ -213,7 +224,11 @@ L["+12 HP5"]                                          = true
 L["Mageblood Potion"]                                 = "Potion de Magesang"
 L["+12 MP5"]                                          = true
 
+L["Potions"]                                          = true
+L["Protection Potions"]                               = "Potions de protection"
+L["Physical mitig."]                                  = "Reduction dégats physiques"
 -- Flacons
+L["Flasks"]                                           = "Flacons"
 L["+Mana Flask"]                                      = "Flacon Mana"
 L["+dmg Flask"]                                       = "Flacon +dmg"
 L["+HP Flask"]                                        = "Flacon +hp"
@@ -227,8 +242,6 @@ L["Spirit of Zanza"]                                  = "Esrit de Zanza"
 L["+50 STA/SPI"]                                      = "+50 END/ESP"
 
 -- Terres foudroyées
-L["Blasted Lands"]                                    = "Terres Foudroyées"
-L["BL"]                                               = "TF"
 --L["+25 stat (Blasted Lands)"]                         = format("+25 stat (%s)", L["Blasted Lands"])
 --L["+25 stat (BL)"]                                    = format("+25 %s (%s)", L["stat"], L["BL"])
 --
@@ -269,4 +282,9 @@ L["+25 SPI (BL)"]                                     = "+25 SPI (TF)"
 
 
 
-
+-- Zones
+L["Winterfell"]                                       = "Berceau-de-l'Hiver"
+L["Blasted Lands"]                                    = "Terres Foudroyées"
+L["BL"]                                               = "TF"
+L["Zul'Gurub"]                                        = true
+L["Felwood"]                                          = "Gangrebois"

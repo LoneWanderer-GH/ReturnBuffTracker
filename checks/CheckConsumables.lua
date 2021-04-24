@@ -153,8 +153,11 @@ local physical_mitigation                 = {
         sourceItemId     = { 13445 },
     }
 }
+for _, conf in ipairs(physical_mitigation) do
+    conf.buffOptionsSubGroup = L["Physical mitig."]
+end
 
-local aggregated_life_regen               = {
+local aggregated_life_regen = {
     {
         name             = L["Troll's Blood Potions"],
         shortName        = L["+12/20 HP5"],
@@ -166,7 +169,7 @@ local aggregated_life_regen               = {
     }
 }
 
-local life_regen                          = {
+local life_regen            = {
     {
         name             = L["Major Troll's Blood Potion"],
         shortName        = L["+20 MP5"],
@@ -187,7 +190,7 @@ local life_regen                          = {
     }
 }
 
-local mana_regen                          = {
+local mana_regen            = {
     {
         name             = L["Mageblood Potion"],
         shortName        = L["+12 MP5"],
@@ -199,7 +202,7 @@ local mana_regen                          = {
     }
 }
 
-local protection_potions                  = {
+local protection_potions    = {
     {
         name             = L["Fire Protection"],
         shortName        = L["Fire Pot."],
@@ -279,8 +282,11 @@ local protection_potions                  = {
         sourceItemId     = { 9088 },
     }
 }
+for _, conf in ipairs(protection_potions) do
+    conf.buffOptionsSubGroup = L["Protection Potions"]
+end
 
-local flasks                              = {
+local flasks = {
     {
         name             = L["Flask of Distilled Wisdom"],
         shortName        = L["+Mana Flask"],
@@ -308,10 +314,12 @@ local flasks                              = {
         classes          = { WARRIOR, "MAINTANK" },
         sourceItemId     = { 13510 },
     },
-
 }
+for _, conf in ipairs(flasks) do
+    conf.buffOptionsSubGroup = L["Flasks"]
+end
 
-local zanza                               = {
+local zanza = {
     {
         name             = L["Spirit of Zanza"],
         shortName        = L["+50 STA/SPI"],
@@ -322,7 +330,11 @@ local zanza                               = {
         sourceItemId     = { 20079 },
     },
 }
-local aggregated_blasted_lands            = {
+for _, conf in ipairs(zanza) do
+    conf.buffOptionsSubGroup = L["Zul'Gurub"]
+end
+
+local aggregated_blasted_lands = {
     {
         name             = L["+25 stat (Blasted Lands)"],
         shortName        = L["+25 stat (BL)"],
@@ -332,7 +344,11 @@ local aggregated_blasted_lands            = {
         sourceItemId     = { 8410, 8412, 8411, 8423, 8424 },
     },
 }
-local blasted_lands                       = {
+for _, conf in ipairs(aggregated_blasted_lands) do
+    conf.buffOptionsSubGroup = L["Blasted Lands"]
+end
+
+local blasted_lands = {
     {
         name             = L["+25 STR (R.O.I.D.S)"],
         shortName        = L["+25 STR (BL)"],
@@ -379,8 +395,11 @@ local blasted_lands                       = {
         sourceItemId     = { 8424 },
     },
 }
+for _, conf in ipairs(blasted_lands) do
+    conf.buffOptionsSubGroup = L["Blasted Lands"]
+end
 
-local winter_fall                         = {
+local winter_fall = {
 
     {
         name             = L["Winterfall Firewater"],
@@ -429,23 +448,27 @@ local winter_fall                         = {
     },
 }
 
-local all                                 = { aggregated_spell_bonuses,
-                                              aggregated_elemental_spell_bonuses,
-                                              spell_bonuses,
-                                              aggregated_agility,
-                                              agility,
-                                              strength_ap,
-                                              aggregated_strength_ap,
-                                              physical_mitigation,
-                                              aggregated_life_regen,
-                                              life_regen,
-                                              mana_regen,
-                                              protection_potions,
-                                              flasks,
-                                              zanza,
-                                              aggregated_blasted_lands,
-                                              blasted_lands,
-                                              winter_fall }
+for _, conf in ipairs(winter_fall) do
+    conf.buffOptionsSubGroup = L["Winterfell"]
+end
+
+local all = { aggregated_spell_bonuses,
+              aggregated_elemental_spell_bonuses,
+              spell_bonuses,
+              aggregated_agility,
+              agility,
+              strength_ap,
+              aggregated_strength_ap,
+              physical_mitigation,
+              aggregated_life_regen,
+              life_regen,
+              mana_regen,
+              protection_potions,
+              flasks,
+              zanza,
+              aggregated_blasted_lands,
+              blasted_lands,
+              winter_fall }
 
 for _, conf_list in ipairs(all) do
     for _, conf in ipairs(conf_list) do

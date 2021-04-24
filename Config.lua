@@ -1,5 +1,8 @@
 local RBT        = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 local L          = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local AC         = LibStub("AceConfig-3.0")
+local ACR        = LibStub("AceConfigRegistry-3.0")
+local ACD        = LibStub("AceConfigDialog-3.0")
 --@debug@
 local LoggingLib = LibStub("LoggingLib-0.1")
 --@end-debug@
@@ -8,15 +11,37 @@ local options    = nil
 local function getOptions()
     if options then return options end
 
-    options = {
+    options                   = {
         type = "group",
         name = "Return Buff Tracker",
+        --childGroups = "tree",
         args = {
+            --buff_groups = {
+            --    type        = "group",
+            --    name        = L["Bars to show"],
+            --    --inline      = true,
+            --    --childGroups = "tab",
+            --    childGroups = "tree",
+            --    order       = 0,
+            --    args        = {
+            --        --headerBars   = {
+            --        --    name  = L["Bars to show"],
+            --        --    type  = "header",
+            --        --    width = "double",
+            --        --    order = 4
+            --        --},
+            --        --generalBuffs = general_buffs,
+            --        --playerBuffs  = player_buffs,
+            --        --worldBuffs   = world_buffs,
+            --        --consumables  = consumables,
+            --    }
+            --},
             general = {
-                type   = "group",
-                name   = L["General"],
-                inline = true,
-                args   = {
+                order = 100,
+                type  = "group",
+                name  = L["Main Options"],
+                --inline = true,
+                args  = {
                     description            = {
                         name        = "",
                         type        = "description",
@@ -95,7 +120,7 @@ local function getOptions()
                         end
                     },
                     refresh_rate           = {
-                        name      = L["Full raid players buffs refresh rate"],
+                        name      = L["Raid buffs data refresh rate"],
                         type      = "range",
                         min       = 0.1,
                         max       = 5.0,
@@ -163,135 +188,79 @@ local function getOptions()
                         },
                     },
                     --@end-debug@
-                    buff_groups            = {
-                        type        = "group",
-                        name        = L["Bars to show"],
-                        inline      = true,
-                        childGroups = "tab",
-                        order       = 30,
-                        args        = {
-                            --headerBars   = {
-                            --    name  = L["Bars to show"],
-                            --    type  = "header",
-                            --    width = "double",
-                            --    order = 4
-                            --},
-                            generalBuffs = {
-                                name  = L["General Buffs"],
-                                type  = "group",
-                                order = 1,
-                                args  = {
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["General"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                },
-                                --check_all = {
-                                --    name = "check all",
-                                --    desc = "check all buffs",
-                                --    type = "execute",
-                                --    func = function()
-                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.char.deactivatedBars[bar] = false
-                                --        end
-                                --        RBT:UpdateBars()
-                                --    end,
-                                --},
-                                --uncheck_all = {
-                                --    name = "uncheck all",
-                                --    desc = "uncheck all buffs",
-                                --    type = "execute",
-                                --    func = function()
-                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.char.deactivatedBars[bar] = true
-                                --        end
-                                --        RBT:UpdateBars()
-                                --    end,
-                                --},
 
-                            },
-                            playerBuffs  = {
-                                name  = L["Player buffs"],
-                                type  = "group",
-                                order = 2,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["Player buffs"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            },
-                            worldBuffs   = {
-                                name  = L["World Buffs"],
-                                type  = "group",
-                                order = 3,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["World"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            },
-                            consumables  = {
-                                name  = L["Consumables"],
-                                type  = "group",
-                                order = 4,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["Consumable"]],
-                                        get    = function(self, bar) return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
     }
+    --local root_conf           = config_buff_groups.args
+    --local root_conf           = options.args -- .buff_groups.args
+    local category_conf
+    local order               = 1
+    local no_sub_cat_infos    = nil
+    local sub_categories_conf = nil
+    local sub_cat_infos       = nil
+    local sub_order           = 1
+    local sub_group_name      = nil
+    for upper_category, upper_category_data in pairs(RBT.OptionBarNames) do
+        options.args[upper_category] = {
+            name  = upper_category,
+            desc  = upper_category,
+            type  = "group",
+            --childGroups = "tree",
+            order = order,
+            args  = {},
+        }
 
+        no_sub_cat_infos             = nil
+        sub_categories_conf          = nil
+        sub_order                    = 1
+        for sub_data_key, sub_data_value in pairs(upper_category_data) do
+            sub_group_name = nil
+            if sub_data_key == sub_data_value then
+                if not no_sub_cat_infos then
+                    no_sub_cat_infos = {}
+                end
+                -- fill a legacy category [key,val] dict for options
+                no_sub_cat_infos[sub_data_key] = sub_data_value
+            elseif type(sub_data_value) == "table" then
+                sub_group_name = sub_data_key
+                print(format("SubGroup name: %s", sub_group_name))
+                options.args[upper_category].args[sub_group_name] = {
+                    type   = "multiselect",
+                    name   = sub_group_name,
+                    --desc   = "",
+                    order  = sub_order,
+                    values = sub_data_value,
+                    get    = function(self, bar)
+                        return not RBT.db.char.deactivatedBars[bar]
+                    end,
+                    set    = function(self, bar, value)
+                        RBT.db.char.deactivatedBars[bar] = not value
+                        RBT:UpdateBars()
+                    end
+                }
+                sub_order                                         = sub_order + 1
+            end
+        end
+        if no_sub_cat_infos then
+            options.args[upper_category].args.no_sub_cat = {
+                type   = "multiselect",
+                name   = "",
+                desc   = "",
+                order  = 1,
+                values = no_sub_cat_infos,
+                get    = function(self, bar)
+                    return not RBT.db.char.deactivatedBars[bar]
+                end,
+                set    = function(self, bar, value)
+                    RBT.db.char.deactivatedBars[bar] = not value
+                    RBT:UpdateBars()
+                end
+            }
+        end
+        order = order + 1
+    end
     return options
 end
 
@@ -312,11 +281,20 @@ end
 
 function RBT:SetupOptions()
     RBT.optFrames = {}
-    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("ReturnBuffTracker",
-                                                          getOptions)
-    RBT.optFrames.ReturnBuffTracker = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ReturnBuffTracker",
-                                                                                      "Return Buff Tracker",
-                                                                                      nil, "general")
+    options       = getOptions()
+    --ACR:RegisterOptionsTable("ReturnBuffTracker", getOptions)
+    ACR:RegisterOptionsTable("ReturnBuffTracker", getOptions)
+    RBT.optFrames.ReturnBuffTracker = ACD:AddToBlizOptions("ReturnBuffTracker",
+                                                           "Return Buff Tracker",
+                                                           nil, "general")
+
+    local menu_option_name
+    for upper_category, _ in pairs(RBT.OptionBarNames) do
+        menu_option_name = "ReturnBuffTracker-" .. upper_category
+        AC:RegisterOptionsTable(menu_option_name, options.args[upper_category])
+        ACD:AddToBlizOptions(menu_option_name, options.args[upper_category].name, "Return Buff Tracker")
+    end
+
     RBT:RegisterChatCommand("ReturnBuffTracker", "ChatCommand")
     RBT:RegisterChatCommand("rbt", "ChatCommand")
 end

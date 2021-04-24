@@ -10,6 +10,7 @@ local RBT                                 = LibStub("AceAddon-3.0"):NewAddon("Re
 local LoggingLib                          = LibStub("LoggingLib-0.1")
 --@end-debug@
 local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local ACR                                 = LibStub("AceConfigRegistry-3.0")
 
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
@@ -239,7 +240,7 @@ function RBT:OnInitialize()
     RBT:Debug("OnInitialize", "OnInitialize")
     --@end-debug@
     self.OptionBarNames             = {}
-    self.OptionBarClassesToBarNames = {}
+    --self.OptionBarClassesToBarNames = {}
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
     self.buff_id_to_buff_count_data = {}
@@ -371,16 +372,29 @@ function RBT:OnInitialize()
             local tmp = self.OptionBarNames[buff.buffOptionsGroup]
             if tmp then
                 if key then
-                    tmp[key]         = key
+
                     buff.displayText = key
-                    if buff.classes then
-                        for _, c in ipairs(buff.classes) do
-                            if not self.OptionBarClassesToBarNames[c] then
-                                self.OptionBarClassesToBarNames[c] = {}
-                            end
-                            tinsert(self.OptionBarClassesToBarNames[c], key)
+
+                    -- if there is an option subgroup, store this hierarchical info
+                    if buff.buffOptionsSubGroup then
+                        if not tmp[buff.buffOptionsSubGroup] then
+                            tmp[buff.buffOptionsSubGroup] = {}
                         end
+                        tmp[buff.buffOptionsSubGroup][key] = key
+                    else
+                        tmp[key] = key
                     end
+
+
+
+                    --if buff.classes then
+                    --    --for _, c in ipairs(buff.classes) do
+                    --    --    if not self.OptionBarClassesToBarNames[c] then
+                    --    --        self.OptionBarClassesToBarNames[c] = {}
+                    --    --    end
+                    --    --    tinsert(self.OptionBarClassesToBarNames[c], key)
+                    --    --end
+                    --end
                     --@debug@
                 else
                     RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
@@ -453,18 +467,18 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
             player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
 
-                slacker, disco, fd               = RBT:CheckUnitCannotHelpRaid(player_name)
+                slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
                 --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 if not RBT.raid_player_cache[player_name] then
                     RBT.raid_player_cache[player_name] = {
-                        slack_status     = { slacker, disco, fd },
+                        slack_status    = { slacker, disco, fd },
                         -- player_group = player_group,
-                        class            = player_class,
-                        group            = player_group,
-                        raid_index       = raid_index,
-                        dead             = isDead,
-                        combat           = UnitAffectingCombat(player_name),
-                        active_buff_ids  = {},
+                        class           = player_class,
+                        group           = player_group,
+                        raid_index      = raid_index,
+                        dead            = isDead,
+                        combat          = UnitAffectingCombat(player_name),
+                        active_buff_ids = {},
                         --unit_power_infos = {
                         --    unitPowerType     = unitPowerType,
                         --    unitPowerTypeName = unitPowerTypeName
@@ -633,6 +647,7 @@ function RBT:ResetConfiguration()
     --    RBT.db.char.deactivatedBars[bar_name] = true
     --end
     RBT.db.char = defaults.char
+    RBT:RaidOrGroupChanged()
     RBT:ResetPlayerCache()
     RBT:UpdateBars()
 end
@@ -666,6 +681,7 @@ function RBT:ActivatePlayerClassOnly()
         end
     end
     RBT:UpdateBars()
+    AceConfigRegistry:NotifyChange(appName)
 end
 
 --- Taken from NWB
