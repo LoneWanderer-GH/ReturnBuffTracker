@@ -13,7 +13,7 @@ local function Check(buff)
         --for _, class in ipairs(RBT.all_classes) do
         --    RBT:clearArrayList(buff.dead_players_by_classes[class])
         --end
-        for _,v in pairs(buff.dead_players_by_classes) do
+        for _, v in pairs(buff.dead_players_by_classes) do
             RBT:clearArrayList(v)
         end
     else
@@ -25,13 +25,13 @@ local function Check(buff)
 
     local dead_players_by_classes = buff.dead_players_by_classes
 
-    -- local name, localized_class, class, isDead
+
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
         buff.total = buff.total + 1
         if not player_cache_data.dead then
             buff.count = buff.count + 1
         else
-            tinsert(dead_players_by_classes[player_cache_data.class], player_name)
+            tinsert(dead_players_by_classes[player_cache_data.class], player_cache_data.colored_player_name)
         end
     end
     --for i = 1, 40 do

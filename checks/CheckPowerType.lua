@@ -7,8 +7,11 @@ local format                              = format
 local GetRaidRosterInfo                   = GetRaidRosterInfo
 
 local UnitPowerType                       = UnitPowerType
-
+local mana_power                          = Enum.PowerType.Mana
 local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
+
+local mana_power_RGB                      = PowerBarColor[mana_power]
+local RAID_CLASS_COLORS           = RAID_CLASS_COLORS
 
 local POWER_IGNORED_ROLES                 = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK", "CAT" }
 for p, _ in pairs(Enum.PowerType) do
@@ -39,19 +42,16 @@ local function CheckPowerType(buff)
 
     local unitPower, unitPowerMax, unitPowerPercent, unitPowerType, unitPowerTypeName
 
-    --local player_name, localized_class, class
-    local slacker, disco, fd --, not_in_raid
+    local slacker, disco, fd, low_level
     local is_real_healer, is_real_dps, real_role
-    --for i = 1, 40 do
-    --    name, _, _, _, localized_class, class = GetRaidRosterInfo(i)
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
         if player_cache_data.class and RBT:Contains(buff.classes, player_cache_data.class) then
-            slacker, disco, fd = unpack(player_cache_data.slack_status)
+            slacker, disco, fd, low_level = unpack(player_cache_data.slack_status)
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", player_name) --, unitPowerTypeName)
+                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
                 --@end-debug@
-                tinsert(buff.ignoredPlayers["Slacker"], player_name)
+                tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
             else
                 unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 -- --@debug@
@@ -83,7 +83,7 @@ local function CheckPowerType(buff)
                 if buff.shortName == L["Healer"] then
                     is_real_healer, real_role = RBT:CheckUnitIsRealHealer(player_name)
                     if not is_real_healer then
-                        tinsert(buff.ignoredPlayers[real_role], player_name)
+                        tinsert(buff.ignoredPlayers[real_role], player_cache_data.colored_player_name)
                     else
                         unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(player_name,
                                                                                        buff.powerType)
@@ -93,7 +93,7 @@ local function CheckPowerType(buff)
                 elseif buff.shortName == L["DPS"] then
                     is_real_dps, real_role = RBT:CheckUnitIsRealDPS(player_name)
                     if not is_real_dps then
-                        tinsert(buff.ignoredPlayers[real_role], player_name)
+                        tinsert(buff.ignoredPlayers[real_role], player_cache_data.colored_player_name)
                     else
                         unitPower, unitPowerMax, unitPowerPercent = RBT:CountUnitPower(player_name,
                                                                                        buff.powerType)
@@ -136,7 +136,8 @@ local healer_mana = {
     optionText       = L["Healer Mana"],
     powerType        = Enum.PowerType.Mana,
     func             = CheckPowerType,
-    color            = { r = 0.4, g = 0.6, b = 1 },
+    --color            = { r = 0.4, g = 0.6, b = 1 },
+    color            = mana_power_RGB,
     classes          = { PRIEST, PALADIN, DRUID, SHAMAN },
     buffOptionsGroup = L["General"],
     BuildToolTipText = BuildToolTip,
@@ -148,7 +149,8 @@ local dps_mana    = {
     optionText       = L["DPS Mana"],
     powerType        = Enum.PowerType.Mana,
     func             = CheckPowerType,
-    color            = { r = 0.2, g = 0.2, b = 1 },
+    --color            = { r = 0.2, g = 0.2, b = 1 },
+    color            = RAID_CLASS_COLORS[MAGE],
     classes          = { HUNTER, WARLOCK, MAGE },
     buffOptionsGroup = L["General"],
     BuildToolTipText = BuildToolTip,

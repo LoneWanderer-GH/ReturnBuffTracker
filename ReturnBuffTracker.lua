@@ -122,6 +122,9 @@ local logging_categories_colors           = {
     ["CheckPowerType"]                    = colors[MAGE],
     ["CheckBuff"]                         = colors[PALADIN],
     ["AggregateAllRequiredRaidUnitBuffs"] = colors[PINK];
+    ["ResetBuffData"]           = colors[PALADIN],
+    ["ClearBuffTooltipTable"]   = colors[PALADIN],
+    ["OnEvent"]                 = colors[MAGE],
 }
 --@end-debug@
 
@@ -169,7 +172,7 @@ defaults.char                             = defaults.profile
 
 defaults.char                             = defaults.profile
 
-function RBT:RaidOrGroupChanged()
+function RBT:RaidOrGroupChanged(event, ...)
     if IsInRaid() then
         RBT.mainFrame:Show()
     else
@@ -179,17 +182,9 @@ function RBT:RaidOrGroupChanged()
             RBT.mainFrame:Show()
         end
     end
-    RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    --RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
 end
 
---for _, raid_event_name in ipairs({ "GROUP_JOINED",
---                                   "GROUP_FORMED",
---                                   "GROUP_LEFT",
---                                     --"PARTY_CONVERTED_TO_RAID",
---                                   "GROUP_ROSTER_UPDATE",
---                                   "RAID_ROSTER_UPDATE" }) do
---    RBT:RegisterEvent(raid_event_name, "RaidOrGroupChanged")
---end
 
 function RBT:ResetPlayerCache()
     RBT.raid_player_cache = {}
@@ -214,22 +209,14 @@ function RBT:PLAYER_ENTERING_WORLD(...)
     RBT:UpdateBars()
 end
 
-function RBT:GROUP_ROSTER_UPDATE(...)
-    RBT:RaidOrGroupChanged()
-end
+--function RBT:GROUP_ROSTER_UPDATE(...)
+--    RBT:RaidOrGroupChanged()
+--end
 
 function RBT:RAID_ROSTER_UPDATE(...)
     RBT:RaidOrGroupChanged()
 end
 
---local function check_already_in(t, o)
---    for _, existing_o in ipairs(t) do
---        if existing_o == o then
---            return true
---        end
---    end
---    return false
---end
 
 function RBT:OnInitialize()
     --@debug@
@@ -471,6 +458,7 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                 --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 if not RBT.raid_player_cache[player_name] then
                     RBT.raid_player_cache[player_name] = {
+                        colored_player_name = format("|c%s%s|r", RAID_CLASS_COLORS[player_class], player_name),
                         slack_status    = { slacker, disco, fd },
                         -- player_group = player_group,
                         class           = player_class,
@@ -479,6 +467,7 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                         dead            = isDead,
                         combat          = UnitAffectingCombat(player_name),
                         active_buff_ids = {},
+                        
                         --unit_power_infos = {
                         --    unitPowerType     = unitPowerType,
                         --    unitPowerTypeName = unitPowerTypeName
@@ -561,7 +550,9 @@ function RBT:OnUpdate(self)
             end
             --@end-debug@
 
+        if buff.func then
             buff:func()
+        end
             buff:BuildToolTipText()
 
             --@debug@
@@ -796,5 +787,4 @@ RBT:RegisterEvent("GROUP_JOINED")
 RBT:RegisterEvent("GROUP_LEFT")
 RBT:RegisterEvent("GROUP_FORMED")
 RBT:RegisterEvent("PLAYER_ENTERING_WORLD")
-RBT:RegisterEvent("GROUP_ROSTER_UPDATE")
 RBT:RegisterEvent("RAID_ROSTER_UPDATE")
