@@ -11,7 +11,7 @@ local mana_power                          = Enum.PowerType.Mana
 local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
 
 local mana_power_RGB                      = PowerBarColor[mana_power]
-local RAID_CLASS_COLORS           = RAID_CLASS_COLORS
+local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
 
 local POWER_IGNORED_ROLES                 = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK", "CAT" }
 for p, _ in pairs(Enum.PowerType) do
@@ -20,7 +20,7 @@ end
 
 local function CheckPowerType(buff)
     --@debug@
-    RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
+    -- RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
     --@end-debug@
 
     buff:ResetBuffData()
@@ -35,7 +35,7 @@ local function CheckPowerType(buff)
         for _, role_number in ipairs(POWER_IGNORED_ROLES) do
             buff.ignoredPlayers[role_number] = {}
             --@debug@
-            RBT:Debugf("CheckPowerType", "Adding power ignore: %s", role_number)
+            -- RBT:Debugf("CheckPowerType", "Adding power ignore: %s", role_number)
             --@end-debug@
         end
     end
@@ -49,7 +49,7 @@ local function CheckPowerType(buff)
             slacker, disco, fd, low_level = unpack(player_cache_data.slack_status)
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
+                -- RBT:Debugf("CheckPowerType", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
                 --@end-debug@
                 tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
             else
@@ -120,7 +120,7 @@ local function BuildToolTip(buff)
 
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
-        RBT:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
+        -- RBT:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
         if #player_details > 0 then
             local players_str = tconcat(player_details, " ")

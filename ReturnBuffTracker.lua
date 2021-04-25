@@ -11,6 +11,7 @@ local LoggingLib                          = LibStub("LoggingLib-0.1")
 --@end-debug@
 local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 local ACR                                 = LibStub("AceConfigRegistry-3.0")
+local ADB                                 = LibStub("AceDB-3.0")
 
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
@@ -122,9 +123,9 @@ local logging_categories_colors           = {
     ["CheckPowerType"]                    = colors[MAGE],
     ["CheckBuff"]                         = colors[PALADIN],
     ["AggregateAllRequiredRaidUnitBuffs"] = colors[PINK];
-    ["ResetBuffData"]           = colors[PALADIN],
-    ["ClearBuffTooltipTable"]   = colors[PALADIN],
-    ["OnEvent"]                 = colors[MAGE],
+    ["ResetBuffData"]                     = colors[PALADIN],
+    ["ClearBuffTooltipTable"]             = colors[PALADIN],
+    ["OnEvent"]                           = colors[MAGE],
 }
 --@end-debug@
 
@@ -134,7 +135,7 @@ RBT.Constants.BarOptionGroups             = {
     General    = L["General"],
     Player     = L["Player buffs"],
     World      = L["World"],
-    Consumable = L["Consumable"],
+    Consumable = L["Consumables"],
     Misc       = L["Misc"],
 }
 
@@ -147,7 +148,7 @@ RBT.Constants.ReportChannel               = {
     ["OFFICER"]       = L["Officer"],
     ["PARTY"]         = L["Party"],
     ["RAID"]          = L["Raid"],
-    ["RAID_WARNING"]  = L["Raid Warning"],
+    ["RAID_WARNING"]  = L["Raid warning"],
     ["SAY"]           = L["Say"],
     --"WHISPER",
     --"YELL"
@@ -155,12 +156,13 @@ RBT.Constants.ReportChannel               = {
 
 local defaults                            = {
     profile = {
+        enabled                = true,
         position               = nil,
         width                  = 180,
         hideFrameWhenNotInRaid = true,
         deactivatedBars        = {  },
         reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
-        refresh_rate           = 0.2,
+        refresh_rate           = 5.0,
         --@debug@
         logLevel               = LoggingLib.TRACE,
         logging                = true,
@@ -170,42 +172,42 @@ local defaults                            = {
 }
 defaults.char                             = defaults.profile
 
-defaults.char                             = defaults.profile
-
 function RBT:RaidOrGroupChanged(event, ...)
-    if IsInRaid() then
-        RBT.mainFrame:Show()
-    else
-        if RBT.db.char.hideFrameWhenNotInRaid then
-            RBT.mainFrame:Hide()
-        else
+    if RBT.db.char.enabled then
+        if IsInRaid() then
             RBT.mainFrame:Show()
+        else
+            if RBT.db.char.hideFrameWhenNotInRaid then
+                RBT.mainFrame:Hide()
+            else
+                RBT.mainFrame:Show()
+            end
         end
+    else
+        RBT.mainFrame:Hide()
     end
-    --RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
 end
-
 
 function RBT:ResetPlayerCache()
     RBT.raid_player_cache = {}
 end
 
-function RBT:GROUP_JOINED(...)
+local function GROUP_JOINED(...)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
 
-function RBT:GROUP_LEFT(...)
+local function GROUP_LEFT(...)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
 
-function RBT:GROUP_FORMED(...)
+local function GROUP_FORMED(...)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
 
-function RBT:PLAYER_ENTERING_WORLD(...)
+local function PLAYER_ENTERING_WORLD(...)
     RBT:UpdateBars()
 end
 
@@ -213,10 +215,34 @@ end
 --    RBT:RaidOrGroupChanged()
 --end
 
-function RBT:RAID_ROSTER_UPDATE(...)
+local function RAID_ROSTER_UPDATE(...)
     RBT:RaidOrGroupChanged()
 end
 
+function RBT:OnEnable()
+    RBT.db.char.enabled = true
+    RBT:RaidOrGroupChanged()
+    RBT:UpdateBars()
+    RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
+    -- register event with an explicit handler
+    -- allows register another handler for some specific buffs
+    RBT:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
+    RBT:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
+    RBT:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
+    RBT:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
+    RBT:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)
+end
+
+function RBT:OnDisable()
+    RBT.db.char.enabled = false
+    RBT:ResetPlayerCache()
+    RBT.mainFrame:SetScript("OnUpdate", nil)
+    RBT:UnregisterEvent("GROUP_JOINED")
+    RBT:UnregisterEvent("GROUP_LEFT")
+    RBT:UnregisterEvent("GROUP_FORMED")
+    RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    RBT:UnregisterEvent("RAID_ROSTER_UPDATE")
+end
 
 function RBT:OnInitialize()
     --@debug@
@@ -226,6 +252,7 @@ function RBT:OnInitialize()
                           LoggingLib.TRACE)
     RBT:Debug("OnInitialize", "OnInitialize")
     --@end-debug@
+
     self.OptionBarNames             = {}
     --self.OptionBarClassesToBarNames = {}
     local buff_name, rank
@@ -234,14 +261,14 @@ function RBT:OnInitialize()
     for k, buff in pairs(self.Buffs) do
 
         --@debug@
-        RBT:Debugf("OnInitialize", "Treating buff at index: %d", k)
+        --RBT:Debugf("OnInitialize", "Treating buff at index: %d", k)
         --@end-debug@
         if buff then
             --@debug@
-            RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.name or "no .name") .. "]")
-            RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.buffOptionsGroup or "no .buffOptionsGroup") .. "]")
-            RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.optionText or "no .optionText") .. "]")
-            RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.text or "no .text") .. "]")
+            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.name or "no .name") .. "]")
+            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.buffOptionsGroup or "no .buffOptionsGroup") .. "]")
+            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.optionText or "no .optionText") .. "]")
+            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.text or "no .text") .. "]")
             --@end-debug@
             if buff.buffOptionsGroup then
                 if not self.OptionBarNames[buff.buffOptionsGroup] then
@@ -255,17 +282,11 @@ function RBT:OnInitialize()
                                                                     total   = 0,
                                                                     players = {},
                             }
-                            --buff_definitions = { buff } }
-                            --else
-                            --    local current_buff_list = self.buff_id_to_buff_count_data[id].buff_definitions
-                            --    if not check_already_in(current_buff_list, buff) then
-                            --        table.concat(current_buff_list, buff)
-                            --    end
                         end
                     end
                 end
                 -- try to put exact buff name if ID availabe and its a unique buff
-                if not buff.shortName and not buff.buffOptionsGroup == L["Consumable"] then
+                if not buff.shortName and not buff.buffOptionsGroup == L["Consumables"] then
                     --@debug@
                     RBT:Debugf("OnInitialize", "Buff has no shortName")
                     --@end-debug@
@@ -289,18 +310,6 @@ function RBT:OnInitialize()
                             buff.optionText = format("%s", buff_name)
                         end
                         buff.name = buff_name
-                        --if #buff.buffIDs == 1 then
-                        --    local buff_name, rank, _, _, _, _, _ = GetSpellInfo(buff.buffIDs[1])
-                        --    if rank then
-                        --        buff.optionText = format("%s (%s)", buff_name, rank)
-                        --    else
-                        --        buff.optionText = format("%s", buff_name)
-                        --    end
-                        --    buff.name = buff_name
-                        --else
-                        --    RBT:Debugf("OnInitialize", "index=%d several buffs IDs (%d)", k, #buff.buffIDs)
-                        --end
-
                     else
                         --@debug@
                         RBT:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
@@ -309,34 +318,26 @@ function RBT:OnInitialize()
                 end
             end
             --@debug@
-            RBT:Debugf("OnInitialize", "Consolidated data:")
-            if self == nil then
-                RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
-            end
-            if self.OptionBarNames == nil then
-                RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
-            end
-            if self.OptionBarNames[buff.buffOptionsGroup] == nil then
-                RBT:Tracef("OnInitialize", " ||-- WTF ?? index=%d", k)
-            end
-            if buff.optionText == nil then
-                RBT:Tracef("OnInitialize", " ||-- index=%d optionText is nil", k)
-            end
-            if buff.text == nil then
-                RBT:Tracef("OnInitialize", " ||-- index=%d text is nil", k)
-            end
-            if buff.name == nil then
-                RBT:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
-            end
+            -- RBT:Debugf("OnInitialize", "Consolidated data:")
+            -- if self == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
+            -- end
+            -- if self.OptionBarNames == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
+            -- end
+            -- if self.OptionBarNames[buff.buffOptionsGroup] == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- WTF ?? index=%d", k)
+            -- end
+            -- if buff.optionText == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- index=%d optionText is nil", k)
+            -- end
+            -- if buff.text == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- index=%d text is nil", k)
+            -- end
+            -- if buff.name == nil then
+            --     RBT:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
+            -- end
             --@end-debug@
-
-            --self.OptionBarNames[buff.buffOptionsGroup]
-            --[buff.optionText
-            --        or buff.text
-            --        or buff.name
-            --] = buff.optionText
-            --        or buff.text
-            --        or buff.name;
 
             local key = ""
             if buff.shortName then
@@ -356,46 +357,35 @@ function RBT:OnInitialize()
             --@debug@
             RBT:Tracef("OnInitialize", "index=%d effective option bar name is [%s]", k, key)
             --@end-debug@
-            local tmp = self.OptionBarNames[buff.buffOptionsGroup]
-            if tmp then
-                if key then
+            local tmp        = self.OptionBarNames[buff.buffOptionsGroup]
+            --if tmp then
+            --    if key then
 
-                    buff.displayText = key
+            buff.displayText = key
 
-                    -- if there is an option subgroup, store this hierarchical info
-                    if buff.buffOptionsSubGroup then
-                        if not tmp[buff.buffOptionsSubGroup] then
-                            tmp[buff.buffOptionsSubGroup] = {}
-                        end
-                        tmp[buff.buffOptionsSubGroup][key] = key
-                    else
-                        tmp[key] = key
-                    end
-
-
-
-                    --if buff.classes then
-                    --    --for _, c in ipairs(buff.classes) do
-                    --    --    if not self.OptionBarClassesToBarNames[c] then
-                    --    --        self.OptionBarClassesToBarNames[c] = {}
-                    --    --    end
-                    --    --    tinsert(self.OptionBarClassesToBarNames[c], key)
-                    --    --end
-                    --end
-                    --@debug@
-                else
-                    RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
-                    --@end-debug@
+            -- if there is an option subgroup, store this hierarchical info
+            if buff.buffOptionsSubGroup then
+                if not tmp[buff.buffOptionsSubGroup] then
+                    tmp[buff.buffOptionsSubGroup] = {}
                 end
-                --@debug@
+                tmp[buff.buffOptionsSubGroup][key] = key
             else
-                RBT:Errorf("OnInitialize", "index=%d WTF ?!!", k)
-                --@end-debug@
+                tmp[key] = key
             end
+            --    --@debug@
+            --else
+            --    RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
+            --    --@end-debug@
+            --end
+            --    --@debug@
+            --else
+            --    RBT:Errorf("OnInitialize", "index=%d WTF ?!!", k)
+            --    --@end-debug@
+            --end
         end
     end
 
-    self.db = LibStub("AceDB-3.0"):New("ReturnBuffTrackerDB", defaults, true)
+    self.db = ADB:New("ReturnBuffTrackerDB", defaults, true)
 
     RBT:SetupOptions()
     RBT:CreateMainFrame()
@@ -412,27 +402,27 @@ function RBT:OnInitialize()
     end
     RBT.raid_player_cache = {}
     self.nextTime         = 0
-    --RBT.current_buff_index = 1
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     RBT:UpdateBars()
-    --RBT:CheckVisible()
+
+    RBT:SendMessage("RBT-InitFinished")
 end
 
 function RBT:UpdateBars()
     --@debug@
-    RBT:Debugf("UpdateBars", "UpdateBars")
+    --RBT:Debugf("UpdateBars", "UpdateBars")
     --@end-debug@
     local nb_of_bars_to_display = 0
     for _, buff in ipairs(RBT.Buffs) do
         --if RBT.db.char.deactivatedBars[buff.optionText or buff.text or buff.name] then
         if RBT.db.char.deactivatedBars[buff.displayText] then
             --@debug@
-            RBT:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
+            -- RBT:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
             --@end-debug@
             buff.bar:SetIndex(nil)
         else
             --@debug@
-            RBT:Debugf("UpdateBars", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
+            -- RBT:Debugf("UpdateBars", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
             --@end-debug@
             buff.bar:SetIndex(nb_of_bars_to_display)
             nb_of_bars_to_display = nb_of_bars_to_display + 1
@@ -441,37 +431,29 @@ function RBT:UpdateBars()
     RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
---RBT:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateBars")
-
 function RBT:AggregateAllRequiredRaidUnitBuffs()
     local buff_name, caster, spellId
     --RBT.raid_player_cache = {}
     if IsInRaid() then
         local player_name, player_group, player_localized_class, player_class, isDead
         --local buff_id_data
-        local slacker, disco, fd
+        local slacker, disco, fd, low_level
         for raid_index = 1, 40 do
             player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
 
-                slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
+                slacker, disco, fd, low_level = RBT:CheckUnitCannotHelpRaid(player_name)
                 --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 if not RBT.raid_player_cache[player_name] then
                     RBT.raid_player_cache[player_name] = {
-                        colored_player_name = format("|c%s%s|r", RAID_CLASS_COLORS[player_class], player_name),
-                        slack_status    = { slacker, disco, fd },
-                        -- player_group = player_group,
-                        class           = player_class,
-                        group           = player_group,
-                        raid_index      = raid_index,
-                        dead            = isDead,
-                        combat          = UnitAffectingCombat(player_name),
-                        active_buff_ids = {},
-                        
-                        --unit_power_infos = {
-                        --    unitPowerType     = unitPowerType,
-                        --    unitPowerTypeName = unitPowerTypeName
-                        --}
+                        colored_player_name = WrapTextInColorCode(player_name, RAID_CLASS_COLORS[player_class].colorStr),
+                        slack_status        = { slacker, disco, fd, low_level },
+                        class               = player_class,
+                        group               = player_group,
+                        raid_index          = raid_index,
+                        dead                = isDead,
+                        combat              = UnitAffectingCombat(player_name),
+                        active_buff_ids     = {},
                     }
                 end
                 for buff_index = 1, BUFF_MAX_DISPLAY do
@@ -485,16 +467,6 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                             buff_name = buff_name,
                         }
                     end
-                    --buff_id_data                                    = self.buff_id_to_buff_count_data[spellId]
-                    --if RBT.db.char.deactivatedBars[buff_id_data.WTF_BBQ.displayText] then
-                    --    -- we don't need to analyze thisbuff
-                    --else
-                    --    if buff_id_data then
-                    --    else
-                    --        -- not a known buff to analyze
-                    --        -- not a buff the player wants to track
-                    --    end -- end buff is to be analyzed
-                    --end
                 end -- end loop payer auras
             end
         end
@@ -504,7 +476,7 @@ end
 function RBT:OnUpdate(self)
     local currentTime = GetTime()
     --@debug@
-    RBT:Infof("OnUpdate", "Start Current time %.3f", currentTime)
+    --RBT:Infof("OnUpdate", "Start Current time %.3f", currentTime)
     --@end-debug@
 
     if RBT.nextTime and currentTime < RBT.nextTime then
@@ -516,6 +488,9 @@ function RBT:OnUpdate(self)
     --    return
     --end
     if RBT.mainFrame:IsVisible() then
+
+        RBT:UpdateBars()
+
         --@debug@
         local mem_before_g, mem_after_g, mem_before, mem_after, diff
         if RBT.db.char.mem_profiling then
@@ -540,7 +515,7 @@ function RBT:OnUpdate(self)
             buff:ResetBuffData()
             if RBT.db.char.deactivatedBars[buff.displayText] then
                 --@debug@
-                RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+                -- RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
                 --@end-debug@
                 return
             end
@@ -550,9 +525,9 @@ function RBT:OnUpdate(self)
             end
             --@end-debug@
 
-        if buff.func then
-            buff:func()
-        end
+            if buff.func then
+                buff:func()
+            end
             buff:BuildToolTipText()
 
             --@debug@
@@ -590,7 +565,7 @@ function RBT:OnUpdate(self)
 
     --@debug@
     currentTime = GetTime()
-    RBT:Infof("OnUpdate", "End Current time %.3f", currentTime)
+    --RBT:Infof("OnUpdate", "End Current time %.3f", currentTime)
     --@end-debug@
 end
 
@@ -607,26 +582,6 @@ function RBT:Contains(tab, val)
     return false
 end
 
---function RBT:CheckVisible()
---    --if not RBT.db.char.hideFrameWhenNotInRaid or IsInRaid() then
---    if IsInRaid() then
---        --if not RBT.mainFrame:IsVisible() then
---        RBT.mainFrame:Show()
---        --end
---        return true
---    end
---    if RBT.db.char.hideFrameWhenNotInRaid then
---        --if RBT.mainFrame:IsVisible() then
---        RBT.mainFrame:Hide()
---        --end
---        return false
---    else
---        RBT.mainFrame:Show()
---        --end
---        return true
---    end
---end
-
 function RBT:ResetConfiguration()
     --@debug@
     RBT:Debug("ResetConfiguration", "ResetConfiguration")
@@ -641,6 +596,7 @@ function RBT:ResetConfiguration()
     RBT:RaidOrGroupChanged()
     RBT:ResetPlayerCache()
     RBT:UpdateBars()
+    ACR:NotifyChange()
 end
 
 function RBT:ActivatePlayerClassOnly()
@@ -672,119 +628,13 @@ function RBT:ActivatePlayerClassOnly()
         end
     end
     RBT:UpdateBars()
-    AceConfigRegistry:NotifyChange(appName)
+    ACR:NotifyChange("ReturnBuffTracker")
 end
 
---- Taken from NWB
---- DMF spawns the following monday after first friday of the month at daily reset time.
---- Whole region shares time of day for spawn (I think).
---- Realms within the region possibly don't all spawn at same moment though, realms may wait for their own monday.
---- (Bug: US player reported it showing 1 day late DMF end time while on OCE realm, think this whole thing needs rewriting tbh).
-function RBT:getDmfStartEnd(month, nextYear)
-    local startOffset, endOffset, validRegion, isDst;
-    local minOffset, hourOffset, dayOffset = 0, 0, 0;
-    local region                           = GetCurrentRegion();
-    local realm                            = GetRealmName()
-
-    --I may change this to realm names later instead, region may be unreliable with US client on EU region if that issue still exists.
-    if (realm == "Arugal" or realm == "Felstriker" or realm == "Remulos" or realm == "Yojamba") then
-        --OCE Sunday 12pm UTC reset time (4am server time).
-        dayOffset   = 2; --2 days after friday (sunday).
-        hourOffset  = 18; -- 6pm.
-        validRegion = true;
-    elseif (realm == "Arcanite Reaper" or realm == "Old Blanchy" or realm == "Anathema" or realm == "Azuresong"
-            or realm == "Kurinnaxx" or realm == "Myzrael" or realm == "Rattlegore" or realm == "Smolderweb"
-            or realm == "Thunderfury" or realm == "Atiesh" or realm == "Bigglesworth" or realm == "Blaumeux"
-            or realm == "Fairbanks" or realm == "Grobbulus" or realm == "Whitemane") then
-        --US west Sunday 11am UTC reset time (4am server time).
-        dayOffset   = 3; --3 days after friday (monday).
-        hourOffset  = 11; -- 11am.
-        validRegion = true;
-    elseif (region == 1) then
-        --US east + Latin Monday 8am UTC reset time (4am server time).
-        dayOffset   = 3; --3 days after friday (monday).
-        hourOffset  = 8; -- 8am.
-        validRegion = true;
-    elseif (region == 2) then
-        --Korea 1am UTC monday (9am monday local) reset time.
-        --(TW seems to be region 2 for some reason also? Hopefully they have same DMF spawn).
-        --I can change it to server name based if someone from KR says this spawn time is wrong.
-        dayOffset   = 3;
-        hourOffset  = 1;
-        validRegion = true;
-    elseif (region == 3) then
-        --EU Monday 4am UTC reset time.
-        dayOffset   = 3; --3 days after friday (monday).
-        hourOffset  = 2; -- 4am.
-        validRegion = true;
-    elseif (region == 4) then
-        --Taiwan 1am UTC monday (9am monday local) reset time.
-        dayOffset   = 3;
-        hourOffset  = 1;
-        validRegion = true;
-    elseif (region == 5) then
-        --China 8pm UTC sunday (4am monday local) reset time.
-        dayOffset   = 2;
-        hourOffset  = 20;
-        validRegion = true;
-    end
-    --Create current UTC date table.
-    local data          = date("!*t", GetServerTime());
-    local dataLocalTime = date("*t", GetServerTime());
-    --Spawns change with DST by 1 hour UTC to stay the same server time.
-    if (dataLocalTime.isdst) then
-        hourOffset = hourOffset - 1;
-    end
-    --If month is specified then use that month instead (next dmf spawn is next month);
-    if (month) then
-        data.month = month;
-    end
-    --If nextYear is true then next dmf spawn is next year (we're in december right now).
-    if (nextYear) then
-        data.year = data.year + 1;
-    end
-    local dmfStartDay;
-    for i = 1, 7 do
-        --Iterate the first 7 days in the month to find first friday.
-        local time = date("!*t", time({ year = data.year, month = data.month, day = i }));
-        if (time.wday == 6) then
-            --If day of the week (wday) is 6 (friday) then set this as first friday of the month.
-            dmfStartDay = i;
-        end
-    end
-    local timeTable   = { year = data.year, month = data.month, day = dmfStartDay + dayOffset, hour = hourOffset, min = minOffset, sec = 0 };
-    local utcdate     = date("!*t", GetServerTime());
-    local localdate   = date("*t", GetServerTime());
-    localdate.isdst   = false;
-    local secondsDiff = difftime(time(utcdate), time(localdate));
-    local dmfStart    = time(timeTable) - secondsDiff;
-    if (date("%w", dmfStart) == "0") then
-        --Not sure if whole region spawns at the same moment or if each realm waits for their own monday.
-        --All realms spawn same time of day, but possibly not same UTC day depending on timezone.
-        --Just incase each realm waits for monday we can add a day here.
-        dmfStart = dmfStart + 86400;
-    end
-    --Add 7 days to get end timestamp.
-    local dmfEnd = dmfStart + 604800;
-    --Only return if we have set daily reset offsets for this region.
-    if (validRegion) then
-        return dmfStart, dmfEnd;
-    end
-end
-
---- Taken from NWB
-function RBT:isDMFActive()
-    local dmfStart, dmfEnd = RBT:getDmfStartEnd();
-    local isActive         = false
-    local cur_time         = GetServerTime()
-    if (dmfStart and dmfEnd) then
-        isActive = cur_time >= dmfStart and cur_time <= dmfEnd
-    end
-    return isActive
-end
-
-RBT:RegisterEvent("GROUP_JOINED")
-RBT:RegisterEvent("GROUP_LEFT")
-RBT:RegisterEvent("GROUP_FORMED")
-RBT:RegisterEvent("PLAYER_ENTERING_WORLD")
-RBT:RegisterEvent("RAID_ROSTER_UPDATE")
+-- register event with an explicit handler
+-- allows register another handler for some specific buffs
+RBT:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
+RBT:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
+RBT:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
+RBT:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)

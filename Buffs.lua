@@ -16,12 +16,17 @@ FillLocalizedClassList(RBT.localized_classes, true)
 
 RBT.all_classes                           = { WARRIOR, MAGE, ROGUE, DRUID, HUNTER, SHAMAN, PRIEST, WARLOCK, PALADIN }
 local MAX_PLAYER_LEVEL                    = GetMaxPlayerLevel()
-RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING = {
-}
+RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING = {}
+RBT.ITEM_QUALITY_ENUM_TO_COLOR            = {}
 local _G                                  = _G
 local BUFF_MAX_DISPLAY                    = BUFF_MAX_DISPLAY
-for quality_base_name, quality_int_val in pairs(Enum.ItemQuality) do
-    RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[quality_int_val] = _G[format("ITEM_QUALITY%d_DESC", quality_int_val)]
+do
+    local r, g, b, hex
+    for quality_base_name, quality_int_val in pairs(Enum.ItemQuality) do
+        RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[quality_int_val] = _G[format("ITEM_QUALITY%d_DESC", quality_int_val)]
+        r, g, b, hex                                               = GetItemQualityColor(quality_int_val)
+        RBT.ITEM_QUALITY_ENUM_TO_COLOR[quality_int_val]            = { r = r, g = g, b = b, colorStr = hex, }
+    end
 end
 
 RBT.Buffs = {}
@@ -61,7 +66,7 @@ end
 --function RBT:ClearBuffTooltipTable(buff)
 local function ClearBuffTooltipTable(buff)
     --@debug@
-    RBT:Debugf("ClearBuffTooltipTable", "ClearBuffTooltipTable for %s", buff.displayText)
+    -- RBT:Debugf("ClearBuffTooltipTable", "ClearBuffTooltipTable for %s", buff.displayText)
     --@end-debug@
     if buff.tooltip then
         RBT:clearArrayList(buff.tooltip)
@@ -73,7 +78,7 @@ end
 --function RBT:ResetBuffData(buff)
 local function ResetBuffData(buff)
     --@debug@
-    RBT:Debugf("ResetBuffData", "ResetBuffData for %s", buff.displayText)
+    -- RBT:Debugf("ResetBuffData", "ResetBuffData for %s", buff.displayText)
     --@end-debug@
     buff.count = 0
     buff.total = 0
@@ -194,7 +199,6 @@ local function fill_tooltip_data_array(buff,
     return tool_tip_index
 end
 
---function RBT:CheckBuff(buff)
 local function CheckBuff(buff)
     buff:ResetBuffData()
 
@@ -218,12 +222,12 @@ local function CheckBuff(buff)
         slacker, disco, fd = unpack(player_cache_data.slack_status)
         if slacker then
             --@debug@
-                RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
+            -- RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
             --@end-debug@
             if not buff.ignoredPlayers["Slacker"] then
                 buff.ignoredPlayers["Slacker"] = {}
             end
-                tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
+            tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
         else
             isClassExpected = RBT:Contains(buff.classes, player_cache_data.class)
             if isClassExpected then
@@ -231,7 +235,7 @@ local function CheckBuff(buff)
                 if RBT:CheckUnitBuff(player_name, buff) then
                     buff.count = buff.count + 1
                 else
-                        buff.bad_players[player_name] = { name  = player_cache_data.colored_player_name,
+                    buff.bad_players[player_name] = { name  = player_cache_data.colored_player_name,
                                                       group = player_cache_data.group,
                                                       class = player_cache_data.class,
                     }
@@ -270,19 +274,20 @@ local function CheckBuff(buff)
 end
 
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = format("%s %s --> %s",
-                                          "{rt7}",
+    local colored_buff_name      = WrapTextInColorCode((buff.name or buff.shortName or tostring(buff.buffIDs[1])),
+                                                       buff.color.colorStr)
+    buff.tooltip[1]              = format("%s %s",
                                           L["Missing"],
-                                          (buff.name or buff.shortName or tostring(buff.buffIDs[1])))
+                                          colored_buff_name)
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one"].."."
+    buff.tooltip[tool_tip_index] = L["no one"] .. "."
 
     tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
 
     local players_str
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
-        RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
+        -- RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
         if #player_details > 0 then
             players_str = tconcat(player_details, " ")
@@ -354,7 +359,13 @@ function RBT:RegisterCheck(check_conf)
             return check_conf.displayText
         end
     end
-    check_conf.ResetBuffData = ResetBuffData
+
+    local colorMixin          = CreateColor(check_conf.color.r,
+                                            check_conf.color.g,
+                                            check_conf.color.b,
+                                            check_conf.color.a or 1.0)
+    check_conf.color.colorStr = colorMixin:GenerateHexColor()
+    check_conf.ResetBuffData  = ResetBuffData
     tinsert(RBT.Buffs, check_conf)
     check_conf.ready = true
 end

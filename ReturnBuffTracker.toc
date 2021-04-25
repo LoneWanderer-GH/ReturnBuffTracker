@@ -32,6 +32,7 @@ libs\LoggingLib\LoggingLib.xml
 Locales\Locales.xml
 #
 ReturnBuffTracker.lua
+DMF_Helper.lua
 Buffs.lua
 Config.lua
 # Constants.lua
