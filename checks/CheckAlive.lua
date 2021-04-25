@@ -1,6 +1,6 @@
 local RBT                       = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 local L                         = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
-
+local RAID_CLASS_COLORS         = RAID_CLASS_COLORS
 local format                    = format
 local GetRaidRosterInfo         = GetRaidRosterInfo
 
@@ -13,7 +13,7 @@ local function Check(buff)
         --for _, class in ipairs(RBT.all_classes) do
         --    RBT:clearArrayList(buff.dead_players_by_classes[class])
         --end
-        for _,v in pairs(buff.dead_players_by_classes) do
+        for _, v in pairs(buff.dead_players_by_classes) do
             RBT:clearArrayList(v)
         end
     else
@@ -25,15 +25,16 @@ local function Check(buff)
 
     local dead_players_by_classes = buff.dead_players_by_classes
 
-    local name, localized_class, class, isDead
+    local player_name, localized_class, player_class, isDead, colored_name
     for i = 1, 40 do
-        name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
-        if name then
+        player_name, _, _, _, localized_class, player_class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
+        if player_name then
             buff.total = buff.total + 1
             if not isDead then
                 buff.count = buff.count + 1
             else
-                tinsert(dead_players_by_classes[class], name)
+                colored_name = format("|c%s%s|r", RAID_CLASS_COLORS[player_class].colorStr, player_name)
+                tinsert(dead_players_by_classes[player_class], colored_name)
             end
         end
     end

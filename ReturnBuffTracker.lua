@@ -120,6 +120,9 @@ local logging_categories_colors           = {
     ["CheckCannotHelpRaid"]     = colors[GREY],
     ["CheckPowerType"]          = colors[MAGE],
     ["CheckBuff"]               = colors[PALADIN],
+    ["ResetBuffData"]           = colors[PALADIN],
+    ["ClearBuffTooltipTable"]   = colors[PALADIN],
+    ["OnEvent"]                 = colors[MAGE],
 }
 --@end-debug@
 
@@ -164,7 +167,7 @@ local defaults                            = {
 }
 defaults.char                             = defaults.profile
 
-function RBT:RaidOrGroupChanged()
+function RBT:RaidOrGroupChanged(event, ...)
     if IsInRaid() then
         RBT.mainFrame:Show()
     else
@@ -182,7 +185,9 @@ for _, raid_event_name in ipairs({ "GROUP_JOINED",
                                    "GROUP_LEFT",
                                      --"PARTY_CONVERTED_TO_RAID",
                                    "GROUP_ROSTER_UPDATE",
-                                   "RAID_ROSTER_UPDATE" }) do
+                                     --"RAID_ROSTER_UPDATE" ,
+                                 }
+) do
     RBT:RegisterEvent(raid_event_name, "RaidOrGroupChanged")
 end
 
@@ -476,7 +481,9 @@ function RBT:OnUpdate(self)
         end
         --@end-debug@
 
-        buff:func()
+        if buff.func then
+            buff:func()
+        end
         buff:BuildToolTipText()
 
         --@debug@

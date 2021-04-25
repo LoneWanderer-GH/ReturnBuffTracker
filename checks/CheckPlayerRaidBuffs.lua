@@ -3,12 +3,13 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
+local RAID_CLASS_COLORS           = RAID_CLASS_COLORS
 
 local player_raid_buffs                   = {
     {
         name             = L["Arcane Intellect"],
         shortName        = L["Intellect"],
-        color            = { r = 0.41, g = 0.8, b = 0.94 },
+        --color            = RAID_CLASS_COLORS[MAGE], --{ r = 0.41, g = 0.8, b = 0.94 },
         buffNames        = { L["Arcane Intellect"], L["Arcane Brilliance"] },
         buffIDs          = { 10157, 23028 },
         classes          = { HUNTER, WARLOCK, PRIEST, PALADIN, DRUID, MAGE, SHAMAN },
@@ -28,7 +29,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Power Word: Fortitude"],
         shortName        = L["Fortitude"],
-        color            = { r = 1.0, g = 1.0, b = 1.0 },
+        --color            = { r = 1.0, g = 1.0, b = 1.0 },
         buffIDs          = { 10938, 21564 },
         buffNames        = { L["Power Word: Fortitude"], L["Prayer of Fortitude"] },
         buffOptionsGroup = L["Player buffs"],
@@ -58,7 +59,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Kings"],
         shortName        = L["Kings"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffNames        = { L["Blessing of Kings"], L["Greater Blessing of Kings"] },
         buffIDs          = { 20217, 25898 },
         buffOptionsGroup = L["Player buffs"],
@@ -69,7 +70,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Salvation"],
         shortName        = L["Salvation"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffIDs          = { 1038, 25895 },
         buffNames        = { L["Blessing of Salvation"], L["Greater Blessing of Salvation"] },
         buffOptionsGroup = L["Player buffs"],
@@ -80,7 +81,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Wisdom"],
         shortName        = L["Wisdom"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffNames        = { L["Blessing of Wisdom"], L["Greater Blessing of Wisdom"] },
         buffIDs          = { 19854, 25290, 25894, 25918 },
         classes          = { HUNTER, WARLOCK, PRIEST, PALADIN, DRUID, MAGE },
@@ -91,7 +92,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Might"],
         shortName        = L["Might"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffNames        = { L["Blessing of Might"], L["Greater Blessing of Might"] },
         buffIDs          = { 19838, 25291, 25782, 25916 },
         classes          = { WARRIOR, ROGUE },
@@ -102,7 +103,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Light"],
         shortName        = L["Light"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffIDs          = { 19979, 25890 },
         buffNames        = { L["Blessing of Light"], L["Greater Blessing of Light"] },
         buffOptionsGroup = L["Player buffs"],
@@ -113,7 +114,7 @@ local player_raid_buffs                   = {
     {
         name             = L["Blessing of Sanctuary"],
         shortName        = L["Sanctuary"],
-        color            = { r = 0.96, g = 0.55, b = 0.73 },
+        --color            = { r = 0.96, g = 0.55, b = 0.73 },
         buffIDs          = { 20914, 25899 },
         buffNames        = { L["Blessing of Sanctuary"], L["Greater Blessing of Sanctuary"] },
         buffOptionsGroup = L["Player buffs"],
@@ -125,8 +126,8 @@ local player_raid_buffs                   = {
 
 local tmp_c
 for i, c in ipairs(player_raid_buffs) do
-    tmp_c                  = c
-    --tmp_c.func             = RBT.CheckBuff
-    --tmp_c.BuildToolTipText = RBT.BuildToolTip
-    RBT:RegisterCheck(tmp_c)
+    if not c.color then
+        c.color = RAID_CLASS_COLORS[c.buffingClass]
+    end
+    RBT:RegisterCheck(c)
 end

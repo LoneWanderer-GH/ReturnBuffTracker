@@ -1,17 +1,17 @@
-local RBT                                       = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L                                         = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local RBT                                 = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local WARRIOR, MAGE, ROGUE, DRUID, HUNTER       = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
-local SHAMAN, PRIEST, WARLOCK, PALADIN          = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local format                                    = format
-local GetRaidRosterInfo                         = GetRaidRosterInfo
+local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
+local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
+local format                              = format
+local GetRaidRosterInfo                   = GetRaidRosterInfo
 
-local IsInInstance, UnitIsAFK, UnitIsFeignDeath = IsInInstance, UnitIsAFK, UnitIsFeignDeath
-local UnitBuff, UnitIsConnected                 = UnitBuff, UnitIsConnected
+local UnitIsAFK, UnitIsFeignDeath         = UnitIsAFK, UnitIsFeignDeath
+local UnitBuff, UnitIsConnected           = UnitBuff, UnitIsConnected
+local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
+local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
 
-local tinsert, tconcat, tremove                 = table.insert, table.concat, table.remove
-
-RBT.localized_classes                           = {}
+RBT.localized_classes                     = {}
 FillLocalizedClassList(RBT.localized_classes, true)
 
 RBT.all_classes                           = { WARRIOR, MAGE, ROGUE, DRUID, HUNTER, SHAMAN, PRIEST, WARLOCK, PALADIN }
@@ -60,11 +60,11 @@ end
 
 --function RBT:ClearBuffTooltipTable(buff)
 local function ClearBuffTooltipTable(buff)
+    --@debug@
+    RBT:Debugf("ClearBuffTooltipTable", "ClearBuffTooltipTable for %s", buff.displayText)
+    --@end-debug@
     if buff.tooltip then
-        local t = buff.tooltip
-        --local count = #t
-        --for i = 0, count do t[i] = nil end
-        RBT:clearArrayList(t)
+        RBT:clearArrayList(buff.tooltip)
     else
         buff.tooltip = {}
     end
@@ -72,6 +72,9 @@ end
 
 --function RBT:ResetBuffData(buff)
 local function ResetBuffData(buff)
+    --@debug@
+    RBT:Debugf("ResetBuffData", "ResetBuffData for %s", buff.displayText)
+    --@end-debug@
     buff.count = 0
     buff.total = 0
     --RBT:ClearBuffTooltipTable(buff)
@@ -79,19 +82,21 @@ local function ResetBuffData(buff)
 end
 
 function RBT:CheckUnitCannotHelpRaid(name)
-    local slacker = false
-
-    local afk     = false
-    local fd      = false
+    local slacker   = false
+    local low_level = false
+    local afk       = false
+    local fd        = false
     --local inInstance, instanceType = IsInInstance(name)
-    local co      = UnitIsConnected(name)
+    local co        = UnitIsConnected(name)
     --local not_in_raid              = not inInstance or instanceType ~= "raid"
     if co then
-        afk = UnitIsAFK(name)
-        fd  = UnitIsFeignDeath(name)
+        afk       = UnitIsAFK(name)
+        fd        = UnitIsFeignDeath(name)
+        low_level = UnitLevel(name) < MAX_PLAYER_LEVEL
     end
-    slacker = not co or afk or fd -- or not_in_raid
-    return slacker, not co, fd --, not_in_raid
+
+    slacker = not co or afk or fd or low_level -- or not_in_raid
+    return slacker, not co, fd, low_level --, not_in_raid
 end
 
 function RBT:CheckUnitIsRealDPS(name)
@@ -194,7 +199,7 @@ local function CheckBuff(buff)
     buff:ResetBuffData()
 
     local slacker, disco, fd, not_in_raid
-    local player_name, player_group, player_localized_class, player_class
+    local player_name, player_group, player_localized_class, player_class, colored_name
     local isClassExpected
     if buff.ignoredPlayers then
         for k, v in pairs(buff.ignoredPlayers) do
@@ -211,15 +216,16 @@ local function CheckBuff(buff)
     for i = 1, 40 do
         player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(i)
         if player_class then
+            colored_name       = format("|c%s%s|r", RAID_CLASS_COLORS[player_class].colorStr, player_name)
             slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name))
+                RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", colored_name)
                 --@end-debug@
                 if not buff.ignoredPlayers["Slacker"] then
                     buff.ignoredPlayers["Slacker"] = {}
                 end
-                tinsert(buff.ignoredPlayers["Slacker"], player_name)
+                tinsert(buff.ignoredPlayers["Slacker"], colored_name)
             else
                 isClassExpected = RBT:Contains(buff.classes, player_class)
                 if isClassExpected then
@@ -227,7 +233,7 @@ local function CheckBuff(buff)
                     if RBT:CheckUnitBuff(player_name, buff) then
                         buff.count = buff.count + 1
                     else
-                        buff.bad_players[player_name] = { name  = player_name,
+                        buff.bad_players[player_name] = { name  = colored_name,
                                                           group = player_group,
                                                           class = player_class,
                         }
@@ -304,4 +310,5 @@ function RBT:RegisterCheck(check_conf)
     end
     check_conf.ResetBuffData = ResetBuffData
     tinsert(RBT.Buffs, check_conf)
+    check_conf.ready = true
 end

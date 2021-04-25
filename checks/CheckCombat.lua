@@ -8,6 +8,8 @@ local UnitIsDead, UnitAffectingCombat = UnitIsDead, UnitAffectingCombat
 local tinsert, tconcat, tremove       = table.insert, table.concat, table.remove
 
 local MAX_GROUPS_IN_RAID              = 8
+local RAID_CLASS_COLORS               = RAID_CLASS_COLORS
+
 local function Check(buff)
 
     buff:ResetBuffData()
@@ -24,15 +26,16 @@ local function Check(buff)
     buff.count = 0
     buff.total = 0
 
-    local player_name, player_group
+    local player_name, player_group, player_class, colored_name
     for i = 1, 40 do
-        player_name, _, player_group = GetRaidRosterInfo(i)
+        player_name, _, player_group, _, _, player_class = GetRaidRosterInfo(i)
         if player_name and not UnitIsDead(player_name) then
-            buff.total = buff.total + 1
+            colored_name = format("|c%s%s|r", RAID_CLASS_COLORS[player_class].colorStr, player_name)
+            buff.total   = buff.total + 1
             if UnitAffectingCombat(player_name) then
                 buff.count = buff.count + 1
             else
-                tinsert(buff.groups_array[player_group], player_name)
+                tinsert(buff.groups_array[player_group], colored_name)
             end
         end
     end
