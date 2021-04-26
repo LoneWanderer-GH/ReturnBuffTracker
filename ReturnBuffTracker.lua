@@ -13,9 +13,10 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 local ACR                                 = LibStub("AceConfigRegistry-3.0")
 local ADB                                 = LibStub("AceDB-3.0")
 
+local tinsert, tconcat                    = table.insert, table.concat
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-
+local BUFF_MAX_DISPLAY = BUFF_MAX_DISPLAY
 --@debug@
 local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
 
@@ -87,7 +88,7 @@ local colors                              = {
     [SEXPINK]     = '|cffC67171',
     [SEXBLUE]     = '|cff00E5EE',
     [SEXHOTPINK]  = '|cffFF6EB4',
-
+    
     -- from classes
     [BROWN]       = format("|c%s", RAID_CLASS_COLORS[WARRIOR].colorStr),
     [ORANGE]      = format("|c%s", RAID_CLASS_COLORS[DRUID].colorStr),
@@ -172,7 +173,7 @@ local defaults                            = {
 }
 defaults.char                             = defaults.profile
 
-function RBT:RaidOrGroupChanged(event, ...)
+function RBT:RaidOrGroupChanged()
     if RBT.db.char.enabled then
         if IsInRaid() then
             RBT.mainFrame:Show()
@@ -192,17 +193,17 @@ function RBT:ResetPlayerCache()
     RBT.raid_player_cache = {}
 end
 
-local function GROUP_JOINED(...)
+local function GROUP_JOINED(_)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
 
-local function GROUP_LEFT(...)
+local function GROUP_LEFT(_)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
 
-local function GROUP_FORMED(...)
+local function GROUP_FORMED(_)
     RBT:ResetPlayerCache()
     RBT:RaidOrGroupChanged()
 end
@@ -252,14 +253,14 @@ function RBT:OnInitialize()
                           LoggingLib.TRACE)
     RBT:Debug("OnInitialize", "OnInitialize")
     --@end-debug@
-
+    
     self.OptionBarNames             = {}
     --self.OptionBarClassesToBarNames = {}
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
     self.buff_id_to_buff_count_data = {}
     for k, buff in pairs(self.Buffs) do
-
+        
         --@debug@
         --RBT:Debugf("OnInitialize", "Treating buff at index: %d", k)
         --@end-debug@
@@ -338,8 +339,8 @@ function RBT:OnInitialize()
             --     RBT:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
             -- end
             --@end-debug@
-
-            local key = ""
+            
+            local key
             if buff.shortName then
                 key = buff.shortName
             elseif buff.optionText then
@@ -360,9 +361,9 @@ function RBT:OnInitialize()
             local tmp        = self.OptionBarNames[buff.buffOptionsGroup]
             --if tmp then
             --    if key then
-
+            
             buff.displayText = key
-
+            
             -- if there is an option subgroup, store this hierarchical info
             if buff.buffOptionsSubGroup then
                 if not tmp[buff.buffOptionsSubGroup] then
@@ -384,12 +385,12 @@ function RBT:OnInitialize()
             --end
         end
     end
-
+    
     self.db = ADB:New("ReturnBuffTrackerDB", defaults, true)
-
+    
     RBT:SetupOptions()
     RBT:CreateMainFrame()
-
+    
     local buffbars = {}
     for _, group in pairs(self.Constants.BarOptionGroups) do
         buffbars[group] = {}
@@ -404,7 +405,7 @@ function RBT:OnInitialize()
     self.nextTime         = 0
     RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     RBT:UpdateBars()
-
+    
     RBT:SendMessage("RBT-InitFinished")
 end
 
@@ -435,13 +436,13 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
     local buff_name, caster, spellId
     --RBT.raid_player_cache = {}
     if IsInRaid() then
-        local player_name, player_group, player_localized_class, player_class, isDead
+        local player_name, player_group, player_class, isDead
         --local buff_id_data
         local slacker, disco, fd, low_level
         for raid_index = 1, 40 do
-            player_name, _, player_group, _, player_localized_class, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
+            player_name, _, player_group, _, _, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
-
+                
                 slacker, disco, fd, low_level = RBT:CheckUnitCannotHelpRaid(player_name)
                 --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
                 if not RBT.raid_player_cache[player_name] then
@@ -473,35 +474,35 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
     end
 end
 
-function RBT:OnUpdate(self)
+function RBT:OnUpdate()
     local currentTime = GetTime()
     --@debug@
     --RBT:Infof("OnUpdate", "Start Current time %.3f", currentTime)
     --@end-debug@
-
+    
     if RBT.nextTime and currentTime < RBT.nextTime then
         return
     end
     RBT.nextTime = currentTime + RBT.db.char.refresh_rate
-
+    
     --if not RBT:CheckVisible() then
     --    return
     --end
     if RBT.mainFrame:IsVisible() then
-
+        
         RBT:UpdateBars()
-
+        
         --@debug@
         local mem_before_g, mem_after_g, mem_before, mem_after, diff
         if RBT.db.char.mem_profiling then
             mem_before_g = GetAddOnMemoryUsage(addonName)
         end
         --@end-debug@
-
+        
         RBT:AggregateAllRequiredRaidUnitBuffs()
-
-
-
+        
+        
+        
         --for _, buff in ipairs(RBT.Buffs) do
         --    buff.count = 0
         --    buff.total = 0
@@ -524,12 +525,12 @@ function RBT:OnUpdate(self)
                 mem_before = GetAddOnMemoryUsage(addonName)
             end
             --@end-debug@
-
+            
             if buff.func then
                 buff:func()
             end
             buff:BuildToolTipText()
-
+            
             --@debug@
             if RBT.db.char.mem_profiling then
                 UpdateAddOnMemoryUsage()
@@ -537,7 +538,7 @@ function RBT:OnUpdate(self)
                 diff      = (mem_after - mem_before)
             end
             --@end-debug@
-
+            
             --@debug@
             if RBT.db.char.mem_profiling and diff > 2.0 then
                 RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
@@ -547,7 +548,7 @@ function RBT:OnUpdate(self)
                           diff)
             end
             --@end-debug@
-
+            
             buff.bar:Update()
         end -- end for loop
         -- --@debug@
@@ -562,9 +563,9 @@ function RBT:OnUpdate(self)
         -- end
         -- --@end-debug@
     end -- end frame visible
-
+    
     --@debug@
-    currentTime = GetTime()
+    --currentTime = GetTime()
     --RBT:Infof("OnUpdate", "End Current time %.3f", currentTime)
     --@end-debug@
 end
@@ -578,7 +579,7 @@ function RBT:Contains(tab, val)
             return true
         end
     end
-
+    
     return false
 end
 
@@ -604,9 +605,9 @@ function RBT:ActivatePlayerClassOnly()
     RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly")
     --@end-debug@
     local _, player_class, _ = UnitClass("player")
-
+    
     RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - deactivating all")
-
+    
     for _, buff in ipairs(RBT.Buffs) do
         RBT.db.char.deactivatedBars[buff.displayText] = (
                 (buff.buffingClass and buff.buffingClass ~= player_class) or true)

@@ -1,0 +1,3 @@
+[submodule "Libs/LoggingLib"]
+	path = Libs/LoggingLib
+	url = https://github.com/LoneWanderer-GH/LoggingLib

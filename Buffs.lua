@@ -4,11 +4,11 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
 local format                              = format
-local GetRaidRosterInfo                   = GetRaidRosterInfo
 
+local CreateColor                         = CreateColor
 local UnitIsAFK, UnitIsFeignDeath         = UnitIsAFK, UnitIsFeignDeath
-local UnitBuff, UnitIsConnected           = UnitBuff, UnitIsConnected
-local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
+local UnitIsConnected                     = UnitIsConnected
+
 local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
 
 RBT.localized_classes                     = {}
@@ -19,7 +19,7 @@ local MAX_PLAYER_LEVEL                    = GetMaxPlayerLevel()
 RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING = {}
 RBT.ITEM_QUALITY_ENUM_TO_COLOR            = {}
 local _G                                  = _G
-local BUFF_MAX_DISPLAY                    = BUFF_MAX_DISPLAY
+
 do
     local r, g, b, hex
     for quality_base_name, quality_int_val in pairs(Enum.ItemQuality) do
@@ -87,7 +87,7 @@ local function ResetBuffData(buff)
 end
 
 function RBT:CheckUnitCannotHelpRaid(name)
-    local slacker   = false
+    local slacker
     local low_level = false
     local afk       = false
     local fd        = false
@@ -99,7 +99,7 @@ function RBT:CheckUnitCannotHelpRaid(name)
         fd        = UnitIsFeignDeath(name)
         low_level = UnitLevel(name) < MAX_PLAYER_LEVEL
     end
-
+    
     slacker = not co or afk or fd or low_level -- or not_in_raid
     return slacker, not co, fd, low_level --, not_in_raid
 end
@@ -110,8 +110,8 @@ function RBT:CheckUnitIsRealDPS(name)
     if GetPartyAssignment("MAINTANK", name) then
         is_real_dps = false
         real_role   = "MAINTANK"
-    else
-        -- ok
+    --else
+    --    -- ok
     end
     return is_real_dps, real_role
 end
@@ -136,16 +136,16 @@ function RBT:CheckUnitIsRealHealer(name)
     elseif GetPartyAssignment("MAINTANK", name) then
         is_real_healer = false
         real_role      = "MAINTANK"
-    else
-        -- ok
+    --else
+    --    -- ok
     end
     return is_real_healer, real_role
 end
 
-function RBT:CountUnitPower(name, power_type, current_power_type)
+function RBT:CountUnitPower(name, power_type)
     local unitPower    = UnitPower(name, power_type)
     local unitPowerMax = UnitPowerMax(name, power_type)
-
+    
     return unitPower, unitPowerMax, unitPower / unitPowerMax
 end
 
@@ -162,7 +162,7 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[p_class], player.name)
         end
-
+        
         for cls, player_names_array in pairs(tmp) do
             if #player_names_array > 0 then
                 buff.tooltip[tool_tip_index] = format("%s : %s",
@@ -180,15 +180,15 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[player_group_nb], player.name)
         end
-
+        
         --table.sort(tmp) -- its a table of <group number ; list>
-
+        
         --for group_nb, player_names_array in ipairs(tmp) do
         local player_names_array
         for group_nb = 1, 8 do
             player_names_array = tmp[group_nb]
             if player_names_array and #player_names_array > 0 then
-
+                
                 buff.tooltip[tool_tip_index] = format("%s %s",
                                                       format("%s: %d", L["Group"], group_nb),
                                                       tconcat(player_names_array, " "))
@@ -201,12 +201,12 @@ end
 
 local function CheckBuff(buff)
     buff:ResetBuffData()
-
-    local slacker, disco, fd, not_in_raid, low_level
-
+    
+    local slacker, disco, fd, low_level
+    
     local isClassExpected
     if buff.ignoredPlayers then
-        for k, v in pairs(buff.ignoredPlayers) do
+        for _, v in pairs(buff.ignoredPlayers) do
             RBT:clearArrayList(v)
         end
     else
@@ -218,8 +218,8 @@ local function CheckBuff(buff)
         buff.bad_players = {}
     end
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
-
-        slacker, disco, fd = unpack(player_cache_data.slack_status)
+        
+        slacker, disco, fd, low_level = unpack(player_cache_data.slack_status)
         if slacker then
             --@debug@
             -- RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
@@ -281,9 +281,9 @@ local function BuildToolTip(buff)
                                           colored_buff_name)
     local tool_tip_index         = 2
     buff.tooltip[tool_tip_index] = L["no one"] .. "."
-
+    
     tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
-
+    
     local players_str
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
@@ -304,8 +304,8 @@ function RBT:CheckUnitBuff(player_name, buff)
         if type(buff.buffIDs) == "table" then
             for _, v in pairs(buff.buffIDs) do
                 player_cache_data = RBT.raid_player_cache[player_name]
-                if RBT.raid_player_cache[player_name].active_buff_ids[v] then
-                    return true, RBT.raid_player_cache[player_name].active_buff_ids[v].caster
+                if player_cache_data.active_buff_ids[v] then
+                    return true, player_cache_data.active_buff_ids[v].caster
                 end
             end
         else
@@ -359,7 +359,7 @@ function RBT:RegisterCheck(check_conf)
             return check_conf.displayText
         end
     end
-
+    
     local colorMixin          = CreateColor(check_conf.color.r,
                                             check_conf.color.g,
                                             check_conf.color.b,

@@ -266,12 +266,12 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
             RBT.mainFrame:StartMoving()
         end
     end)
-    theBar:SetScript("OnMouseUp", function(self)
+    theBar:SetScript("OnMouseUp", function(self_bar_frame)
         local shift_key = IsShiftKeyDown()
         local tmp_str
         if shift_key then
-            if self.buff.tooltip then
-                for k, v in ipairs(self.buff.tooltip) do
+            if self_bar_frame.buff.tooltip then
+                for k, v in ipairs(self_bar_frame.buff.tooltip) do
                     if k == 1 then
                         tmp_str = "{rt7} " .. v
                     else

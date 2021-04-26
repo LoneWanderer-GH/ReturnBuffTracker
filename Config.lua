@@ -215,15 +215,10 @@ local function getOptions()
             }
         }
     }
-    --local root_conf           = config_buff_groups.args
-    --local root_conf           = options.args -- .buff_groups.args
-    local category_conf
-    --local order               = 1
-    local no_sub_cat_infos    = nil
-    local sub_categories_conf = nil
-    local sub_cat_infos       = nil
-    local sub_order           = 1
-    local sub_group_name      = nil
+
+    local no_sub_cat_infos
+    local sub_order
+    local sub_group_name
 
     RBT.OptionBarNamesOrdered = {}
     for k in pairs(RBT.OptionBarNames) do table.insert(RBT.OptionBarNamesOrdered, k) end
@@ -253,10 +248,8 @@ local function getOptions()
         }
 
         no_sub_cat_infos             = nil
-        sub_categories_conf          = nil
         sub_order                    = 1
         for sub_data_key, sub_data_value in pairs(upper_category_data) do
-            sub_group_name = nil
             if sub_data_key == sub_data_value then
                 if not no_sub_cat_infos then
                     no_sub_cat_infos = {}
