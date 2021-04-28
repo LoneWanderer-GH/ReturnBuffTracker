@@ -13,7 +13,7 @@ local function Check(buff)
         --for _, class in ipairs(RBT.all_classes) do
         --    RBT:clearArrayList(buff.dead_players_by_classes[class])
         --end
-        for _,v in pairs(buff.dead_players_by_classes) do
+        for _, v in pairs(buff.dead_players_by_classes) do
             RBT:clearArrayList(v)
         end
     else
@@ -25,18 +25,26 @@ local function Check(buff)
 
     local dead_players_by_classes = buff.dead_players_by_classes
 
-    local name, localized_class, class, isDead
-    for i = 1, 40 do
-        name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
-        if name then
-            buff.total = buff.total + 1
-            if not isDead then
-                buff.count = buff.count + 1
-            else
-                tinsert(dead_players_by_classes[class], name)
-            end
+
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        buff.total = buff.total + 1
+        if not player_cache_data.dead then
+            buff.count = buff.count + 1
+        else
+            tinsert(dead_players_by_classes[player_cache_data.class], player_cache_data.colored_player_name)
         end
     end
+    --for i = 1, 40 do
+    --    name, _, _, _, localized_class, class, _, _, isDead, _, _ = GetRaidRosterInfo(i)
+    --    if name then
+    --        buff.total = buff.total + 1
+    --        if not isDead then
+    --            buff.count = buff.count + 1
+    --        else
+    --            tinsert(dead_players_by_classes[class], name)
+    --        end
+    --    end
+    --end
 end
 
 local function BuildToolTip(buff)
@@ -44,7 +52,7 @@ local function BuildToolTip(buff)
     local dead_players_by_classes = buff.dead_players_by_classes
     local dead_number             = (buff.total - buff.count)
     local percent                 = RBT:compute_percent_string(dead_number, buff.total)
-    buff.tooltip[1]               = format("%s %d/%d - %s", L["Dead:"], dead_number, buff.total, percent)
+    buff.tooltip[1]               = format("%s: %d/%d - %s", L["Dead"], dead_number, buff.total, percent)
     for dead_class, dead_names in pairs(dead_players_by_classes) do
         if #dead_names > 0 then
             buff.tooltip[j] = format("%s: %s",

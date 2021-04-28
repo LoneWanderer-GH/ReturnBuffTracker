@@ -1,17 +1,17 @@
-local RBT                                       = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L                                         = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local RBT                         = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L                           = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local format                                    = format
-local GetRaidRosterInfo                         = GetRaidRosterInfo
+local format                      = format
+local GetRaidRosterInfo           = GetRaidRosterInfo
+local UnitIsAFK, UnitIsFeignDeath = UnitIsAFK, UnitIsFeignDeath
+local MAX_PLAYER_LEVEL            = GetMaxPlayerLevel()
+local RAID_CLASS_COLORS           = RAID_CLASS_COLORS
 
-local IsInInstance, UnitIsAFK, UnitIsFeignDeath = IsInInstance, UnitIsAFK, UnitIsFeignDeath
-
-local tinsert, tconcat, tremove                 = table.insert, table.concat, table.remove
-local MAX_PLAYER_LEVEL                          = GetMaxPlayerLevel()
+local tinsert, tconcat, tremove   = table.insert, table.concat, table.remove
 
 local function Check(buff)
     --@debug@
-    RBT:Debugf("CheckCannotHelpRaid", "CheckCannotHelpRaid")
+    --RBT:Debugf("CheckCannotHelpRaid", "CheckCannotHelpRaid")
     --@end-debug@
     buff:ResetBuffData()
     if buff.deco_players then
@@ -40,38 +40,39 @@ local function Check(buff)
         buff.low_level_players = {}
     end
 
-    local inInstance, instanceType
     local slacker = false
     local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
-
+    local colored_name
     for i = 1, 40 do
         name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML = GetRaidRosterInfo(i)
         if name then
-            slacker                  = false -- we assume they are doing good :)
-            buff.total               = buff.total + 1
+            colored_name = RAID_CLASS_COLORS[fileName].colorStr
+            colored_name = WrapTextInColorCode(name, colored_name)
+            slacker      = false -- we assume they are doing good :)
+            buff.total   = buff.total + 1
             --inInstance, instanceType = IsInInstance(name)
             if online and level < MAX_PLAYER_LEVEL then
                 slacker = true
                 --@debug@
-                RBT:Debugf("CheckCannotHelpRaid", "Adding Low Level: %s", name)
+                -- RBT:Debugf("CheckCannotHelpRaid", "Adding Low Level: %s", colored_name)
                 --@end-debug@
-                tinsert(buff.low_level_players, format("%s (%d)", name, level))
+                tinsert(buff.low_level_players, format("%s (%d)", colored_name, level))
             end
             if online then
                 -- UnitIsConnected(name) then
                 if UnitIsAFK(name) then
                     slacker = true
                     --@debug@
-                    RBT:Debugf("CheckCannotHelpRaid", "Adding AFK: %s", name)
+                    -- RBT:Debugf("CheckCannotHelpRaid", "Adding AFK: %s", colored_name)
                     --@end-debug@
-                    tinsert(buff.afk_players, name)
+                    tinsert(buff.afk_players, colored_name)
                 end
                 if UnitIsFeignDeath(name) then
                     slacker = true
                     --@debug@
-                    RBT:Debugf("CheckCannotHelpRaid", "Adding FD: %s", name)
+                    -- RBT:Debugf("CheckCannotHelpRaid", "Adding FD: %s", colored_name)
                     --@end-debug@
-                    tinsert(buff.fd_players, name)
+                    tinsert(buff.fd_players, colored_name)
                 end
                 --if not inInstance or instanceType ~= "raid" then
                 --    tinsert(buff.not_raid_instance_players, name)
@@ -86,20 +87,20 @@ local function Check(buff)
             else
                 buff.count = buff.count + 1
                 --@debug@
-                RBT:Debugf("CheckCannotHelpRaid", "Adding deco: %s", name)
+                -- RBT:Debugf("CheckCannotHelpRaid", "Adding deco: %s", colored_name)
                 --@end-debug@
-                tinsert(buff.deco_players, name)
+                tinsert(buff.deco_players, colored_name)
             end
 
         end
     end
-    --@debug@
-    RBT:Debugf("CheckCannotHelpRaid", "Preparing tooltip")
-    --@end-debug@
-
 end
 
 local function BuildToolTip(buff)
+    --@debug@
+    -- RBT:Debugf("CheckCannotHelpRaid", "Preparing tooltip")
+    --@end-debug@
+
     local percent_string = RBT:compute_percent_string(buff.count, buff.total)
     local header         = format("%s %d/%d %s",
                                   "Boulets:",
@@ -107,20 +108,20 @@ local function BuildToolTip(buff)
                                   percent_string)
     tinsert(buff.tooltip, header)
     local low_str = format(" ||- level < max (%d):", MAX_PLAYER_LEVEL)
-    local mapping = { [" ||- Deco:"]                 = buff.deco_players,
-                      [" ||- AFK :"]                 = buff.afk_players,
-                      [" ||- FD  :"]                 = buff.fd_players,
-                      --[" ||- Not in raid instance:"] = buff.not_raid_instance_players,
-                      [low_str]                      = buff.low_level_players,
+    local mapping = { [" ||- Deco:"] = buff.deco_players,
+                      [" ||- AFK :"] = buff.afk_players,
+                      [" ||- FD  :"] = buff.fd_players,
+        --[" ||- Not in raid instance:"] = buff.not_raid_instance_players,
+                      [low_str]      = buff.low_level_players,
     }
     local tmp_str
     for line_label, players_table in pairs(mapping) do
         --@debug@
-        RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s", line_label)
+        -- RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s", line_label)
         --@end-debug@
         if players_table and #players_table > 0 then
             --@debug@
-            RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s has players in list", line_label)
+            -- RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s has players in list", line_label)
             --@end-debug@
             if #players_table <= 5 then
                 tmp_str = tconcat(players_table, " ")
@@ -132,7 +133,7 @@ local function BuildToolTip(buff)
             end
             --@debug@
         else
-            RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s 0 players in list", line_label)
+            -- RBT:Debugf("CheckCannotHelpRaid", "Tooltip %s 0 players in list", line_label)
             --@end-debug@
         end
     end

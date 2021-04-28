@@ -1,27 +1,32 @@
-local RBT                                       = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L                                         = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local RBT                                 = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local WARRIOR, MAGE, ROGUE, DRUID, HUNTER       = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
-local SHAMAN, PRIEST, WARLOCK, PALADIN          = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local format                                    = format
-local GetRaidRosterInfo                         = GetRaidRosterInfo
+local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
+local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
+local format                              = format
 
-local IsInInstance, UnitIsAFK, UnitIsFeignDeath = IsInInstance, UnitIsAFK, UnitIsFeignDeath
-local UnitBuff, UnitIsConnected                 = UnitBuff, UnitIsConnected
+local CreateColor                         = CreateColor
+local UnitIsAFK, UnitIsFeignDeath         = UnitIsAFK, UnitIsFeignDeath
+local UnitIsConnected                     = UnitIsConnected
 
-local tinsert, tconcat, tremove                 = table.insert, table.concat, table.remove
+local tinsert, tconcat, tremove           = table.insert, table.concat, table.remove
 
-RBT.localized_classes                           = {}
+RBT.localized_classes                     = {}
 FillLocalizedClassList(RBT.localized_classes, true)
 
 RBT.all_classes                           = { WARRIOR, MAGE, ROGUE, DRUID, HUNTER, SHAMAN, PRIEST, WARLOCK, PALADIN }
 local MAX_PLAYER_LEVEL                    = GetMaxPlayerLevel()
-RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING = {
-}
+RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING = {}
+RBT.ITEM_QUALITY_ENUM_TO_COLOR            = {}
 local _G                                  = _G
-local BUFF_MAX_DISPLAY                    = BUFF_MAX_DISPLAY
-for quality_base_name, quality_int_val in pairs(Enum.ItemQuality) do
-    RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[quality_int_val] = _G[format("ITEM_QUALITY%d_DESC", quality_int_val)]
+
+do
+    local r, g, b, hex
+    for quality_base_name, quality_int_val in pairs(Enum.ItemQuality) do
+        RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[quality_int_val] = _G[format("ITEM_QUALITY%d_DESC", quality_int_val)]
+        r, g, b, hex                                               = GetItemQualityColor(quality_int_val)
+        RBT.ITEM_QUALITY_ENUM_TO_COLOR[quality_int_val]            = { r = r, g = g, b = b, colorStr = hex, }
+    end
 end
 
 RBT.Buffs = {}
@@ -60,11 +65,11 @@ end
 
 --function RBT:ClearBuffTooltipTable(buff)
 local function ClearBuffTooltipTable(buff)
+    --@debug@
+    -- RBT:Debugf("ClearBuffTooltipTable", "ClearBuffTooltipTable for %s", buff.displayText)
+    --@end-debug@
     if buff.tooltip then
-        local t = buff.tooltip
-        --local count = #t
-        --for i = 0, count do t[i] = nil end
-        RBT:clearArrayList(t)
+        RBT:clearArrayList(buff.tooltip)
     else
         buff.tooltip = {}
     end
@@ -72,6 +77,9 @@ end
 
 --function RBT:ResetBuffData(buff)
 local function ResetBuffData(buff)
+    --@debug@
+    -- RBT:Debugf("ResetBuffData", "ResetBuffData for %s", buff.displayText)
+    --@end-debug@
     buff.count = 0
     buff.total = 0
     --RBT:ClearBuffTooltipTable(buff)
@@ -79,19 +87,21 @@ local function ResetBuffData(buff)
 end
 
 function RBT:CheckUnitCannotHelpRaid(name)
-    local slacker = false
-
-    local afk     = false
-    local fd      = false
+    local slacker
+    local low_level = false
+    local afk       = false
+    local fd        = false
     --local inInstance, instanceType = IsInInstance(name)
-    local co      = UnitIsConnected(name)
+    local co        = UnitIsConnected(name)
     --local not_in_raid              = not inInstance or instanceType ~= "raid"
     if co then
-        afk = UnitIsAFK(name)
-        fd  = UnitIsFeignDeath(name)
+        afk       = UnitIsAFK(name)
+        fd        = UnitIsFeignDeath(name)
+        low_level = UnitLevel(name) < MAX_PLAYER_LEVEL
     end
-    slacker = not co or afk or fd -- or not_in_raid
-    return slacker, not co, fd --, not_in_raid
+    
+    slacker = not co or afk or fd or low_level -- or not_in_raid
+    return slacker, not co, fd, low_level --, not_in_raid
 end
 
 function RBT:CheckUnitIsRealDPS(name)
@@ -100,8 +110,8 @@ function RBT:CheckUnitIsRealDPS(name)
     if GetPartyAssignment("MAINTANK", name) then
         is_real_dps = false
         real_role   = "MAINTANK"
-    else
-        -- ok
+        --else
+        --    -- ok
     end
     return is_real_dps, real_role
 end
@@ -126,16 +136,16 @@ function RBT:CheckUnitIsRealHealer(name)
     elseif GetPartyAssignment("MAINTANK", name) then
         is_real_healer = false
         real_role      = "MAINTANK"
-    else
-        -- ok
+        --else
+        --    -- ok
     end
     return is_real_healer, real_role
 end
 
-function RBT:CountUnitPower(name, power_type, current_power_type)
+function RBT:CountUnitPower(name, power_type)
     local unitPower    = UnitPower(name, power_type)
     local unitPowerMax = UnitPowerMax(name, power_type)
-
+    
     return unitPower, unitPowerMax, unitPower / unitPowerMax
 end
 
@@ -152,7 +162,7 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[p_class], player.name)
         end
-
+        
         for cls, player_names_array in pairs(tmp) do
             if #player_names_array > 0 then
                 buff.tooltip[tool_tip_index] = format("%s : %s",
@@ -170,17 +180,17 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[player_group_nb], player.name)
         end
-
+        
         --table.sort(tmp) -- its a table of <group number ; list>
-
+        
         --for group_nb, player_names_array in ipairs(tmp) do
         local player_names_array
         for group_nb = 1, 8 do
             player_names_array = tmp[group_nb]
             if player_names_array and #player_names_array > 0 then
-
+                
                 buff.tooltip[tool_tip_index] = format("%s %s",
-                                                      format(L["Group %d:"], group_nb),
+                                                      format("%s: %d", L["Group"], group_nb),
                                                       tconcat(player_names_array, " "))
                 tool_tip_index               = tool_tip_index + 1
             end
@@ -189,15 +199,14 @@ local function fill_tooltip_data_array(buff,
     return tool_tip_index
 end
 
---function RBT:CheckBuff(buff)
 local function CheckBuff(buff)
     buff:ResetBuffData()
-
-    local slacker, disco, fd, not_in_raid
-    local player_name, player_group, player_localized_class, player_class
+    
+    local slacker, disco, fd, low_level
+    
     local isClassExpected
     if buff.ignoredPlayers then
-        for k, v in pairs(buff.ignoredPlayers) do
+        for _, v in pairs(buff.ignoredPlayers) do
             RBT:clearArrayList(v)
         end
     else
@@ -208,49 +217,50 @@ local function CheckBuff(buff)
     else
         buff.bad_players = {}
     end
-    for i = 1, 40 do
-        player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(i)
-        if player_class then
-            slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
+    local has_buff
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        slacker, disco, fd, low_level = unpack(player_cache_data.slack_status)
+        isClassExpected               = RBT:Contains(buff.classes, player_cache_data.class)
+        if isClassExpected then
             if slacker then
                 --@debug@
-                RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name))
+                -- RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
                 --@end-debug@
                 if not buff.ignoredPlayers["Slacker"] then
                     buff.ignoredPlayers["Slacker"] = {}
                 end
-                tinsert(buff.ignoredPlayers["Slacker"], player_name)
+                tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
             else
-                isClassExpected = RBT:Contains(buff.classes, player_class)
-                if isClassExpected then
-                    buff.total = buff.total + 1
-                    if RBT:CheckUnitBuff(player_name, buff) then
-                        buff.count = buff.count + 1
-                    else
-                        buff.bad_players[player_name] = { name  = player_name,
-                                                          group = player_group,
-                                                          class = player_class,
-                        }
-                    end
+                buff.total  = buff.total + 1
+                has_buff, _ = RBT:CheckUnitBuff(player_name, buff)
+                if RBT:CheckUnitBuff(player_name, buff) then
+                    buff.count = buff.count + 1
+                else
+                    buff.bad_players[player_name] = { name  = player_cache_data.colored_player_name,
+                                                      group = player_cache_data.group,
+                                                      class = player_cache_data.class,
+                    }
                 end
             end
         end
     end
 end
 
---function RBT:BuildToolTip(buff)
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = format("{rt7}" .. L["Missing %s"],
-                                          (buff.name or buff.shortName or tostring(buff.buffIDs[1])))
+    local colored_buff_name      = WrapTextInColorCode((buff.name or buff.shortName or tostring(buff.buffIDs[1])),
+                                                       buff.color.colorStr)
+    buff.tooltip[1]              = format("%s %s",
+                                          L["Missing"],
+                                          colored_buff_name)
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one."]
-
+    buff.tooltip[tool_tip_index] = L["no one"] .. "."
+    
     tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
-
+    
     local players_str
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
-        RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
+        -- RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
         if #player_details > 0 then
             players_str = tconcat(player_details, " ")
@@ -260,29 +270,19 @@ local function BuildToolTip(buff)
     end
 end
 
-function RBT:CheckUnitBuff(unit, buff)
-    local buff_name, caster, spellId
-    for i = 1, BUFF_MAX_DISPLAY do
-        buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(unit, i)
-        if buff.buffIDs then
-            if type(buff.buffIDs) == table then
-                for _, v in pairs(buff.buffIDs) do
-                    if RBT:Contains(v, spellId) then
-                        return true, caster
-                    end
-                end
-            else
-                if RBT:Contains(buff.buffIDs, spellId) then
-                    return true, caster
+function RBT:CheckUnitBuff(player_name, buff)
+    -- exploit cache
+    local player_cache_data = RBT.raid_player_cache[player_name]
+    if buff.buffIDs then
+        if type(buff.buffIDs) == "table" then
+            for _, spell_id in pairs(buff.buffIDs) do
+                if player_cache_data.active_buff_ids[spell_id] then
+                    return true, player_cache_data.active_buff_ids[spell_id].caster
                 end
             end
         else
-            if (buff.buffNames and RBT:Contains(buff.buffNames, buff_name)) or
-                    buff.name == buff_name then
-                return true, caster
-            end
+            print("WTF_BBQ ?! type: " .. type(buff.buffIDs))
         end
-
     end
     return false, nil
 end
@@ -302,6 +302,13 @@ function RBT:RegisterCheck(check_conf)
             return check_conf.displayText
         end
     end
-    check_conf.ResetBuffData = ResetBuffData
+    
+    local colorMixin          = CreateColor(check_conf.color.r,
+                                            check_conf.color.g,
+                                            check_conf.color.b,
+                                            check_conf.color.a or 1.0)
+    check_conf.color.colorStr = colorMixin:GenerateHexColor()
+    check_conf.ResetBuffData  = ResetBuffData
     tinsert(RBT.Buffs, check_conf)
+    check_conf.ready = true
 end

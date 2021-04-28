@@ -1,22 +1,35 @@
-local RBT        = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
-local L          = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local RBT          = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
+local L            = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
+local AC           = LibStub("AceConfig-3.0")
+local ACR          = LibStub("AceConfigRegistry-3.0")
+local ACD          = LibStub("AceConfigDialog-3.0")
 --@debug@
-local LoggingLib = LibStub("LoggingLib-0.1")
+local LoggingLib   = LibStub("LoggingLib-0.1")
 --@end-debug@
 
-local options    = nil
-local function getOptions()
-    if options then return options end
+local cat_to_order = {
+    [L["General"]]      = 100,
+    [L["Player buffs"]] = 200,
+    [L["World"]]        = 300,
+    [L["Consumables"]]  = 400,
+}
 
-    options = {
+local options      = nil
+local function getOptions()
+    if options then
+        return options
+    end
+
+    options                   = {
         type = "group",
         name = "Return Buff Tracker",
         args = {
             general = {
-                type   = "group",
-                name   = L["General"],
-                inline = true,
-                args   = {
+                order = 100,
+                type  = "group",
+                name  = L["Main Options"],
+                --inline = true,
+                args  = {
                     description            = {
                         name        = "",
                         type        = "description",
@@ -33,28 +46,51 @@ local function getOptions()
                         width = "full",
                         order = 2
                     },
+                    enable_disable_toggle  = {
+                        name  = L["Enable"],
+                        desc  = L["Activate/deactivate completly RBT"],
+                        type  = "toggle",
+                        order = 3,
+                        get   = function(self)
+                            return RBT.db.char.enabled
+                        end,
+                        set   = function(self, value)
+                            RBT.db.char.enabled = value
+                            if RBT.db.char.enabled then
+                                RBT:OnEnable()
+                            else
+                                RBT:OnDisable()
+                            end
+                        end
+                    },
                     resetConf              = {
                         name  = "reset Configuration",
                         desc  = "reset to default",
                         type  = "execute",
                         func  = RBT.ResetConfiguration,
-                        order = 3
+                        order = 4,
                     },
                     showFrame              = {
                         name      = "Show frame",
                         desc      = "Force frame to show. Caution : it may show/hide again if you join/leave a raid depending on other options",
                         descStyle = "inline",
-                        order     = 4,
+                        order     = 5,
                         type      = "execute",
-                        func      = function() RBT.mainFrame:Show() end
+                        func      = function() RBT.mainFrame:Show()
+                        end,
+                        disabled  = function() return not RBT.db.char.enabled
+                        end,
                     },
                     hideFrame              = {
                         name      = "Hide frame",
                         descStyle = "inline",
                         desc      = "Force frame to hide. Caution : it may show/hide again if you join/leave a raid depending on other options",
-                        order     = 5,
+                        order     = 6,
                         type      = "execute",
-                        func      = function() RBT.mainFrame:Hide() end
+                        func      = function() RBT.mainFrame:Hide()
+                        end,
+                        disabled  = function() return not RBT.db.char.enabled
+                        end,
                     },
                     --set_my_class_only    = {
                     --    name = "my class only",
@@ -66,41 +102,65 @@ local function getOptions()
                         name  = L["Global Settings"],
                         type  = "header",
                         width = "double",
-                        order = 6
+                        order = 7,
                     },
                     hideFrameWhenNotInRaid = {
-                        name  = L["Hide when not in raid"],
-                        desc  = L["The buff tracker does not work outside of raids."],
-                        type  = "toggle",
-                        order = 7,
-                        get   = function(self)
+                        name     = L["Hide when not in raid"],
+                        desc     = L["The buff tracker does not work outside of raids."],
+                        type     = "toggle",
+                        order    = 8,
+                        get      = function(self)
                             return RBT.db.char.hideFrameWhenNotInRaid
                         end,
-                        set   = function(self, value)
+                        set      = function(self, value)
                             RBT.db.char.hideFrameWhenNotInRaid = value
                             RBT:RaidOrGroupChanged()
-                        end
+                        end,
+                        disabled = function() return not RBT.db.char.enabled
+                        end,
                     },
                     reportConfig           = {
-                        name   = L["Report config"],
-                        type   = "select",
-                        desc   = "Report channel",
-                        order  = 8,
-                        values = RBT.Constants.ReportChannel,
-                        get    = function(self)
+                        name     = L["Report config"],
+                        type     = "select",
+                        desc     = "Report channel",
+                        order    = 9,
+                        values   = RBT.Constants.ReportChannel,
+                        get      = function(self)
                             return RBT.db.char.reportChannel
                         end,
-                        set    = function(self, v)
+                        set      = function(self, v)
                             RBT.db.char.reportChannel = v
-                        end
+                        end,
+                        disabled = function() return not RBT.db.char.enabled
+                        end,
+                    },
+                    refresh_rate           = {
+                        name      = L["Raid buffs data refresh rate"],
+                        type      = "range",
+                        min       = 0.1,
+                        max       = 10.0,
+                        softMin   = 0.2,
+                        --softMax = 5.0
+                        step      = 0.1,
+                        bigStep   = 0.2,
+                        order     = 10,
+                        get       = function(self) return RBT.db.char.refresh_rate
+                        end,
+                        set       = function(self, v)
+                            RBT.db.char.refresh_rate = v
+                        end,
+                        isPercent = false,
+                        disabled  = function() return not RBT.db.char.enabled
+                        end,
                     },
                     --@debug@
                     debug_group            = {
-                        type   = "group",
-                        name   = "Debug options",
-                        inline = true,
-                        order  = 9,
-                        args   = {
+                        type     = "group",
+                        name     = "Debug options",
+                        inline   = true,
+                        order    = 20,
+                        disabled = function() return not RBT.db.char.enabled end,
+                        args     = {
                             logging           = {
                                 name  = "Addon logging",
                                 type  = "toggle",
@@ -118,164 +178,121 @@ local function getOptions()
                                 end
                             },
                             mem_profiling     = {
-                                name  = "Addon memory profiling (depends on logging)",
-                                type  = "toggle",
-                                desc  = "Activate Logging",
-                                order = 6,
-                                get   = function(self)
+                                name     = "Addon memory profiling (depends on logging)",
+                                type     = "toggle",
+                                desc     = "Activate Logging",
+                                order    = 6,
+                                get      = function(self)
                                     return RBT.db.char.mem_profiling
                                 end,
-                                set   = function(self, v)
+                                set      = function(self, v)
                                     RBT.db.char.mem_profiling = v
-                                end
+                                end,
+                                disabled = function() return not RBT.db.char.enabled or not RBT.db.char.logging
+                                end,
                             },
                             addonLoggerConfig = {
-                                name   = L["Addon logging level"],
-                                type   = "select",
-                                desc   = "Log level threshold",
-                                order  = 6,
+                                name     = L["Addon logging level"],
+                                type     = "select",
+                                desc     = "Log level threshold",
+                                order    = 6,
                                 --values = RBT.Constants.LoggingConfig,
-                                values = LoggingLib.logging_level_to_string,
-                                get    = function(self)
+                                values   = LoggingLib.logging_level_to_string,
+                                get      = function(self)
                                     return RBT.db.char.logLevel
                                 end,
-                                set    = function(self, v)
+                                set      = function(self, v)
                                     RBT:SetLogLevel(v)
                                     RBT.db.char.logLevel = v
-                                end
+                                end,
+                                disabled = function() return not RBT.db.char.logging end,
                             },
                         },
                     },
                     --@end-debug@
-                    buff_groups            = {
-                        type        = "group",
-                        name        = L["Bars to show"],
-                        inline      = true,
-                        childGroups = "tab",
-                        order       = 10,
-                        args        = {
-                            --headerBars   = {
-                            --    name  = L["Bars to show"],
-                            --    type  = "header",
-                            --    width = "double",
-                            --    order = 4
-                            --},
-                            generalBuffs = {
-                                name  = L["General Buffs"],
-                                type  = "group",
-                                order = 1,
-                                args  = {
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["General"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                },
-                                --check_all = {
-                                --    name = "check all",
-                                --    desc = "check all buffs",
-                                --    type = "execute",
-                                --    func = function()
-                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.char.deactivatedBars[bar] = false
-                                --        end
-                                --        RBT:UpdateBars()
-                                --    end,
-                                --},
-                                --uncheck_all = {
-                                --    name = "uncheck all",
-                                --    desc = "uncheck all buffs",
-                                --    type = "execute",
-                                --    func = function()
-                                --        for bar, value in pairs(RBT.OptionBarNames[L["General"]]) do
-                                --            RBT.db.char.deactivatedBars[bar] = true
-                                --        end
-                                --        RBT:UpdateBars()
-                                --    end,
-                                --},
 
-                            },
-                            playerBuffs  = {
-                                name  = L["Player buffs"],
-                                type  = "group",
-                                order = 2,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["Player buffs"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            },
-                            worldBuffs   = {
-                                name  = L["World Buffs"],
-                                type  = "group",
-                                order = 3,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["World"]],
-                                        get    = function(self, bar)
-                                            return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            },
-                            consumables  = {
-                                name  = L["Consumables"],
-                                type  = "group",
-                                order = 4,
-                                args  = {
-
-                                    bars = {
-                                        type   = "multiselect",
-                                        name   = "",
-                                        desc   = "",
-                                        order  = 6,
-                                        values = RBT.OptionBarNames[L["Consumable"]],
-                                        get    = function(self, bar) return not RBT.db.char.deactivatedBars[bar]
-                                        end,
-                                        set    = function(self, bar, value)
-                                            RBT.db.char.deactivatedBars[bar] = not value
-                                            RBT:UpdateBars()
-                                        end
-                                    },
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
     }
 
+    local no_sub_cat_infos
+    local sub_order
+    local sub_group_name
+
+    RBT.OptionBarNamesOrdered = {}
+    for k in pairs(RBT.OptionBarNames) do table.insert(RBT.OptionBarNamesOrdered, k) end
+
+    --print(table.concat(RBT.OptionBarNamesOrdered, "> "))
+
+    table.sort(RBT.OptionBarNamesOrdered, function(a, b)
+        print(format("%s (%s) < %s (%s)",
+                     a, cat_to_order[a],
+                     b, cat_to_order[b]))
+        return cat_to_order[a] < cat_to_order[b]
+    end)
+
+    --print(table.concat(RBT.OptionBarNamesOrdered, "> "))
+
+    --for upper_category, upper_category_data in pairs(RBT.OptionBarNames) do
+    local upper_category_data
+    for _, upper_category in ipairs(RBT.OptionBarNamesOrdered) do
+        upper_category_data          = RBT.OptionBarNames[upper_category]
+        options.args[upper_category] = {
+            name  = upper_category,
+            desc  = upper_category,
+            type  = "group",
+            --childGroups = "tree",
+            order = cat_to_order[upper_category],
+            args  = {},
+        }
+
+        no_sub_cat_infos             = nil
+        sub_order                    = 1
+        for sub_data_key, sub_data_value in pairs(upper_category_data) do
+            if sub_data_key == sub_data_value then
+                if not no_sub_cat_infos then
+                    no_sub_cat_infos = {}
+                end
+                -- fill a legacy category [key,val] dict for options
+                no_sub_cat_infos[sub_data_key] = sub_data_value
+            elseif type(sub_data_value) == "table" then
+                sub_group_name                                    = sub_data_key
+                options.args[upper_category].args[sub_group_name] = {
+                    type   = "multiselect",
+                    name   = sub_group_name,
+                    --desc   = "",
+                    order  = sub_order,
+                    values = sub_data_value,
+                    get    = function(self, bar)
+                        return not RBT.db.char.deactivatedBars[bar]
+                    end,
+                    set    = function(self, bar, value)
+                        RBT.db.char.deactivatedBars[bar] = not value
+                        RBT:UpdateBars()
+                    end
+                }
+                sub_order                                         = sub_order + 1
+            end
+        end
+        if no_sub_cat_infos then
+            options.args[upper_category].args.no_sub_cat = {
+                type   = "multiselect",
+                name   = "",
+                desc   = "",
+                order  = 1,
+                values = no_sub_cat_infos,
+                get    = function(self, bar)
+                    return not RBT.db.char.deactivatedBars[bar]
+                end,
+                set    = function(self, bar, value)
+                    RBT.db.char.deactivatedBars[bar] = not value
+                    RBT:UpdateBars()
+                end
+            }
+        end
+        --order = order + 1
+    end
     return options
 end
 
@@ -296,11 +313,21 @@ end
 
 function RBT:SetupOptions()
     RBT.optFrames = {}
-    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("ReturnBuffTracker",
-                                                          getOptions)
-    RBT.optFrames.ReturnBuffTracker = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ReturnBuffTracker",
-                                                                                      "Return Buff Tracker",
-                                                                                      nil, "general")
+    options       = getOptions()
+    --ACR:RegisterOptionsTable("ReturnBuffTracker", getOptions)
+    ACR:RegisterOptionsTable("ReturnBuffTracker", getOptions)
+    RBT.optFrames.ReturnBuffTracker = ACD:AddToBlizOptions("ReturnBuffTracker",
+                                                           "Return Buff Tracker",
+                                                           nil, "general")
+
+    local menu_option_name
+    --for upper_category, _ in pairs(RBT.OptionBarNames) do
+    for _, upper_category in ipairs(RBT.OptionBarNamesOrdered) do
+        menu_option_name = "ReturnBuffTracker-" .. upper_category
+        AC:RegisterOptionsTable(menu_option_name, options.args[upper_category])
+        ACD:AddToBlizOptions(menu_option_name, options.args[upper_category].name, "Return Buff Tracker")
+    end
+
     RBT:RegisterChatCommand("ReturnBuffTracker", "ChatCommand")
     RBT:RegisterChatCommand("rbt", "ChatCommand")
 end

@@ -231,43 +231,10 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         --, value, maxValue, tooltip_lines)
         --local percentage = buff.count / buff.total
         local percentage_str, percentage_float = RBT:compute_percent_string(self.buff.count, self.buff.total)
-        self.percentage_float = percentage_float
-        self.percentage_str   = percentage_str
-        --local totalWidth                       = RBT.mainFrame:GetWidth() - 10
+        self.percentage_float                  = percentage_float
+        self.percentage_str                    = percentage_str
         self.buff:SpecialBarDisplay()
-        --if self.buff.shortName and self.buff.shortName == L["DMF Damage"] then
-        --    local is_active = RBT:isDMFActive()
-        --    local tmp       = format("%s (%s)", self.buff.shortName, DMF_specific[is_active])
-        --    self.texture:SetColorTexture(0.1, 0.1, 0.1, 1.0)
-        --    self.buffNameTextString:SetText(tmp)
-        --    self.percentage_str = "0%"
-        --elseif self.displayText == L["Loot Method"] then
-        --
-        --end
-
         self:UpdateWidth()
-        --if percentage_float then
-        --    self.percentage_float = percentage_float
-        --    local width           = floor(totalWidth * percentage_float)
-        --    if width > 0 then
-        --        self.texture:SetWidth(totalWidth * percentage_float)
-        --        self.texture:Show()
-        --    else
-        --        self.texture:Hide()
-        --    end
-        --else
-        --    self.texture:Hide()
-        --end
-        --self:SetWidth(totalWidth)
-
-        --self.tooltip_lines = theBar.buff.tooltip -- tooltip_lines
-        --theBar.percentTextString:SetText(format("%.0f%%", ((value / maxValue) * 100.0)))
-        --if percentage ~= percentage then
-        --    theBar.percentTextString:SetText("NA")
-        --else
-        --    theBar.percentTextString:SetText(format("%.0f%%", percentage * 100.0))
-        --end
-
         self.percentTextString:SetText(self.percentage_str)
     end
 
@@ -279,15 +246,11 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     --end)
 
     theBar:SetScript("OnEnter", function(self)
-        --GameTooltip:AddLine("Missing " .. self.text .. ": ", 1, 1, 1)
-        GameTooltip:AddLine(format(L["Missing %s"], self.buff.displayText), 1, 1, 1)
-        --if self.tooltip_lines then
-        --self.buff:BuildToolTipText()
+        GameTooltip:AddLine(format("%s %s", L["Missing"], self.buff.displayText), 1, 1, 1)
         if self.buff.tooltip then
             GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-            --for k, v in ipairs(self.tooltip_lines) do
-            for k, v in ipairs(self.buff.tooltip) do
-                GameTooltip:AddLine(v, 1, 1, 1)
+            for _, v in ipairs(self.buff.tooltip) do
+                GameTooltip:AddLine(stripSymbols(v), 1, 1, 1)
             end
             GameTooltip:Show()
         end
@@ -303,16 +266,18 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
             RBT.mainFrame:StartMoving()
         end
     end)
-    theBar:SetScript("OnMouseUp", function(self)
+    theBar:SetScript("OnMouseUp", function(self_bar_frame)
         local shift_key = IsShiftKeyDown()
         local tmp_str
         if shift_key then
-            --DEFAULT_CHAT_FRAME:AddMessage("Missing " .. self.text .. ": ")
-            --if self.tooltip_lines then
-            if self.buff.tooltip then
-                --for k, v in ipairs(self.tooltip_lines) do
-                for k, v in ipairs(self.buff.tooltip) do
-                    tmp_str = stripColors(v)
+            if self_bar_frame.buff.tooltip then
+                for k, v in ipairs(self_bar_frame.buff.tooltip) do
+                    if k == 1 then
+                        tmp_str = "{rt7} " .. v
+                    else
+                        tmp_str = v
+                    end
+                    tmp_str = stripColors(tmp_str)
                     SendChatMessage(tmp_str, RBT.db.char.reportChannel)
                 end
             end

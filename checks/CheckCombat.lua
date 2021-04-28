@@ -8,6 +8,7 @@ local UnitIsDead, UnitAffectingCombat = UnitIsDead, UnitAffectingCombat
 local tinsert, tconcat, tremove       = table.insert, table.concat, table.remove
 
 local MAX_GROUPS_IN_RAID              = 8
+
 local function Check(buff)
 
     buff:ResetBuffData()
@@ -24,24 +25,22 @@ local function Check(buff)
     buff.count = 0
     buff.total = 0
 
-    local player_name, player_group
-    for i = 1, 40 do
-        player_name, _, player_group = GetRaidRosterInfo(i)
-        if player_name and not UnitIsDead(player_name) then
+    for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
+        if not player_cache_data.dead then
             buff.total = buff.total + 1
-            if UnitAffectingCombat(player_name) then
+            if player_cache_data.combat then
                 buff.count = buff.count + 1
             else
-                tinsert(buff.groups_array[player_group], player_name)
+                tinsert(buff.groups_array[player_cache_data.group], player_cache_data.colored_player_name)
             end
         end
     end
 end
 
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = L["Not in Combat: "]
+    buff.tooltip[1]              = L["Not in Combat"]..":"
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one."]
+    buff.tooltip[tool_tip_index] = L["no one"].."."
 
     for i = 1, MAX_GROUPS_IN_RAID do
         if #buff.groups_array[i] > 0 then
