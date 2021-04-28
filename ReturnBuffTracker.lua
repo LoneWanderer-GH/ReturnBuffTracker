@@ -461,7 +461,7 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                     buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
                     if self.buff_id_to_buff_count_data[spellId] then
                         --@debug@
-                        RBT:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
+                        -- RBT:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
                         --@end-debug@
                         RBT.raid_player_cache[player_name].active_buff_ids[spellId] = {
                             caster    = caster,

@@ -110,8 +110,8 @@ function RBT:CheckUnitIsRealDPS(name)
     if GetPartyAssignment("MAINTANK", name) then
         is_real_dps = false
         real_role   = "MAINTANK"
-    --else
-    --    -- ok
+        --else
+        --    -- ok
     end
     return is_real_dps, real_role
 end
@@ -136,8 +136,8 @@ function RBT:CheckUnitIsRealHealer(name)
     elseif GetPartyAssignment("MAINTANK", name) then
         is_real_healer = false
         real_role      = "MAINTANK"
-    --else
-    --    -- ok
+        --else
+        --    -- ok
     end
     return is_real_healer, real_role
 end
@@ -217,21 +217,22 @@ local function CheckBuff(buff)
     else
         buff.bad_players = {}
     end
+    local has_buff
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
-        
         slacker, disco, fd, low_level = unpack(player_cache_data.slack_status)
-        if slacker then
-            --@debug@
-            -- RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
-            --@end-debug@
-            if not buff.ignoredPlayers["Slacker"] then
-                buff.ignoredPlayers["Slacker"] = {}
-            end
-            tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
-        else
-            isClassExpected = RBT:Contains(buff.classes, player_cache_data.class)
-            if isClassExpected then
-                buff.total = buff.total + 1
+        isClassExpected               = RBT:Contains(buff.classes, player_cache_data.class)
+        if isClassExpected then
+            if slacker then
+                --@debug@
+                -- RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", player_cache_data.colored_player_name)
+                --@end-debug@
+                if not buff.ignoredPlayers["Slacker"] then
+                    buff.ignoredPlayers["Slacker"] = {}
+                end
+                tinsert(buff.ignoredPlayers["Slacker"], player_cache_data.colored_player_name)
+            else
+                buff.total  = buff.total + 1
+                has_buff, _ = RBT:CheckUnitBuff(player_name, buff)
                 if RBT:CheckUnitBuff(player_name, buff) then
                     buff.count = buff.count + 1
                 else
@@ -243,34 +244,6 @@ local function CheckBuff(buff)
             end
         end
     end
-    --for i = 1, 40 do
-    --    player_name, _, player_group, _, player_localized_class, player_class = GetRaidRosterInfo(i)
-    --    if player_class then
-    --        slacker, disco, fd = RBT:CheckUnitCannotHelpRaid(player_name)
-    --        if slacker then
-    --            --@debug@
-    --            RBT:Debugf("CheckBuff", "Checking %s is SLACKER, ignoring", tostring(player_name))
-    --            --@end-debug@
-    --            if not buff.ignoredPlayers["Slacker"] then
-    --                buff.ignoredPlayers["Slacker"] = {}
-    --            end
-    --            tinsert(buff.ignoredPlayers["Slacker"], player_name)
-    --        else
-    --            isClassExpected = RBT:Contains(buff.classes, player_class)
-    --            if isClassExpected then
-    --                buff.total = buff.total + 1
-    --                if RBT:CheckUnitBuff(player_name, buff) then
-    --                    buff.count = buff.count + 1
-    --                else
-    --                    buff.bad_players[player_name] = { name  = player_name,
-    --                                                      group = player_group,
-    --                                                      class = player_class,
-    --                    }
-    --                end
-    --            end
-    --        end
-    --    end
-    --end
 end
 
 local function BuildToolTip(buff)
@@ -299,50 +272,20 @@ end
 
 function RBT:CheckUnitBuff(player_name, buff)
     -- exploit cache
-    local player_cache_data
+    local player_cache_data = RBT.raid_player_cache[player_name]
     if buff.buffIDs then
         if type(buff.buffIDs) == "table" then
-            for _, v in pairs(buff.buffIDs) do
-                player_cache_data = RBT.raid_player_cache[player_name]
-                if player_cache_data.active_buff_ids[v] then
-                    return true, player_cache_data.active_buff_ids[v].caster
+            for _, spell_id in pairs(buff.buffIDs) do
+                if player_cache_data.active_buff_ids[spell_id] then
+                    return true, player_cache_data.active_buff_ids[spell_id].caster
                 end
             end
         else
-            --if RBT.raid_player_cache[player_name].active_buff_ids[buff.buffIDs then
-            --    return true, caster
-            --end
             print("WTF_BBQ ?! type: " .. type(buff.buffIDs))
         end
     end
     return false, nil
 end
---function RBT:CheckUnitBuff(unit, buff)
---    local buff_name, caster, spellId
---    for i = 1, BUFF_MAX_DISPLAY do
---        buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(unit, i)
---        if buff.buffIDs then
---            if type(buff.buffIDs) == table then
---                for _, v in pairs(buff.buffIDs) do
---                    if RBT:Contains(v, spellId) then
---                        return true, caster
---                    end
---                end
---            else
---                if RBT:Contains(buff.buffIDs, spellId) then
---                    return true, caster
---                end
---            end
---        else
---            if (buff.buffNames and RBT:Contains(buff.buffNames, buff_name)) or
---                    buff.name == buff_name then
---                return true, caster
---            end
---        end
---
---    end
---    return false, nil
---end
 
 function RBT:RegisterCheck(check_conf)
     check_conf.total   = 0
