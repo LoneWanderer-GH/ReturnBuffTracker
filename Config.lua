@@ -161,20 +161,20 @@ function RBT:getOptions()
                 imageWidth  = 64,
                 imageHeight = 64,
                 width       = "half",
-                order       = 1
+                order       = 10
             },
             descriptiontext        = {
                 --name  = L["Return Buff Tracker by Irpa\nDiscord: https://discord.gg/SZYAKFy\nGithub: https://github.com/zorkqz/ReturnBuffTracker\n"],
                 name  = "Return Buff Tracker by Irpa - Enhanced by LoneWanderer-GH",
                 type  = "description",
                 width = "full",
-                order = 2
+                order = 20
             },
             enable_disable_toggle  = {
                 name  = L["Enable"],
                 desc  = L["Activate/deactivate completly RBT"],
                 type  = "toggle",
-                order = 3,
+                order = 30,
                 get   = function(info)
                     return self.profile.enabled
                 end,
@@ -192,13 +192,13 @@ function RBT:getOptions()
                 desc  = L["reset to default"],
                 type  = "execute",
                 func  = RBT.ResetConfiguration,
-                order = 4,
+                order = 40,
             },
             show_hide_group        = {
                 name   = "Force show/hide",
                 type   = "group",
                 inline = true,
-                order  = 5,
+                order  = 50,
                 args   = {
                     showFrame = {
                         name      = "Show frame",
@@ -235,13 +235,13 @@ function RBT:getOptions()
                 name  = L["Global Settings"],
                 type  = "header",
                 width = "double",
-                order = 6,
+                order = 60,
             },
             report_slackers        = {
                 name     = L["Include report slackers in chat report"],
                 desc     = L["otherwise, they will only appear in tooltips"],
                 type     = "toggle",
-                order    = 7,
+                order    = 70,
                 get      = function(info)
                     return self.profile.report_slackers
                 end,
@@ -255,7 +255,7 @@ function RBT:getOptions()
                 name     = L["Hide when not in raid"],
                 desc     = L["The buff tracker does not work outside of raids."],
                 type     = "toggle",
-                order    = 8,
+                order    = 80,
                 get      = function(info)
                     return self.profile.hideFrameWhenNotInRaid
                 end,
@@ -270,7 +270,7 @@ function RBT:getOptions()
                 name     = L["Report config"],
                 type     = "select",
                 desc     = "Report channel",
-                order    = 9,
+                order    = 90,
                 values   = self.Constants.ReportChannel,
                 get      = function(info)
                     return self.profile.reportChannel
@@ -290,7 +290,7 @@ function RBT:getOptions()
                 --softMax = 5.0
                 step      = 0.1,
                 bigStep   = 0.2,
-                order     = 10,
+                order     = 100,
                 get       = function(info) return self.profile.refresh_rate
                 end,
                 set       = function(info, v)
@@ -300,12 +300,27 @@ function RBT:getOptions()
                 disabled  = function() return not self.profile.enabled
                 end,
             },
+            
+            percent_absolut_toggle = {
+                name   = L[""],
+                type   = "select",
+                order  = 200,
+                values = { [L["absolute"]] = "absolute",
+                           [L["percent"]]  = "percent" },
+                get    = function(info)
+                    return self.profile.count_display_mode
+                end,
+                set    = function(info, v)
+                    self.profile.count_display_mode = v
+                end,
+                style  = "radio",
+            },
             --@debug@
             debug_group            = {
                 type     = "group",
                 name     = "Debug options",
                 inline   = true,
-                order    = 20,
+                order    = 400,
                 disabled = function() return not self.profile.enabled end,
                 args     = {
                     logging           = {
