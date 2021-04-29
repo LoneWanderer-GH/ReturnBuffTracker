@@ -34,7 +34,7 @@ local function Check(buff)
             
             tinsert(buff.players_having_soulstone, format("%s (from %s)",
                                                           player_cache_data.colored_player_name,
-                                                          WrapTextInColorCode(caster, WARLOCK_COLOR_STR)))
+                                                          WrapTextInColorCode(caster or "NA", WARLOCK_COLOR_STR)))
         end
     end
     

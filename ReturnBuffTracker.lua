@@ -557,6 +557,7 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                         active_buff_ids     = {},
                     }
                 end
+                self.raid_player_cache[player_name].active_buff_ids = {}
                 for buff_index = 1, BUFF_MAX_DISPLAY do
                     buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
                     if self.buff_id_to_buff_count_data[spellId] then
