@@ -229,14 +229,19 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     end
     
     theBar.Update      = function(self_bar_frame)
-        --, value, maxValue, tooltip_lines)
-        --local percentage = buff.count / buff.total
         local percentage_str, percentage_float = RBT:compute_percent_string(self_bar_frame.buff.count, self_bar_frame.buff.total)
+        
         self_bar_frame.percentage_float        = percentage_float
         self_bar_frame.percentage_str          = percentage_str
         self_bar_frame.buff:SpecialBarDisplay()
         self_bar_frame:UpdateWidth()
-        self_bar_frame.percentTextString:SetText(self_bar_frame.percentage_str)
+        if self.profile.count_display_mode == "percent" then
+            --, value, maxValue, tooltip_lines)
+            --local percentage = buff.count / buff.total
+            self_bar_frame.percentTextString:SetText(self_bar_frame.percentage_str)
+        else
+            self_bar_frame.percentTextString:SetText(format("%d/%d", self_bar_frame.buff.count, self_bar_frame.buff.total))
+        end
     end
     
     --theBar:SetScript("OnUpdate", function(self, ...)
