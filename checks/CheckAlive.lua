@@ -7,7 +7,7 @@ local GetRaidRosterInfo         = GetRaidRosterInfo
 local tinsert, tconcat, tremove = table.insert, table.concat, table.remove
 
 local function Check(buff)
-
+    
     buff:ResetBuffData()
     if buff.dead_players_by_classes then
         --for _, class in ipairs(RBT.all_classes) do
@@ -22,10 +22,9 @@ local function Check(buff)
             buff.dead_players_by_classes[class] = {}
         end
     end
-
+    
     local dead_players_by_classes = buff.dead_players_by_classes
-
-
+    
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
         buff.total = buff.total + 1
         if not player_cache_data.dead then
@@ -52,13 +51,13 @@ local function BuildToolTip(buff)
     local dead_players_by_classes = buff.dead_players_by_classes
     local dead_number             = (buff.total - buff.count)
     local percent                 = RBT:compute_percent_string(dead_number, buff.total)
-    buff.tooltip[1]               = format("%s: %d/%d - %s", L["Dead"], dead_number, buff.total, percent)
+    buff.tooltip.main_text[1]     = format("%s: %d/%d - %s", L["Dead"], dead_number, buff.total, percent)
     for dead_class, dead_names in pairs(dead_players_by_classes) do
         if #dead_names > 0 then
-            buff.tooltip[j] = format("%s: %s",
-                                     RBT.localized_classes[dead_class],
-                                     tconcat(dead_names, " "))
-            j               = j + 1
+            buff.tooltip.main_text[j] = format("%s: %s",
+                                               RBT.localized_classes[dead_class],
+                                               tconcat(dead_names, " "))
+            j                         = j + 1
         end
     end
 end

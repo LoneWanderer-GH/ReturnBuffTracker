@@ -191,7 +191,7 @@ function RBT:getOptions()
                 name  = L["reset Configuration"],
                 desc  = L["reset to default"],
                 type  = "execute",
-                func  = self.ResetConfiguration,
+                func  = RBT.ResetConfiguration,
                 order = 4,
             },
             show_hide_group        = {
@@ -237,11 +237,25 @@ function RBT:getOptions()
                 width = "double",
                 order = 6,
             },
+            report_slackers        = {
+                name     = L["Include report slackers in chat report"],
+                desc     = L["otherwise, they will only appear in tooltips"],
+                type     = "toggle",
+                order    = 7,
+                get      = function(info)
+                    return self.profile.report_slackers
+                end,
+                set      = function(info, value)
+                    self.profile.report_slackers = value
+                end,
+                disabled = function() return not self.profile.enabled
+                end,
+            },
             hideFrameWhenNotInRaid = {
                 name     = L["Hide when not in raid"],
                 desc     = L["The buff tracker does not work outside of raids."],
                 type     = "toggle",
-                order    = 7,
+                order    = 8,
                 get      = function(info)
                     return self.profile.hideFrameWhenNotInRaid
                 end,
@@ -256,7 +270,7 @@ function RBT:getOptions()
                 name     = L["Report config"],
                 type     = "select",
                 desc     = "Report channel",
-                order    = 8,
+                order    = 9,
                 values   = self.Constants.ReportChannel,
                 get      = function(info)
                     return self.profile.reportChannel
@@ -276,7 +290,7 @@ function RBT:getOptions()
                 --softMax = 5.0
                 step      = 0.1,
                 bigStep   = 0.2,
-                order     = 9,
+                order     = 10,
                 get       = function(info) return self.profile.refresh_rate
                 end,
                 set       = function(info, v)

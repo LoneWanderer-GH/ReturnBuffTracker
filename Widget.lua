@@ -248,13 +248,21 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     
     theBar:SetScript("OnEnter", function(self_bar_frame)
         GameTooltip:AddLine(format("%s %s", L["Missing"], self_bar_frame.buff.displayText), 1, 1, 1)
-        if self_bar_frame.buff.tooltip then
-            GameTooltip:SetOwner(self_bar_frame, "ANCHOR_CURSOR")
-            for _, v in ipairs(self_bar_frame.buff.tooltip) do
+        GameTooltip:SetOwner(self_bar_frame, "ANCHOR_CURSOR")
+        if self_bar_frame.buff.tooltip.main_text then
+            for _, v in ipairs(self_bar_frame.buff.tooltip.main_text) do
                 GameTooltip:AddLine(stripSymbols(v), 1, 1, 1)
             end
-            GameTooltip:Show()
+        
         end
+        --if self.profile.report_slackers then
+        if self_bar_frame.buff.tooltip.slacker_text then
+            for _, v in ipairs(self_bar_frame.buff.tooltip.slacker_text) do
+                GameTooltip:AddLine(stripSymbols(v), 1, 1, 1)
+            end
+        end
+        --end
+        GameTooltip:Show()
     end)
     theBar:SetScript("OnLeave", function(self_bar_frame)
         GameTooltip:Hide()
@@ -271,15 +279,23 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         local shift_key = IsShiftKeyDown()
         local tmp_str
         if shift_key then
-            if self_bar_frame.buff.tooltip then
-                for k, v in ipairs(self_bar_frame.buff.tooltip) do
+            if self_bar_frame.buff.tooltip.main_text then
+                for k, v in ipairs(self_bar_frame.buff.tooltip.main_text) do
                     if k == 1 then
-                        tmp_str = "{rt7} " .. v
+                        tmp_str = "ReturnBuffTracker: {rt7} " .. v
                     else
                         tmp_str = v
                     end
                     tmp_str = stripColors(tmp_str)
                     SendChatMessage(tmp_str, self.profile.reportChannel)
+                end
+            end
+            if self.profile.report_slackers then
+                if self_bar_frame.buff.tooltip.slacker_text then
+                    for k, v in ipairs(self_bar_frame.buff.tooltip.slacker_text) do
+                        tmp_str = stripColors(v)
+                        SendChatMessage(tmp_str, self.profile.reportChannel)
+                    end
                 end
             end
         else

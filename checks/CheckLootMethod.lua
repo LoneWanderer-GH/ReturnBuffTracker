@@ -20,13 +20,13 @@ local function BuildMLToolTip(buff)
         --@end-debug@
         buff.coloredStr = WrapTextInColorCode(RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[buff.loot_threshold],
                                               RBT.ITEM_QUALITY_ENUM_TO_COLOR[buff.loot_threshold].colorStr)
-        tinsert(buff.tooltip, format("Method: %s", buff.method))
-        tinsert(buff.tooltip, format("Threshold: %s", buff.coloredStr))
+        tinsert(buff.tooltip.main_text, format("Method: %s", buff.method))
+        tinsert(buff.tooltip.main_text, format("Threshold: %s", buff.coloredStr))
         
         if buff.method ~= "master" then
-            tinsert(buff.tooltip, "NO ML !")
+            tinsert(buff.tooltip.main_text, "NO ML !")
         else
-            tinsert(buff.tooltip, format("ML: %s", buff.ML_name))
+            tinsert(buff.tooltip.main_text, format("ML: %s", buff.ML_name))
         end
     end
 end

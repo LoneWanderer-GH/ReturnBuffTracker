@@ -176,6 +176,8 @@ RBT.Constants.ReportChannel               = {
 --defaults.char                             = defaults.profile
 
 function RBT:RaidOrGroupChanged()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     if not self.mainFrame then return end
     if not self.profile.enabled then self.mainFrame:Hide() end
     
@@ -191,51 +193,65 @@ function RBT:RaidOrGroupChanged()
 end
 
 function RBT:ResetPlayerCache()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     self.raid_player_cache = {}
 end
 
-local function GROUP_JOINED(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
+function RBT:ResetAndUpdate()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self:ResetPlayerCache()
+    self:RaidOrGroupChanged()
 end
+--local function GROUP_JOINED(_)
+--    -- force self pointer in case func used as red elsewhere
+--    if self ~= RBT then self = RBT end
+--    self:ResetPlayerCache()
+--    self:RaidOrGroupChanged()
+--end
+--
+--local function GROUP_LEFT(_)
+--    RBT:ResetPlayerCache()
+--    RBT:RaidOrGroupChanged()
+--end
+--
+--local function GROUP_FORMED(_)
+--    RBT:ResetPlayerCache()
+--    RBT:RaidOrGroupChanged()
+--end
 
-local function GROUP_LEFT(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
-end
-
-local function GROUP_FORMED(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
-end
-
-local function PLAYER_ENTERING_WORLD(...)
-    RBT:UpdateBars()
-end
+--local function PLAYER_ENTERING_WORLD(...)
+--    RBT:UpdateBars()
+--end
 
 --function RBT:GROUP_ROSTER_UPDATE(...)
 --    self:RaidOrGroupChanged()
 --end
 
-local function RAID_ROSTER_UPDATE(...)
-    RBT:RaidOrGroupChanged()
-end
+--local function RAID_ROSTER_UPDATE(...)
+--    RBT:RaidOrGroupChanged()
+--end
 
 function RBT:OnEnable()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     self.profile.enabled = true
     self:RaidOrGroupChanged()
     self:UpdateBars()
     self.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     -- register event with an explicit handler
     -- allows register another handler for some specific buffs
-    self:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
-    self:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
-    self:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
-    self:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)
+    self:RegisterEvent("GROUP_JOINED", RBT.ResetAndUpdate)
+    self:RegisterEvent("GROUP_LEFT", RBT.ResetAndUpdate)
+    self:RegisterEvent("GROUP_FORMED", RBT.ResetAndUpdate)
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", RBT.UpdateBars)
+    self:RegisterEvent("RAID_ROSTER_UPDATE", RBT.ResetAndUpdate)
 end
 
 function RBT:OnDisable()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     self.profile.enabled = false
     self:ResetPlayerCache()
     self:RaidOrGroupChanged()
@@ -249,6 +265,8 @@ function RBT:OnDisable()
 end
 
 function RBT:ParseBuffsDefinition()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
     for k, buff in pairs(self.Buffs) do
@@ -380,6 +398,8 @@ function RBT:ParseBuffsDefinition()
 end
 
 function RBT:CheckExistingSavedVariablesVersion()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     self:Print("CheckExistingSavedVariablesVersion")
     if self.db and self.db.char then
         if not self.profile.version then
@@ -401,6 +421,8 @@ function RBT:CheckExistingSavedVariablesVersion()
 end
 
 function RBT:ReloadOptions()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     -- This handles the reloading of all options
     self.profile = self.db.profile
     self:RaidOrGroupChanged()
@@ -411,6 +433,8 @@ function RBT:ReloadOptions()
 end
 
 function RBT:OnInitialize()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     --@debug@
     -- initialize logging lib
     self:InitializeLogging(addonName,
@@ -429,6 +453,7 @@ function RBT:OnInitialize()
             hideFrameWhenNotInRaid = true,
             deactivatedBars        = {  },
             reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
+            report_slackers        = false,
             refresh_rate           = 1.0,
             version                = { major = 1, minor = 0, fix = 0 },
             --@debug@
@@ -478,6 +503,8 @@ function RBT:OnInitialize()
 end
 
 function RBT:UpdateBars()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     if not self.profile.deactivatedBars then return end
     --@debug@
     --self:Debugf("UpdateBars", "UpdateBars")
@@ -504,8 +531,10 @@ function RBT:UpdateBars()
 end
 
 function RBT:AggregateAllRequiredRaidUnitBuffs()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     local buff_name, caster, spellId
-    --self.raid_player_cache = {}
+    self.raid_player_cache = {}
     if IsInRaid() then
         local player_name, player_group, player_class, isDead
         --local buff_id_data
@@ -542,10 +571,12 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                 end -- end loop payer auras
             end
         end
+    
     end
 end
 
 function RBT:OnUpdate()
+    if self ~= RBT then self = RBT end
     local currentTime = GetTime()
     
     if not self.profile then return end
@@ -646,12 +677,14 @@ function RBT:Contains(tab, val)
 end
 
 function RBT:ResetConfiguration()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     --@debug@
     self:Debug("ResetConfiguration", "ResetConfiguration")
     --@end-debug@
     --for bar_name, _ in pairs(self.profile.deactivatedBars) do
     --    --@debug@
-    --    self:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
+    --    RBT:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
     --    --@end-debug@
     --    self.profile.deactivatedBars[bar_name] = true
     --end
@@ -663,6 +696,8 @@ function RBT:ResetConfiguration()
 end
 
 function RBT:ActivatePlayerClassOnly()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     --@debug@
     self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly")
     --@end-debug@
@@ -696,8 +731,8 @@ end
 
 -- register event with an explicit handler
 -- allows register another handler for some specific buffs
-RBT:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
-RBT:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
-RBT:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
-RBT:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
-RBT:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)
+RBT:RegisterEvent("GROUP_JOINED", RBT.ResetAndUpdate)
+RBT:RegisterEvent("GROUP_LEFT", RBT.ResetAndUpdate)
+RBT:RegisterEvent("GROUP_FORMED", RBT.ResetAndUpdate)
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD", RBT.UpdateBars)
+RBT:RegisterEvent("RAID_ROSTER_UPDATE", RBT.ResetAndUpdate)

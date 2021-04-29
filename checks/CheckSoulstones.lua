@@ -46,13 +46,13 @@ end
 
 local function BuildToolTip(buff)
     local j         = 2
-    buff.tooltip[j] = L["none"] .. "."
-    buff.tooltip[1] = format("%s: (%d %s)",
+    buff.tooltip.main_text[j] = L["none"] .. "."
+    buff.tooltip.main_text[1] = format("%s: (%d %s)",
                              WrapTextInColorCode(L["Soulstones"], WARLOCK_COLOR_STR),
                              buff.nb_of_possible_casters,
                              RBT.localized_classes[buff.buffingClass])
     if #buff.players_having_soulstone > 0 then
-        buff.tooltip[j] = tconcat(buff.players_having_soulstone, " ")
+        buff.tooltip.main_text[j] = tconcat(buff.players_having_soulstone, " ")
     end
 end
 

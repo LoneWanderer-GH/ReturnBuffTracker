@@ -106,7 +106,7 @@ local function BuildToolTip(buff)
                                   "Boulets:",
                                   buff.count, buff.total,
                                   percent_string)
-    tinsert(buff.tooltip, header)
+    tinsert(buff.tooltip.main_text, header)
     local low_str = format(" ||- level < max (%d):", MAX_PLAYER_LEVEL)
     local mapping = { [" ||- Deco:"] = buff.deco_players,
                       [" ||- AFK :"] = buff.afk_players,
@@ -126,10 +126,10 @@ local function BuildToolTip(buff)
             if #players_table <= 5 then
                 tmp_str = tconcat(players_table, " ")
                 tmp_str = format("%s %s", line_label, tmp_str)
-                tinsert(buff.tooltip, tmp_str)
+                tinsert(buff.tooltip.main_text, tmp_str)
             else
                 tmp_str = format("%s %d", line_label, #players_table)
-                tinsert(buff.tooltip, tmp_str)
+                tinsert(buff.tooltip.main_text, tmp_str)
             end
             --@debug@
         else
