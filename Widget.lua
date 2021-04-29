@@ -84,22 +84,22 @@ local default_bar_height = 14
 
 
 function RBT:CreateMainFrame()
-    local theFrame          = CreateFrame("Frame", "ReturnBuffTrackerUI", UIParent)
-    RBT.mainFrame           = theFrame
-    RBT.mainFrame.buff_bars = {}
-
+    local theFrame           = CreateFrame("Frame", "ReturnBuffTrackerUI", UIParent)
+    self.mainFrame           = theFrame
+    self.mainFrame.buff_bars = {}
+    
     theFrame:ClearAllPoints()
-    if RBT.db.char.position then
-        theFrame:SetPoint("BOTTOMLEFT", RBT.db.char.position.x, RBT.db.char.position.y)
+    if self.profile.position then
+        theFrame:SetPoint("BOTTOMLEFT", self.profile.position.x, self.profile.position.y)
     else
         theFrame:SetPoint("CENTER", UIParent)
     end
-
+    
     --theFrame:SetHeight(80)
-    theFrame:SetWidth(RBT.db.char.width)
+    theFrame:SetWidth(self.profile.width)
     --theFrame:SetMinResize(100, 0)
     --theFrame:SetMaxResize(1000, 1000)
-
+    
     theFrame:SetFrameStrata("BACKGROUND")
     theFrame:SetBackdrop({
                              bgFile   = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -111,56 +111,57 @@ function RBT:CreateMainFrame()
                          })
     theFrame:SetBackdropBorderColor(1.0, 1.0, 1.0)
     theFrame:SetBackdropColor(24 / 255, 24 / 255, 24 / 255)
-
+    
     theFrame:EnableMouse(true)
     theFrame:SetMovable(true)
     theFrame:SetClampedToScreen(true)
     theFrame:SetResizable(true)
-
+    
     local resizeButton = CreateFrame("Button", nil, theFrame)
     resizeButton:SetSize(16, 16)
     resizeButton:SetPoint("BOTTOMRIGHT")
     resizeButton:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     resizeButton:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     resizeButton:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-
+    
     -- use hooks instead ?
-    resizeButton:SetScript("OnMouseDown", function(self, button)
-        theFrame:StartSizing("RIGHT")
-        theFrame:SetUserPlaced(true)
+    resizeButton:SetScript("OnMouseDown", function(self_frame, button)
+        self.mainFrame:StartSizing("RIGHT")
+        self.mainFrame:SetUserPlaced(true)
     end)
-    resizeButton:SetScript("OnMouseUp", function(self, button)
-        theFrame:StopMovingOrSizing()
-        RBT.db.char.width = theFrame:GetWidth()
+    resizeButton:SetScript("OnMouseUp", function(self_frame, button)
+        self.mainFrame:StopMovingOrSizing()
+        self.profile.width = self.mainFrame:GetWidth()
         --local totalWidth     = theFrame:GetWidth() - 10
-        for _, b in ipairs(theFrame.buff_bars) do
+        for _, b in ipairs(self.mainFrame.buff_bars) do
             b:UpdateWidth()
         end
     end)
-
-    theFrame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    theFrame:SetScript("OnMouseUp", function(self)
-        self:StopMovingOrSizing()
-        if not RBT.db.char.position then
-            RBT.db.char.position = {}
+    
+    theFrame:SetScript("OnMouseDown", function(self_frame) self_frame:StartMoving() end)
+    theFrame:SetScript("OnMouseUp", function(self_frame)
+        self_frame:StopMovingOrSizing()
+        if not self.profile.position then
+            self.profile.position = {}
         end
-        RBT.db.char.position.x = theFrame:GetLeft()
-        RBT.db.char.position.y = theFrame:GetBottom()
+        self.profile.position.x = self_frame:GetLeft()
+        self.profile.position.y = self_frame:GetBottom()
         --local totalWidth          = theFrame:GetWidth() - 10
-        for _, b in ipairs(theFrame.buff_bars) do
+        for _, b in ipairs(self_frame.buff_bars) do
             b:UpdateWidth()
         end
     end)
-
+    
     theFrame:Show()
 
 end
 
 function RBT:SetNumberOfBarsToDisplay(numOfBars)
+    if not self.mainFrame then return end
     numOfBars = numOfBars - 1
     if numOfBars <= 0 then numOfBars = 0 end
     local height = 5 + 16 + (numOfBars * default_bar_height) + 5
-    RBT.mainFrame:SetHeight(height)
+    self.mainFrame:SetHeight(height)
 end
 
 --function RBT:CreateHeaderBar(text, r, g, b)
@@ -172,94 +173,102 @@ end
 --local DMF_specific = { [true] = "active", [false] = "inactive" }
 function RBT:CreateBuffInfoBar(buff_index, buff)
     -- text, r, g, b)
-    local theBar = CreateFrame("Frame", nil, RBT.mainFrame)
+    local theBar = CreateFrame("Frame", nil, self.mainFrame)
     --theBar.text  = text
     theBar.buff  = buff
-
+    
     theBar:SetHeight(default_bar_height)
-    theBar:SetWidth(RBT.mainFrame:GetWidth() - 10)
-    theBar:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5)
-
+    theBar:SetWidth(self.mainFrame:GetWidth() - 10)
+    theBar:SetPoint("TOPLEFT", self.mainFrame, "TOPLEFT", 5, -5)
+    
     theBar.texture = theBar:CreateTexture(nil, "BACKGROUND")
     theBar.texture:SetPoint("TOPLEFT", theBar, "TOPLEFT")
     theBar.texture:SetColorTexture(buff.color.r, buff.color.g, buff.color.b, 0.9)
     theBar.texture:SetHeight(default_bar_height)
     theBar.texture:Hide()
     theBar.texture:SetParent(theBar)
-
+    
     theBar.buffNameTextString = theBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     --theBar.textString:SetPoint("CENTER", RBT.mainFrame, "TOP", 0, -7)
     --theBar.buffNameTextString:SetPoint("LEFT", RBT.mainFrame, "TOP", 0, -7)
     theBar.buffNameTextString:SetPoint("LEFT", theBar, "LEFT")
     theBar.buffNameTextString:SetText(buff.displayText)
     theBar.buffNameTextString:SetParent(theBar)
-
+    
     theBar.percentTextString = theBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     theBar.percentTextString:SetPoint("RIGHT", theBar, "RIGHT")
     theBar.percentTextString:SetParent(theBar)
     --theBar.percentTextString:SetText(text)
-
-
-    theBar.SetIndex    = function(self, index)
+    
+    
+    theBar.SetIndex    = function(self_bar_frame, index)
         if index then
-            theBar:Show()
-            theBar:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5 - (index * default_bar_height))
+            self_bar_frame:Show()
+            self_bar_frame:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5 - (index * default_bar_height))
             --theBar.texture:SetPoint("TOPLEFT", RBT.mainFrame, "TOPLEFT", 5, -5 - (index * 16))
             --theBar.buffNameTextString:SetPoint("TOP", theBar, "TOP", 0, -7 - (index * 16))
             --theBar.percentTextString:SetPoint("RIGHT", theBar, "RIGHT", 0, 0)
         else
-            theBar:Hide()
+            self_bar_frame:Hide()
         end
     end
-
-    theBar.UpdateWidth = function(self)
-        local w = RBT.mainFrame:GetWidth() - 10
-        if self.percentage_float then
-            if self.percentage_float > 0.1 then
-                self.texture:SetWidth(w * self.percentage_float)
-                self.texture:Show()
+    
+    theBar.UpdateWidth = function(self_bar_frame)
+        local w = self.mainFrame:GetWidth() - 10
+        if self_bar_frame.percentage_float then
+            if self_bar_frame.percentage_float > 0.1 then
+                self_bar_frame.texture:SetWidth(w * self_bar_frame.percentage_float)
+                self_bar_frame.texture:Show()
             else
-                self.texture:Hide()
+                self_bar_frame.texture:Hide()
             end
         else
-            self.texture:Hide()
+            self_bar_frame.texture:Hide()
         end
-        self:SetWidth(w)
+        self_bar_frame:SetWidth(w)
     end
-
-    theBar.Update      = function(self)
+    
+    theBar.Update      = function(self_bar_frame)
         --, value, maxValue, tooltip_lines)
         --local percentage = buff.count / buff.total
-        local percentage_str, percentage_float = RBT:compute_percent_string(self.buff.count, self.buff.total)
-        self.percentage_float                  = percentage_float
-        self.percentage_str                    = percentage_str
-        self.buff:SpecialBarDisplay()
-        self:UpdateWidth()
-        self.percentTextString:SetText(self.percentage_str)
+        local percentage_str, percentage_float = RBT:compute_percent_string(self_bar_frame.buff.count, self_bar_frame.buff.total)
+        self_bar_frame.percentage_float        = percentage_float
+        self_bar_frame.percentage_str          = percentage_str
+        self_bar_frame.buff:SpecialBarDisplay()
+        self_bar_frame:UpdateWidth()
+        self_bar_frame.percentTextString:SetText(self_bar_frame.percentage_str)
     end
-
+    
     --theBar:SetScript("OnUpdate", function(self, ...)
     --    --local totalWidth                       = RBT.mainFrame:GetWidth() - 10
     --    --self.percentTextString:SetText(self.percentTextString:GetText())
     --    local totalWidth = RBT.mainFrame:GetWidth() - 10
     --    self:SetWidth(totalWidth)
     --end)
-
-    theBar:SetScript("OnEnter", function(self)
-        GameTooltip:AddLine(format("%s %s", L["Missing"], self.buff.displayText), 1, 1, 1)
-        if self.buff.tooltip then
-            GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-            for _, v in ipairs(self.buff.tooltip) do
+    
+    theBar:SetScript("OnEnter", function(self_bar_frame)
+        GameTooltip:AddLine(format("%s %s", L["Missing"], self_bar_frame.buff.displayText), 1, 1, 1)
+        GameTooltip:SetOwner(self_bar_frame, "ANCHOR_CURSOR")
+        if self_bar_frame.buff.tooltip.main_text then
+            for _, v in ipairs(self_bar_frame.buff.tooltip.main_text) do
                 GameTooltip:AddLine(stripSymbols(v), 1, 1, 1)
             end
-            GameTooltip:Show()
+        
         end
+        --if self.profile.report_slackers then
+        if self_bar_frame.buff.tooltip.slacker_text then
+            for _, v in ipairs(self_bar_frame.buff.tooltip.slacker_text) do
+                GameTooltip:AddLine(stripSymbols(v), 1, 1, 1)
+            end
+        end
+        --end
+        GameTooltip:Show()
     end)
-    theBar:SetScript("OnLeave", function(self)
+    theBar:SetScript("OnLeave", function(self_bar_frame)
         GameTooltip:Hide()
     end)
-
-    theBar:SetScript("OnMouseDown", function(self)
+    
+    theBar:SetScript("OnMouseDown", function(self_bar_frame)
         local shift_key = IsShiftKeyDown()
         if shift_key then
         else
@@ -270,28 +279,36 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
         local shift_key = IsShiftKeyDown()
         local tmp_str
         if shift_key then
-            if self_bar_frame.buff.tooltip then
-                for k, v in ipairs(self_bar_frame.buff.tooltip) do
+            if self_bar_frame.buff.tooltip.main_text then
+                for k, v in ipairs(self_bar_frame.buff.tooltip.main_text) do
                     if k == 1 then
-                        tmp_str = "{rt7} " .. v
+                        tmp_str = "ReturnBuffTracker: {rt7} " .. v
                     else
                         tmp_str = v
                     end
                     tmp_str = stripColors(tmp_str)
-                    SendChatMessage(tmp_str, RBT.db.char.reportChannel)
+                    SendChatMessage(tmp_str, self.profile.reportChannel)
+                end
+            end
+            if self.profile.report_slackers then
+                if self_bar_frame.buff.tooltip.slacker_text then
+                    for k, v in ipairs(self_bar_frame.buff.tooltip.slacker_text) do
+                        tmp_str = stripColors(v)
+                        SendChatMessage(tmp_str, self.profile.reportChannel)
+                    end
                 end
             end
         else
             RBT.mainFrame:StopMovingOrSizing()
-            if not RBT.db.char.position then
-                RBT.db.char.position = {}
+            if not self.profile.position then
+                self.profile.position = {}
             end
-            RBT.db.char.position.x = RBT.mainFrame:GetLeft()
-            RBT.db.char.position.y = RBT.mainFrame:GetBottom()
+            self.profile.position.x = RBT.mainFrame:GetLeft()
+            self.profile.position.y = RBT.mainFrame:GetBottom()
         end
     end)
-
-    tinsert(RBT.mainFrame.buff_bars, theBar)
-
+    
+    tinsert(self.mainFrame.buff_bars, theBar)
+    
     return theBar
 end

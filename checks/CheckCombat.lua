@@ -38,13 +38,13 @@ local function Check(buff)
 end
 
 local function BuildToolTip(buff)
-    buff.tooltip[1]              = L["Not in Combat"]..":"
+    buff.tooltip.main_text[1]              = L["Not in Combat"]..":"
     local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one"].."."
+    buff.tooltip.main_text[tool_tip_index] = L["no one"].."."
 
     for i = 1, MAX_GROUPS_IN_RAID do
         if #buff.groups_array[i] > 0 then
-            buff.tooltip[tool_tip_index] = tconcat(buff.groups_array[i], " ")
+            buff.tooltip.main_text[tool_tip_index] = tconcat(buff.groups_array[i], " ")
             tool_tip_index               = tool_tip_index + 1
         end
     end

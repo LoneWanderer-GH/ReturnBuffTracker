@@ -11,7 +11,8 @@ local aggregated_spell_bonuses            = {
         optionText       = L["+20dmg OR +30dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11390, 17539 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         sourceItemId     = { 9155, 13454 },
         classes          = { WARLOCK, MAGE }
     },
@@ -23,7 +24,8 @@ local aggregated_elemental_spell_bonuses  = {
         optionText       = L["+40 fire OR shadow dmg"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11474, 26276 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         classes          = { WARLOCK, MAGE },
         sourceItemId     = { 9264, 21546 },
     },
@@ -76,7 +78,8 @@ local aggregated_agility                  = {
         shortName        = L["+25 AGI OR Mongoose"],
         color            = { r = 0.51, g = 0.79, b = 0.51 },
         buffIDs          = { 11334, 17538 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         classes          = { WARRIOR, ROGUE, HUNTER, "CAT", "MAINTANK" },
         sourceItemId     = { 9187, 21546 },
     },
@@ -120,7 +123,8 @@ local aggregated_strength_ap              = {
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 11405, 16323 },
         sourceItemId     = { 9206, 12451 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
     {
@@ -128,7 +132,8 @@ local aggregated_strength_ap              = {
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 16329, 17038 },
         sourceItemId     = { 12460, 17205 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         classes          = { WARRIOR, ROGUE, "CAT", "MAINTANK" },
     },
 }
@@ -163,7 +168,8 @@ local aggregated_life_regen = {
         shortName        = L["+12/20 HP5"],
         color            = { r = 0.60, g = 0.85, b = 0.60 },
         buffIDs          = { 3223, 24361 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         --classes          = { MAGE, WARLOCK, DRUID, SHAMAN, PALADIN, PRIEST, HUNTER },
         sourceItemId     = { 3826, 20004 },
     }
@@ -172,7 +178,7 @@ local aggregated_life_regen = {
 local life_regen            = {
     {
         name             = L["Major Troll's Blood Potion"],
-        shortName        = L["+20 MP5"],
+        shortName        = L["+20 HP5"],
         color            = { r = 0.60, g = 0.85, b = 0.60 },
         buffIDs          = { 24361 },
         buffOptionsGroup = L["Consumables"],
@@ -210,7 +216,8 @@ local protection_potions    = {
         color            = { r = 1, g = 0, b = 0 },
         buffIDs          = { 7233, 17543 },
         sourceItemId     = { 6049, 13457 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
     },
     -- {
     --    name             = L["Greater Fire Protection"],
@@ -226,7 +233,8 @@ local protection_potions    = {
         optionText       = L["Nature Protection Potions"],
         color            = { r = 0, g = 1, b = 0 },
         buffIDs          = { 7254, 17546 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         sourceItemId     = { 6052, 13458 },
     },
     --{
@@ -243,7 +251,8 @@ local protection_potions    = {
         optionText       = L["Shadow Protection Potions"],
         color            = { r = 0.5, g = 0, b = 0.5 },
         buffIDs          = { 7242, 17548 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         sourceItemId     = { 6048, 13459 },
     },
     --{
@@ -269,7 +278,8 @@ local protection_potions    = {
         optionText       = L["Frost Protection Potions"],
         color            = { r = 0, g = 1, b = 1 },
         buffIDs          = { 7239, 17544 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         sourceItemId     = { 6050, 13456 },
     },
     {
@@ -340,7 +350,8 @@ local aggregated_blasted_lands = {
         shortName        = L["+25 stat (BL)"],
         color            = { r = 0.58, g = 0.51, b = 0.79 },
         buffIDs          = { 10667, 10699, 10668, 10692, 10693 },
-        buffOptionsGroup = L["Consumables"],
+        --buffOptionsGroup = L["Consumables"],
+        buffOptionsGroup = L["Relaxed"],
         sourceItemId     = { 8410, 8412, 8411, 8423, 8424 },
     },
 }
@@ -400,7 +411,7 @@ for _, conf in ipairs(blasted_lands) do
 end
 
 local winter_fall = {
-
+    
     {
         name             = L["Winterfall Firewater"],
         shortName        = L["Firewater"],
@@ -410,7 +421,7 @@ local winter_fall = {
         classes          = { WARRIOR, ROGUE },
         sourceItemId     = { 12820 },
     },
-
+    
     {
         name             = L["Juju Power"],
         shortName        = L["Juju Power"],
@@ -420,7 +431,7 @@ local winter_fall = {
         classes          = { WARRIOR, ROGUE },
         sourceItemId     = { 12451 },
     },
-
+    
     {
         name             = L["Juju Might"],
         shortName        = L["Juju Might"],

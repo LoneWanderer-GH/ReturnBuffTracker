@@ -156,7 +156,8 @@ local aggregated_dmf_buffs = {
         shortName         = L["DMF buffs"],
         color             = { r = 0, g = 1, b = 1 },
         buffIDs           = { 23768, 23737, 23768, 23766, 23738, 23767 },
-        buffOptionsGroup  = L["World"],
+        --buffOptionsGroup  = L["World"],
+        buffOptionsGroup = L["Relaxed"],
         SpecialBarDisplay = DMF_Special
     },
 }

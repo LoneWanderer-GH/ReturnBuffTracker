@@ -20,13 +20,13 @@ local function BuildMLToolTip(buff)
         --@end-debug@
         buff.coloredStr = WrapTextInColorCode(RBT.ITEM_QUALITY_ENUM_TO_LOCALIZED_STRING[buff.loot_threshold],
                                               RBT.ITEM_QUALITY_ENUM_TO_COLOR[buff.loot_threshold].colorStr)
-        tinsert(buff.tooltip, format("Method: %s", buff.method))
-        tinsert(buff.tooltip, format("Threshold: %s", buff.coloredStr))
-
+        tinsert(buff.tooltip.main_text, format("Method: %s", buff.method))
+        tinsert(buff.tooltip.main_text, format("Threshold: %s", buff.coloredStr))
+        
         if buff.method ~= "master" then
-            tinsert(buff.tooltip, "NO ML !")
+            tinsert(buff.tooltip.main_text, "NO ML !")
         else
-            tinsert(buff.tooltip, format("ML: %s", buff.ML_name))
+            tinsert(buff.tooltip.main_text, format("ML: %s", buff.ML_name))
         end
     end
 end
@@ -65,13 +65,13 @@ local function OnEventCheckML(buff, event, ...)
     --@debug@
     RBT:Infof("OnEvent", "Loot method - %s", event)
     --@end-debug@
-
+    
     --@debug@
-    if event == "PLAYER_ENTERING_WORLD" then
-        local isInitialLogin, isReloadingUi = unpack(...)
-        RBT:Infof("OnEvent", "isInitialLogin: %s", isInitialLogin)
-        RBT:Infof("OnEvent", "isReloadingUi: %s", isReloadingUi)
-    end
+    --if event == "PLAYER_ENTERING_WORLD" then
+    --    local isInitialLogin, isReloadingUi = unpack(...)
+    --    RBT:Infof("OnEvent", "isInitialLogin: %s", isInitialLogin)
+    --    RBT:Infof("OnEvent", "isReloadingUi: %s", isReloadingUi)
+    --end
     --@end-debug@
     local classFileName
     if buff and buff.ready then
@@ -82,12 +82,13 @@ local function OnEventCheckML(buff, event, ...)
         local method, _, raid_unit_index = GetLootMethod()
         buff.loot_threshold              = GetLootThreshold()
         buff.count                       = 0
-        buff.total                       = 1
+        buff.total                       = 0 -- force NA ?
         buff.method                      = method
         buff.ML_name                     = nil
         buff.ML_class                    = nil
         if buff.method == "master" then
             buff.count          = 1
+            buff.total          = 1
             buff.ML_name        = GetUnitName("raid" .. raid_unit_index, false)
             _, classFileName, _ = UnitClass(buff.ML_name)
             if buff.ML_name then
@@ -95,7 +96,9 @@ local function OnEventCheckML(buff, event, ...)
             end
         end
         BuildMLToolTip(buff)
-        buff.bar:Update()
+        if buff.bar then
+            buff.bar:Update()
+        end
         if event == "GROUP_ROSTER_UPDATE" then
             RBT:UnregisterEvent("GROUP_ROSTER_UPDATE")
         end

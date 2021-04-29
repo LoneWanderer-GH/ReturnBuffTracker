@@ -22,7 +22,7 @@ local function CheckPowerType(buff)
     --@debug@
     -- RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
     --@end-debug@
-
+    
     buff:ResetBuffData()
     if buff.ignoredPlayers then
         --for role, name_list in ipairs(POWER_IGNORED_ROLES) do
@@ -39,9 +39,9 @@ local function CheckPowerType(buff)
             --@end-debug@
         end
     end
-
+    
     local unitPower, unitPowerMax, unitPowerPercent, unitPowerType, unitPowerTypeName
-
+    
     local slacker, disco, fd, low_level
     local is_real_healer, is_real_dps, real_role
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
@@ -69,7 +69,7 @@ local function CheckPowerType(buff)
                 -- --@debug@
                 -- RBT:Debugf("CheckPowerType", "%s has the targeted power (%s)", tostring(name), unitPowerTypeName)
                 -- --@end-debug@
-
+                
                 --unitPower    = UnitPower(name, buff.powerType)
                 --unitPowerMax = UnitPowerMax(name, buff.powerType)
                 --if not UnitIsConnected(name) then
@@ -78,8 +78,8 @@ local function CheckPowerType(buff)
                 --    end
                 --    tinsert(ignoredPlayers["DISCONNECTED"], name)
                 --else
-
-
+                
+                
                 if buff.shortName == L["Healer"] then
                     is_real_healer, real_role = RBT:CheckUnitIsRealHealer(player_name)
                     if not is_real_healer then
@@ -115,16 +115,16 @@ end
 local function BuildToolTip(buff)
     local percent_string = RBT:compute_percent_string(buff.count, buff.total)
     local header         = format("%s: %s", tostring(buff.name), percent_string)
-
-    tinsert(buff.tooltip, header)
-
+    
+    tinsert(buff.tooltip.main_text, header)
+    
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
         -- RBT:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
         if #player_details > 0 then
             local players_str = tconcat(player_details, " ")
-            tinsert(buff.tooltip,
+            tinsert(buff.tooltip.slacker_text,
                     format(" ||- Ignoring [%s]: %s", tostring(reason), players_str))
         end
     end

@@ -16,7 +16,7 @@ local ADB                                 = LibStub("AceDB-3.0")
 local tinsert, tconcat                    = table.insert, table.concat
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local BUFF_MAX_DISPLAY = BUFF_MAX_DISPLAY
+local BUFF_MAX_DISPLAY                    = BUFF_MAX_DISPLAY
 --@debug@
 local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
 
@@ -137,6 +137,7 @@ RBT.Constants.BarOptionGroups             = {
     Player     = L["Player buffs"],
     World      = L["World"],
     Consumable = L["Consumables"],
+    Relaxed    = L["Relaxed"],
     Misc       = L["Misc"],
 }
 
@@ -155,121 +156,130 @@ RBT.Constants.ReportChannel               = {
     --"YELL"
 }
 
-local defaults                            = {
-    profile = {
-        enabled                = true,
-        position               = nil,
-        width                  = 180,
-        hideFrameWhenNotInRaid = true,
-        deactivatedBars        = {  },
-        reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
-        refresh_rate           = 5.0,
-        --@debug@
-        logLevel               = LoggingLib.TRACE,
-        logging                = true,
-        mem_profiling          = false,
-        --@end-debug@
-    },
-}
-defaults.char                             = defaults.profile
+--local defaults                            = {
+--    profile = {
+--        enabled                = true,
+--        position               = nil,
+--        width                  = 180,
+--        hideFrameWhenNotInRaid = true,
+--        deactivatedBars        = {  },
+--        reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
+--        refresh_rate           = 1.0,
+--        version                = { major = 1, minor = 0, fix = 0 },
+--        --@debug@
+--        logLevel               = LoggingLib.TRACE,
+--        logging                = true,
+--        mem_profiling          = false,
+--        --@end-debug@
+--    },
+--}
+--defaults.char                             = defaults.profile
 
 function RBT:RaidOrGroupChanged()
-    if RBT.db.char.enabled then
-        if IsInRaid() then
-            RBT.mainFrame:Show()
-        else
-            if RBT.db.char.hideFrameWhenNotInRaid then
-                RBT.mainFrame:Hide()
-            else
-                RBT.mainFrame:Show()
-            end
-        end
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    if not self.mainFrame then return end
+    if not self.profile.enabled then self.mainFrame:Hide() end
+    
+    if IsInRaid() then
+        self.mainFrame:Show()
     else
-        RBT.mainFrame:Hide()
+        if self.profile.hideFrameWhenNotInRaid then
+            self.mainFrame:Hide()
+        else
+            self.mainFrame:Show()
+        end
     end
 end
 
 function RBT:ResetPlayerCache()
-    RBT.raid_player_cache = {}
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self.raid_player_cache = {}
 end
 
-local function GROUP_JOINED(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
+function RBT:ResetAndUpdate()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self:ResetPlayerCache()
+    self:RaidOrGroupChanged()
 end
-
-local function GROUP_LEFT(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
-end
-
-local function GROUP_FORMED(_)
-    RBT:ResetPlayerCache()
-    RBT:RaidOrGroupChanged()
-end
-
-local function PLAYER_ENTERING_WORLD(...)
-    RBT:UpdateBars()
-end
-
---function RBT:GROUP_ROSTER_UPDATE(...)
+--local function GROUP_JOINED(_)
+--    -- force self pointer in case func used as red elsewhere
+--    if self ~= RBT then self = RBT end
+--    self:ResetPlayerCache()
+--    self:RaidOrGroupChanged()
+--end
+--
+--local function GROUP_LEFT(_)
+--    RBT:ResetPlayerCache()
+--    RBT:RaidOrGroupChanged()
+--end
+--
+--local function GROUP_FORMED(_)
+--    RBT:ResetPlayerCache()
 --    RBT:RaidOrGroupChanged()
 --end
 
-local function RAID_ROSTER_UPDATE(...)
-    RBT:RaidOrGroupChanged()
-end
+--local function PLAYER_ENTERING_WORLD(...)
+--    RBT:UpdateBars()
+--end
+
+--function RBT:GROUP_ROSTER_UPDATE(...)
+--    self:RaidOrGroupChanged()
+--end
+
+--local function RAID_ROSTER_UPDATE(...)
+--    RBT:RaidOrGroupChanged()
+--end
 
 function RBT:OnEnable()
-    RBT.db.char.enabled = true
-    RBT:RaidOrGroupChanged()
-    RBT:UpdateBars()
-    RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self.profile.enabled = true
+    self:RaidOrGroupChanged()
+    self:UpdateBars()
+    self.mainFrame:SetScript("OnUpdate", self.OnUpdate)
     -- register event with an explicit handler
     -- allows register another handler for some specific buffs
-    RBT:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
-    RBT:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
-    RBT:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
-    RBT:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
-    RBT:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)
+    self:RegisterEvent("GROUP_JOINED", RBT.ResetAndUpdate)
+    self:RegisterEvent("GROUP_LEFT", RBT.ResetAndUpdate)
+    self:RegisterEvent("GROUP_FORMED", RBT.ResetAndUpdate)
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", RBT.UpdateBars)
+    self:RegisterEvent("RAID_ROSTER_UPDATE", RBT.ResetAndUpdate)
 end
 
 function RBT:OnDisable()
-    RBT.db.char.enabled = false
-    RBT:ResetPlayerCache()
-    RBT.mainFrame:SetScript("OnUpdate", nil)
-    RBT:UnregisterEvent("GROUP_JOINED")
-    RBT:UnregisterEvent("GROUP_LEFT")
-    RBT:UnregisterEvent("GROUP_FORMED")
-    RBT:UnregisterEvent("PLAYER_ENTERING_WORLD")
-    RBT:UnregisterEvent("RAID_ROSTER_UPDATE")
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self.profile.enabled = false
+    self:ResetPlayerCache()
+    self:RaidOrGroupChanged()
+    self.mainFrame:SetScript("OnUpdate", nil)
+    self.mainFrame:Hide()
+    self:UnregisterEvent("GROUP_JOINED")
+    self:UnregisterEvent("GROUP_LEFT")
+    self:UnregisterEvent("GROUP_FORMED")
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    self:UnregisterEvent("RAID_ROSTER_UPDATE")
 end
 
-function RBT:OnInitialize()
-    --@debug@
-    RBT:InitializeLogging(addonName,
-                          nil,
-                          logging_categories_colors,
-                          LoggingLib.TRACE)
-    RBT:Debug("OnInitialize", "OnInitialize")
-    --@end-debug@
-    
-    self.OptionBarNames             = {}
-    --self.OptionBarClassesToBarNames = {}
+function RBT:ParseBuffsDefinition()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     local buff_name, rank
     local itemName--itemName --, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
-    self.buff_id_to_buff_count_data = {}
     for k, buff in pairs(self.Buffs) do
         
         --@debug@
-        --RBT:Debugf("OnInitialize", "Treating buff at index: %d", k)
+        --self:Debugf("OnInitialize", "Treating buff at index: %d", k)
         --@end-debug@
         if buff then
             --@debug@
-            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.name or "no .name") .. "]")
-            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.buffOptionsGroup or "no .buffOptionsGroup") .. "]")
-            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.optionText or "no .optionText") .. "]")
-            -- RBT:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.text or "no .text") .. "]")
+            -- self:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.name or "no .name") .. "]")
+            -- self:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.buffOptionsGroup or "no .buffOptionsGroup") .. "]")
+            -- self:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.optionText or "no .optionText") .. "]")
+            -- self:Debugf("OnInitialize", "Preparing OptionbarNames - Initial data [" .. (buff.text or "no .text") .. "]")
             --@end-debug@
             if buff.buffOptionsGroup then
                 if not self.OptionBarNames[buff.buffOptionsGroup] then
@@ -278,7 +288,7 @@ function RBT:OnInitialize()
                 if type(buff.buffIDs) == "table" then
                     for _, id in ipairs(buff.buffIDs) do
                         if not self.buff_id_to_buff_count_data[id] then
-                            RBT:Debugf("OnInitialize", "Tracking spellid: %s", id)
+                            self:Debugf("OnInitialize", "Tracking spellid: %s", id)
                             self.buff_id_to_buff_count_data[id] = { count   = 0,
                                                                     total   = 0,
                                                                     players = {},
@@ -289,12 +299,12 @@ function RBT:OnInitialize()
                 -- try to put exact buff name if ID availabe and its a unique buff
                 if not buff.shortName and not buff.buffOptionsGroup == L["Consumables"] then
                     --@debug@
-                    RBT:Debugf("OnInitialize", "Buff has no shortName")
+                    self:Debugf("OnInitialize", "Buff has no shortName")
                     --@end-debug@
                     if buff.sourceItemId ~= nil then
                         --if #buff.sourceItemId == 1 then
                         --@debug@
-                        RBT:Debugf("OnInitialize", "Using source item ID")
+                        self:Debugf("OnInitialize", "Using source item ID")
                         --@end-debug@
                         itemName, _, _, _, _, _, _, _, _, _, _ = GetItemInfo(buff.sourceItemId[1])
                         buff.optionText                        = itemName
@@ -302,7 +312,7 @@ function RBT:OnInitialize()
                         --end
                     elseif buff.buffIDs ~= nil then
                         --@debug@
-                        RBT:Debugf("OnInitialize", "Using buff ID")
+                        self:Debugf("OnInitialize", "Using buff ID")
                         --@end-debug@
                         buff_name, rank, _, _, _, _, _ = GetSpellInfo(buff.buffIDs[1])
                         if rank then
@@ -313,30 +323,30 @@ function RBT:OnInitialize()
                         buff.name = buff_name
                     else
                         --@debug@
-                        RBT:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
+                        self:Warningf("OnInitialize", "index=%d no sourceItemId, no buffIDs", k)
                         --@end-debug@
                     end
                 end
             end
             --@debug@
-            -- RBT:Debugf("OnInitialize", "Consolidated data:")
+            -- self:Debugf("OnInitialize", "Consolidated data:")
             -- if self == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
+            --     self:Tracef("OnInitialize", " ||-- WTF ???????????????")
             -- end
             -- if self.OptionBarNames == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- WTF ???????????????")
+            --     self:Tracef("OnInitialize", " ||-- WTF ???????????????")
             -- end
             -- if self.OptionBarNames[buff.buffOptionsGroup] == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- WTF ?? index=%d", k)
+            --     self:Tracef("OnInitialize", " ||-- WTF ?? index=%d", k)
             -- end
             -- if buff.optionText == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- index=%d optionText is nil", k)
+            --     self:Tracef("OnInitialize", " ||-- index=%d optionText is nil", k)
             -- end
             -- if buff.text == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- index=%d text is nil", k)
+            --     self:Tracef("OnInitialize", " ||-- index=%d text is nil", k)
             -- end
             -- if buff.name == nil then
-            --     RBT:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
+            --     self:Tracef("OnInitialize", " ||-- index=%d name is nil", k)
             -- end
             --@end-debug@
             
@@ -352,11 +362,11 @@ function RBT:OnInitialize()
             else
                 --@debug@
                 key = "TA CHATTE"
-                RBT:Errorf("OnInitialize", "index=%d no option text, no text no name (%s)", k, buff.shortName)
+                self:Errorf("OnInitialize", "index=%d no option text, no text no name (%s)", k, buff.shortName)
                 --@end-debug@
             end
             --@debug@
-            RBT:Tracef("OnInitialize", "index=%d effective option bar name is [%s]", k, key)
+            self:Tracef("OnInitialize", "index=%d effective option bar name is [%s]", k, key)
             --@end-debug@
             local tmp        = self.OptionBarNames[buff.buffOptionsGroup]
             --if tmp then
@@ -375,66 +385,156 @@ function RBT:OnInitialize()
             end
             --    --@debug@
             --else
-            --    RBT:Errorf("OnInitialize", "index=%d null key ?!", k)
+            --    self:Errorf("OnInitialize", "index=%d null key ?!", k)
             --    --@end-debug@
             --end
             --    --@debug@
             --else
-            --    RBT:Errorf("OnInitialize", "index=%d WTF ?!!", k)
+            --    self:Errorf("OnInitialize", "index=%d WTF ?!!", k)
             --    --@end-debug@
             --end
         end
     end
+end
+
+function RBT:CheckExistingSavedVariablesVersion()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    self:Print("CheckExistingSavedVariablesVersion")
+    if self.db and self.db.char then
+        if not self.profile.version then
+            self:Print("Addon version info not found, resetting config")
+            self:ResetConfiguration()
+        elseif self.profile.version.major < self.defaults.profile.version.major then
+            self:Print("Major addon version changed, resetting config")
+            self:ResetConfiguration()
+        elseif self.profile.version.minor < self.defaults.profile.version.minor then
+            self:Print("Minor addon version changed, resetting config")
+            self:ResetConfiguration()
+        elseif self.profile.version.fix < self.defaults.profile.version.fix then
+            --self:Printf("Minor addon version changed, resetting config")
+            --self:ResetConfiguration()
+        else
+            --
+        end
+    end
+end
+
+function RBT:ReloadOptions()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    -- This handles the reloading of all options
+    self.profile = self.db.profile
+    self:RaidOrGroupChanged()
+    self:SetNumberOfBarsToDisplay(#self.Buffs or 0)
+    self.raid_player_cache = {}
+    self.nextTime          = 0
+    self:UpdateBars()
+end
+
+function RBT:OnInitialize()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    --@debug@
+    -- initialize logging lib
+    self:InitializeLogging(addonName,
+                           nil,
+                           logging_categories_colors,
+                           LoggingLib.TRACE)
+    self:Debug("OnInitialize", "OnInitialize")
+    --@end-debug@
     
-    self.db = ADB:New("ReturnBuffTrackerDB", defaults, true)
+    -- set default config
+    self.defaults                   = {
+        profile = {
+            enabled                = true,
+            position               = nil,
+            width                  = 180,
+            hideFrameWhenNotInRaid = true,
+            deactivatedBars        = {  },
+            reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
+            report_slackers        = false,
+            refresh_rate           = 1.0,
+            version                = { major = 1, minor = 0, fix = 0 },
+            --@debug@
+            logLevel               = LoggingLib.TRACE,
+            logging                = true,
+            mem_profiling          = false,
+            --@end-debug@
+        },
+    }
+    -- bar names for options display and bars display
+    self.OptionBarNames             = {}
+    -- all possible managed buff ids table
+    self.buff_id_to_buff_count_data = {}
     
-    RBT:SetupOptions()
-    RBT:CreateMainFrame()
+    self:ParseBuffsDefinition()
+    
+    self.db = ADB:New("ReturnBuffTrackerDB", self.defaults, "Default")
+    self.db.RegisterCallback(self, "OnProfileChanged", "ReloadOptions")
+    self.db.RegisterCallback(self, "OnProfileCopied", "ReloadOptions")
+    self.db.RegisterCallback(self, "OnProfileReset", "ReloadOptions")
+    
+    self:ReloadOptions()
+    
+    self:SetupOptions()
     
     local buffbars = {}
     for _, group in pairs(self.Constants.BarOptionGroups) do
         buffbars[group] = {}
     end
-    RBT:SetNumberOfBarsToDisplay(#self.Buffs)
+    
+    self:CreateMainFrame()
+    self:SetNumberOfBarsToDisplay(#self.Buffs)
     for index, buff in ipairs(self.Buffs) do
         tinsert(buffbars[buff.buffOptionsGroup], buff)
-        --buff.bar = RBT:CreateInfoBar(buff.text or buff.shortName, buff.color.r, buff.color.g, buff.color.b)
-        buff.bar = RBT:CreateBuffInfoBar(index, buff)
+        --buff.bar = self:CreateInfoBar(buff.text or buff.shortName, buff.color.r, buff.color.g, buff.color.b)
+        buff.bar = self:CreateBuffInfoBar(index, buff)
     end
-    RBT.raid_player_cache = {}
-    self.nextTime         = 0
-    RBT.mainFrame:SetScript("OnUpdate", self.OnUpdate)
-    RBT:UpdateBars()
     
-    RBT:SendMessage("RBT-InitFinished")
+    self:CheckExistingSavedVariablesVersion()
+    
+    self.raid_player_cache = {}
+    self.nextTime          = 0
+    self.mainFrame:SetScript("OnUpdate", self.OnUpdate)
+    self:UpdateBars()
+    
+    self:SendMessage("RBT-InitFinished")
 end
 
 function RBT:UpdateBars()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
+    if not self.profile.deactivatedBars then return end
     --@debug@
-    --RBT:Debugf("UpdateBars", "UpdateBars")
+    --self:Debugf("UpdateBars", "UpdateBars")
     --@end-debug@
     local nb_of_bars_to_display = 0
-    for _, buff in ipairs(RBT.Buffs) do
-        --if RBT.db.char.deactivatedBars[buff.optionText or buff.text or buff.name] then
-        if RBT.db.char.deactivatedBars[buff.displayText] then
-            --@debug@
-            -- RBT:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
-            --@end-debug@
-            buff.bar:SetIndex(nil)
-        else
-            --@debug@
-            -- RBT:Debugf("UpdateBars", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
-            --@end-debug@
-            buff.bar:SetIndex(nb_of_bars_to_display)
-            nb_of_bars_to_display = nb_of_bars_to_display + 1
+    for _, buff in ipairs(self.Buffs) do
+        if buff.bar then
+            --if self.profile.deactivatedBars[buff.optionText or buff.text or buff.name] then
+            if self.profile.deactivatedBars[buff.displayText] then
+                --@debug@
+                -- self:Debugf("UpdateBars", "UpdateBars - %s deactivated", buff.optionText or buff.text or buff.name)
+                --@end-debug@
+                buff.bar:SetIndex(nil)
+            else
+                --@debug@
+                -- self:Debugf("UpdateBars", "UpdateBars - %s activated", buff.optionText or buff.text or buff.name)
+                --@end-debug@
+                buff.bar:SetIndex(nb_of_bars_to_display)
+                nb_of_bars_to_display = nb_of_bars_to_display + 1
+            end
         end
     end
-    RBT:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
+    self:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
 function RBT:AggregateAllRequiredRaidUnitBuffs()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     local buff_name, caster, spellId
-    --RBT.raid_player_cache = {}
+    self.raid_player_cache = {}
     if IsInRaid() then
         local player_name, player_group, player_class, isDead
         --local buff_id_data
@@ -443,10 +543,10 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
             player_name, _, player_group, _, _, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
                 
-                slacker, disco, fd, low_level = RBT:CheckUnitCannotHelpRaid(player_name)
+                slacker, disco, fd, low_level = self:CheckUnitCannotHelpRaid(player_name)
                 --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
-                if not RBT.raid_player_cache[player_name] then
-                    RBT.raid_player_cache[player_name] = {
+                if not self.raid_player_cache[player_name] then
+                    self.raid_player_cache[player_name] = {
                         colored_player_name = WrapTextInColorCode(player_name, RAID_CLASS_COLORS[player_class].colorStr),
                         slack_status        = { slacker, disco, fd, low_level },
                         class               = player_class,
@@ -461,9 +561,9 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                     buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
                     if self.buff_id_to_buff_count_data[spellId] then
                         --@debug@
-                        -- RBT:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
+                        -- self:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
                         --@end-debug@
-                        RBT.raid_player_cache[player_name].active_buff_ids[spellId] = {
+                        self.raid_player_cache[player_name].active_buff_ids[spellId] = {
                             caster    = caster,
                             buff_name = buff_name,
                         }
@@ -471,57 +571,48 @@ function RBT:AggregateAllRequiredRaidUnitBuffs()
                 end -- end loop payer auras
             end
         end
+    
     end
 end
 
 function RBT:OnUpdate()
+    if self ~= RBT then self = RBT end
     local currentTime = GetTime()
+    
+    if not self.profile then return end
+    
     --@debug@
-    --RBT:Infof("OnUpdate", "Start Current time %.3f", currentTime)
+    --self:Infof("OnUpdate", "Start Current time %.3f", currentTime)
     --@end-debug@
     
-    if RBT.nextTime and currentTime < RBT.nextTime then
+    if self.nextTime and currentTime < self.nextTime then
         return
     end
-    RBT.nextTime = currentTime + RBT.db.char.refresh_rate
+    self.nextTime = currentTime + self.profile.refresh_rate
     
-    --if not RBT:CheckVisible() then
-    --    return
-    --end
-    if RBT.mainFrame:IsVisible() then
+    if self.mainFrame:IsVisible() then
         
-        RBT:UpdateBars()
+        self:UpdateBars()
         
         --@debug@
         local mem_before_g, mem_after_g, mem_before, mem_after, diff
-        if RBT.db.char.mem_profiling then
+        if self.profile.mem_profiling then
             mem_before_g = GetAddOnMemoryUsage(addonName)
         end
         --@end-debug@
         
-        RBT:AggregateAllRequiredRaidUnitBuffs()
+        self:AggregateAllRequiredRaidUnitBuffs()
         
-        
-        
-        --for _, buff in ipairs(RBT.Buffs) do
-        --    buff.count = 0
-        --    buff.total = 0
-        --end
-        --@debug@
-        --RBT:Debugf("OnUpdate", "Buff index [ %d ]", RBT.current_buff_index)
-        --@end-debug@
-        --local buff             = RBT.Buffs[RBT.current_buff_index]
-        --RBT.current_buff_index = ((RBT.current_buff_index + 1) % #RBT.Buffs) + 1
-        for _, buff in ipairs(RBT.Buffs) do
+        for _, buff in ipairs(self.Buffs) do
             buff:ResetBuffData()
-            if RBT.db.char.deactivatedBars[buff.displayText] then
+            if self.profile.deactivatedBars[buff.displayText] then
                 --@debug@
-                -- RBT:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+                -- self:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
                 --@end-debug@
                 return
             end
             --@debug@
-            if RBT.db.char.mem_profiling then
+            if self.profile.mem_profiling then
                 mem_before = GetAddOnMemoryUsage(addonName)
             end
             --@end-debug@
@@ -532,7 +623,7 @@ function RBT:OnUpdate()
             buff:BuildToolTipText()
             
             --@debug@
-            if RBT.db.char.mem_profiling then
+            if self.profile.mem_profiling then
                 UpdateAddOnMemoryUsage()
                 mem_after = GetAddOnMemoryUsage(addonName)
                 diff      = (mem_after - mem_before)
@@ -540,22 +631,24 @@ function RBT:OnUpdate()
             --@end-debug@
             
             --@debug@
-            if RBT.db.char.mem_profiling and diff > 2.0 then
-                RBT:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
-                          buff.displayText,
-                          mem_before,
-                          mem_after,
-                          diff)
+            if self.profile.mem_profiling and diff > 2.0 then
+                self:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
+                           buff.displayText,
+                           mem_before,
+                           mem_after,
+                           diff)
             end
             --@end-debug@
             
-            buff.bar:Update()
+            if buff.bar then
+                buff.bar:Update()
+            end
         end -- end for loop
         -- --@debug@
-        -- if RBT.db.char.mem_profiling then
+        -- if self.profile.mem_profiling then
         --     UpdateAddOnMemoryUsage()
         --     mem_after_g = GetAddOnMemoryUsage(addonName)
-        --     RBT:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
+        --     self:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
         --               mem_before_g,
         --               mem_after_g,
         --               (mem_after_g - mem_before_g))
@@ -566,7 +659,7 @@ function RBT:OnUpdate()
     
     --@debug@
     --currentTime = GetTime()
-    --RBT:Infof("OnUpdate", "End Current time %.3f", currentTime)
+    --self:Infof("OnUpdate", "End Current time %.3f", currentTime)
     --@end-debug@
 end
 
@@ -584,58 +677,62 @@ function RBT:Contains(tab, val)
 end
 
 function RBT:ResetConfiguration()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     --@debug@
-    RBT:Debug("ResetConfiguration", "ResetConfiguration")
+    self:Debug("ResetConfiguration", "ResetConfiguration")
     --@end-debug@
-    --for bar_name, _ in pairs(RBT.db.char.deactivatedBars) do
+    --for bar_name, _ in pairs(self.profile.deactivatedBars) do
     --    --@debug@
     --    RBT:Debugf("ResetConfiguration", "Deactivating %s", bar_name)
     --    --@end-debug@
-    --    RBT.db.char.deactivatedBars[bar_name] = true
+    --    self.profile.deactivatedBars[bar_name] = true
     --end
-    RBT.db.char = defaults.char
-    RBT:RaidOrGroupChanged()
-    RBT:ResetPlayerCache()
-    RBT:UpdateBars()
+    --self.db.char = defaults.char
+    self:RaidOrGroupChanged()
+    self:ResetPlayerCache()
+    self:UpdateBars()
     ACR:NotifyChange()
 end
 
 function RBT:ActivatePlayerClassOnly()
+    -- force self pointer in case func used as red elsewhere
+    if self ~= RBT then self = RBT end
     --@debug@
-    RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly")
+    self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly")
     --@end-debug@
     local _, player_class, _ = UnitClass("player")
     
-    RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - deactivating all")
+    self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - deactivating all")
     
-    for _, buff in ipairs(RBT.Buffs) do
-        RBT.db.char.deactivatedBars[buff.displayText] = (
+    for _, buff in ipairs(self.Buffs) do
+        self.profile.deactivatedBars[buff.displayText] = (
                 (buff.buffingClass and buff.buffingClass ~= player_class) or true)
     end
     --@debug@
-    RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - my class: %s", player_class)
+    self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - my class: %s", player_class)
     --@end-debug@
-    for class, bar_names in pairs(RBT.OptionBarClassesToBarNames) do
+    for class, bar_names in pairs(self.OptionBarClassesToBarNames) do
         if player_class == class then
             --@debug@
-            RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Matching class")
+            self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Matching class")
             --@end-debug@
             for _, bar_name_to_activate in ipairs(bar_names) do
                 --@debug@
-                RBT:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Activating bar %s", bar_name_to_activate)
+                self:Debugf("ActivatePlayerClassOnly", "ActivatePlayerClassOnly - Activating bar %s", bar_name_to_activate)
                 --@end-debug@
-                RBT.db.char.deactivatedBars[bar_name_to_activate] = false
+                self.profile.deactivatedBars[bar_name_to_activate] = false
             end
         end
     end
-    RBT:UpdateBars()
+    self:UpdateBars()
     ACR:NotifyChange("ReturnBuffTracker")
 end
 
 -- register event with an explicit handler
 -- allows register another handler for some specific buffs
-RBT:RegisterEvent("GROUP_JOINED", GROUP_JOINED)
-RBT:RegisterEvent("GROUP_LEFT", GROUP_LEFT)
-RBT:RegisterEvent("GROUP_FORMED", GROUP_FORMED)
-RBT:RegisterEvent("PLAYER_ENTERING_WORLD", PLAYER_ENTERING_WORLD)
-RBT:RegisterEvent("RAID_ROSTER_UPDATE", RAID_ROSTER_UPDATE)
+RBT:RegisterEvent("GROUP_JOINED", RBT.ResetAndUpdate)
+RBT:RegisterEvent("GROUP_LEFT", RBT.ResetAndUpdate)
+RBT:RegisterEvent("GROUP_FORMED", RBT.ResetAndUpdate)
+RBT:RegisterEvent("PLAYER_ENTERING_WORLD", RBT.UpdateBars)
+RBT:RegisterEvent("RAID_ROSTER_UPDATE", RBT.ResetAndUpdate)

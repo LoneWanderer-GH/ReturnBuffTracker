@@ -3,7 +3,7 @@ local L                                   = LibStub("AceLocale-3.0"):GetLocale("
 
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
-local RAID_CLASS_COLORS           = RAID_CLASS_COLORS
+local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
 
 local player_raid_buffs                   = {
     {
@@ -63,6 +63,7 @@ local player_raid_buffs                   = {
         buffNames        = { L["Blessing of Kings"], L["Greater Blessing of Kings"] },
         buffIDs          = { 20217, 25898 },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
         classes          = RBT.all_classes,
@@ -74,6 +75,7 @@ local player_raid_buffs                   = {
         buffIDs          = { 1038, 25895 },
         buffNames        = { L["Blessing of Salvation"], L["Greater Blessing of Salvation"] },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
         classes          = { MAGE, WARLOCK, PRIEST, HUNTER, ROGUE },
@@ -86,6 +88,7 @@ local player_raid_buffs                   = {
         buffIDs          = { 19854, 25290, 25894, 25918 },
         classes          = { HUNTER, WARLOCK, PRIEST, PALADIN, DRUID, MAGE },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
     },
@@ -97,6 +100,7 @@ local player_raid_buffs                   = {
         buffIDs          = { 19838, 25291, 25782, 25916 },
         classes          = { WARRIOR, ROGUE },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
     },
@@ -107,6 +111,7 @@ local player_raid_buffs                   = {
         buffIDs          = { 19979, 25890 },
         buffNames        = { L["Blessing of Light"], L["Greater Blessing of Light"] },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
         classes          = RBT.all_classes,
@@ -118,6 +123,7 @@ local player_raid_buffs                   = {
         buffIDs          = { 20914, 25899 },
         buffNames        = { L["Blessing of Sanctuary"], L["Greater Blessing of Sanctuary"] },
         buffOptionsGroup = L["Player buffs"],
+        --buffOptionsSubGroup = RBT.localized_classes[PALADIN],
         missingMode      = L["class"],
         buffingClass     = PALADIN,
         classes          = RBT.all_classes,
@@ -129,5 +135,6 @@ for i, c in ipairs(player_raid_buffs) do
     if not c.color then
         c.color = RAID_CLASS_COLORS[c.buffingClass]
     end
+    c.buffOptionsSubGroup = RBT.localized_classes[c.buffingClass]
     RBT:RegisterCheck(c)
 end

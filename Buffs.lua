@@ -68,11 +68,17 @@ local function ClearBuffTooltipTable(buff)
     --@debug@
     -- RBT:Debugf("ClearBuffTooltipTable", "ClearBuffTooltipTable for %s", buff.displayText)
     --@end-debug@
-    if buff.tooltip then
-        RBT:clearArrayList(buff.tooltip)
+    if buff.tooltip.main_text then
+        RBT:clearArrayList(buff.tooltip.main_text)
     else
-        buff.tooltip = {}
+        buff.tooltip.main_text = {}
     end
+    if buff.tooltip.slacker_text then
+        RBT:clearArrayList(buff.tooltip.slacker_text)
+    else
+        buff.tooltip.slacker_text = {}
+    end
+
 end
 
 --function RBT:ResetBuffData(buff)
@@ -165,10 +171,10 @@ local function fill_tooltip_data_array(buff,
         
         for cls, player_names_array in pairs(tmp) do
             if #player_names_array > 0 then
-                buff.tooltip[tool_tip_index] = format("%s : %s",
-                                                      RBT.localized_classes[cls],
-                                                      tconcat(player_names_array, " "))
-                tool_tip_index               = tool_tip_index + 1
+                buff.tooltip.main_text[tool_tip_index] = format("%s : %s",
+                                                                RBT.localized_classes[cls],
+                                                                tconcat(player_names_array, " "))
+                tool_tip_index                         = tool_tip_index + 1
             end
         end
     else
@@ -189,10 +195,10 @@ local function fill_tooltip_data_array(buff,
             player_names_array = tmp[group_nb]
             if player_names_array and #player_names_array > 0 then
                 
-                buff.tooltip[tool_tip_index] = format("%s %s",
-                                                      format("%s: %d", L["Group"], group_nb),
-                                                      tconcat(player_names_array, " "))
-                tool_tip_index               = tool_tip_index + 1
+                buff.tooltip.main_text[tool_tip_index] = format("%s %s",
+                                                                format("%s: %d", L["Group"], group_nb),
+                                                                tconcat(player_names_array, " "))
+                tool_tip_index                         = tool_tip_index + 1
             end
         end
     end
@@ -247,24 +253,25 @@ local function CheckBuff(buff)
 end
 
 local function BuildToolTip(buff)
-    local colored_buff_name      = WrapTextInColorCode((buff.name or buff.shortName or tostring(buff.buffIDs[1])),
-                                                       buff.color.colorStr)
-    buff.tooltip[1]              = format("%s %s",
-                                          L["Missing"],
-                                          colored_buff_name)
-    local tool_tip_index         = 2
-    buff.tooltip[tool_tip_index] = L["no one"] .. "."
+    local colored_buff_name                = WrapTextInColorCode((buff.name or buff.shortName or tostring(buff.buffIDs[1])),
+                                                                 buff.color.colorStr)
+    buff.tooltip.main_text[1]              = format("%s %s",
+                                                    L["Missing"],
+                                                    colored_buff_name)
+    local tool_tip_index                   = 2
+    buff.tooltip.main_text[tool_tip_index] = L["no one"] .. "."
     
-    tool_tip_index               = fill_tooltip_data_array(buff, tool_tip_index)
+    tool_tip_index                         = fill_tooltip_data_array(buff, tool_tip_index)
     
     local players_str
+    
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
         -- RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
         --@end-debug@
         if #player_details > 0 then
             players_str = tconcat(player_details, " ")
-            tinsert(buff.tooltip,
+            tinsert(buff.tooltip.slacker_text,
                     format("Ignoring [%s]: %s", tostring(reason), players_str))
         end
     end
@@ -290,7 +297,10 @@ end
 function RBT:RegisterCheck(check_conf)
     check_conf.total   = 0
     check_conf.count   = 0
-    check_conf.tooltip = {}
+    check_conf.tooltip = {
+        main_text    = {},
+        slacker_text = {},
+    }
     if not check_conf.func then
         check_conf.func = CheckBuff
     end
