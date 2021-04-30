@@ -31,10 +31,14 @@ local function Check(buff)
         end
         if present then
             buff.count = buff.count + 1
-            
+            if caster then
+                caster = WrapTextInColorCode(caster, WARLOCK_COLOR_STR)
+            else
+                caster = "?"
+            end
             tinsert(buff.players_having_soulstone, format("%s (from %s)",
                                                           player_cache_data.colored_player_name,
-                                                          WrapTextInColorCode(caster or "NA", WARLOCK_COLOR_STR)))
+                                                          caster))
         end
     end
     
@@ -45,12 +49,12 @@ local function Check(buff)
 end
 
 local function BuildToolTip(buff)
-    local j         = 2
+    local j                   = 2
     buff.tooltip.main_text[j] = L["none"] .. "."
     buff.tooltip.main_text[1] = format("%s: (%d %s)",
-                             WrapTextInColorCode(L["Soulstones"], WARLOCK_COLOR_STR),
-                             buff.nb_of_possible_casters,
-                             RBT.localized_classes[buff.buffingClass])
+                                       WrapTextInColorCode(L["Soulstones"], WARLOCK_COLOR_STR),
+                                       buff.nb_of_possible_casters,
+                                       RBT.localized_classes[buff.buffingClass])
     if #buff.players_having_soulstone > 0 then
         buff.tooltip.main_text[j] = tconcat(buff.players_having_soulstone, " ")
     end

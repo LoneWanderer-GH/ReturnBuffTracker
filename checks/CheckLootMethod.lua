@@ -99,9 +99,9 @@ local function OnEventCheckML(buff, event, ...)
         if buff.bar then
             buff.bar:Update()
         end
-        if event == "GROUP_ROSTER_UPDATE" then
-            RBT:UnregisterEvent("GROUP_ROSTER_UPDATE")
-        end
+        --if event == "GROUP_ROSTER_UPDATE" then
+        --    RBT:UnregisterEvent("GROUP_ROSTER_UPDATE")
+        --end
     else
         --@debug@
         RBT:Debug("OnEvent", "No buff ?! or buff NOT ready ?!")

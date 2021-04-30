@@ -1,7 +1,6 @@
 local RBT                                 = LibStub("AceAddon-3.0"):GetAddon("ReturnBuffTracker")
 local L                                   = LibStub("AceLocale-3.0"):GetLocale("ReturnBuffTracker")
 
-local tconcat                             = tconcat
 local WARRIOR, MAGE, ROGUE, DRUID, HUNTER = "WARRIOR", "MAGE", "ROGUE", "DRUID", "HUNTER"
 local SHAMAN, PRIEST, WARLOCK, PALADIN    = "SHAMAN", "PRIEST", "WARLOCK", "PALADIN"
 local DMF_specific                        = { [true] = "active", [false] = "inactive" }

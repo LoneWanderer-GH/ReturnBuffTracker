@@ -603,89 +603,30 @@ end
 function RBT:OnUpdate()
     if self ~= RBT then self = RBT end
     local currentTime = GetTime()
-    
     if not self.profile then return end
-    
-    --@debug@
-    --self:Infof("OnUpdate", "Start Current time %.3f", currentTime)
-    --@end-debug@
-    
     if self.nextTime and currentTime < self.nextTime then
         return
     end
     self.nextTime = currentTime + self.profile.refresh_rate
-    
     if self.mainFrame:IsVisible() then
-        
         self:UpdateBars()
-        
-        --@debug@
-        local mem_before_g, mem_after_g, mem_before, mem_after, diff
-        if self.profile.mem_profiling then
-            mem_before_g = GetAddOnMemoryUsage(addonName)
-        end
-        --@end-debug@
-        
         self:AggregateAllRequiredRaidUnitBuffs()
-        
         for _, buff in ipairs(self.Buffs) do
             buff:ResetBuffData()
             if self.profile.deactivatedBars[buff.displayText] then
                 -- skip treatment
                 buff.bar:Hide() -- robustness
             else
-                
-                --@debug@
-                if self.profile.mem_profiling then
-                    mem_before = GetAddOnMemoryUsage(addonName)
-                end
-                --@end-debug@
-                
                 if buff.func then
                     buff:func()
                 end
                 buff:BuildToolTipText()
-                
-                --@debug@
-                if self.profile.mem_profiling then
-                    UpdateAddOnMemoryUsage()
-                    mem_after = GetAddOnMemoryUsage(addonName)
-                    diff      = (mem_after - mem_before)
-                end
-                --@end-debug@
-                
-                --@debug@
-                if self.profile.mem_profiling and diff > 2.0 then
-                    self:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
-                               buff.displayText,
-                               mem_before,
-                               mem_after,
-                               diff)
-                end
-                --@end-debug@
-                
                 if buff.bar then
                     buff.bar:Update()
                 end
             end
         end -- end for loop
-        -- --@debug@
-        -- if self.profile.mem_profiling then
-        --     UpdateAddOnMemoryUsage()
-        --     mem_after_g = GetAddOnMemoryUsage(addonName)
-        --     self:Infof("OnUpdate", "Memory increase ----> : %.1f -> %.1f (%.1f)",
-        --               mem_before_g,
-        --               mem_after_g,
-        --               (mem_after_g - mem_before_g))
-        --
-        -- end
-        -- --@end-debug@
     end -- end frame visible
-    
-    --@debug@
-    --currentTime = GetTime()
-    --self:Infof("OnUpdate", "End Current time %.3f", currentTime)
-    --@end-debug@
 end
 
 function RBT:Contains(tab, val)
