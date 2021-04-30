@@ -455,6 +455,7 @@ function RBT:OnInitialize()
             reportChannel          = RBT.Constants.ReportChannel["RAID_WARNING"],
             report_slackers        = false,
             refresh_rate           = 1.0,
+            enable_spark           = true,
             version                = { major = 1, minor = 0, fix = 0 },
             --@debug@
             logLevel               = LoggingLib.TRACE,
@@ -530,49 +531,72 @@ function RBT:UpdateBars()
     self:SetNumberOfBarsToDisplay(nb_of_bars_to_display)
 end
 
+function RBT:ParseAuras(player_name)
+    
+    local buff_name, caster, spellId
+    for buff_index = 1, BUFF_MAX_DISPLAY do
+        buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
+        if self.buff_id_to_buff_count_data[spellId] then
+            --@debug@
+            -- self:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
+            --@end-debug@
+            self.raid_player_cache[player_name].active_buff_ids[spellId] = {
+                caster    = caster,
+                buff_name = buff_name,
+            }
+        end
+    end -- end loop payer auras
+end
+
+function RBT:AddPlayerToCache(player_name,
+                              player_group,
+                              player_class,
+--isDead,
+                              raid_index)
+    local slacker, disco, fd, low_level = self:CheckUnitCannotHelpRaid(player_name)
+    --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
+    if not self.raid_player_cache[player_name] then
+        self.raid_player_cache[player_name] = {
+            colored_player_name = WrapTextInColorCode(player_name, RAID_CLASS_COLORS[player_class].colorStr),
+            slack_status        = { slacker, disco, fd, low_level },
+            class               = player_class,
+            group               = player_group,
+            raid_index          = raid_index,
+            dead                = UnitIsDead(player_name),
+            combat              = UnitAffectingCombat(player_name),
+            active_buff_ids     = {},
+        }
+    else
+        self.raid_player_cache[player_name].active_buff_ids = {}
+    end
+end
+
 function RBT:AggregateAllRequiredRaidUnitBuffs()
     -- force self pointer in case func used as red elsewhere
     if self ~= RBT then self = RBT end
-    local buff_name, caster, spellId
+    --local buff_name, caster, spellId
     self.raid_player_cache = {}
-    if IsInRaid() then
+    if IsInRaid() or IsInGroup() then
         local player_name, player_group, player_class, isDead
-        --local buff_id_data
-        local slacker, disco, fd, low_level
         for raid_index = 1, 40 do
             player_name, _, player_group, _, _, player_class, _, _, isDead = GetRaidRosterInfo(raid_index)
             if player_name then
-                
-                slacker, disco, fd, low_level = self:CheckUnitCannotHelpRaid(player_name)
-                --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
-                if not self.raid_player_cache[player_name] then
-                    self.raid_player_cache[player_name] = {
-                        colored_player_name = WrapTextInColorCode(player_name, RAID_CLASS_COLORS[player_class].colorStr),
-                        slack_status        = { slacker, disco, fd, low_level },
-                        class               = player_class,
-                        group               = player_group,
-                        raid_index          = raid_index,
-                        dead                = isDead,
-                        combat              = UnitAffectingCombat(player_name),
-                        active_buff_ids     = {},
-                    }
-                end
-                self.raid_player_cache[player_name].active_buff_ids = {}
-                for buff_index = 1, BUFF_MAX_DISPLAY do
-                    buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
-                    if self.buff_id_to_buff_count_data[spellId] then
-                        --@debug@
-                        -- self:Debugf("AggregateAllRequiredRaidUnitBuffs", "AggregateAllRequiredRaidUnitBuffs - %s active on player", spellId)
-                        --@end-debug@
-                        self.raid_player_cache[player_name].active_buff_ids[spellId] = {
-                            caster    = caster,
-                            buff_name = buff_name,
-                        }
-                    end
-                end -- end loop payer auras
+                self:AddPlayerToCache(player_name,
+                                      player_group,
+                                      player_class,
+                                      raid_index)
+                self:ParseAuras(player_name)
             end
         end
-    
+    else
+        local player_name     = UnitName("player")
+        local _, player_class = UnitClass(player_name)
+        self:AddPlayerToCache(player_name,
+                              1,
+                              player_class,
+        --UnitIsDead(player_name),
+                              "player")
+        self:ParseAuras(player_name)
     end
 end
 
@@ -607,42 +631,42 @@ function RBT:OnUpdate()
         for _, buff in ipairs(self.Buffs) do
             buff:ResetBuffData()
             if self.profile.deactivatedBars[buff.displayText] then
+                -- skip treatment
+                buff.bar:Hide() -- robustness
+            else
+                
                 --@debug@
-                -- self:Debugf("OnUpdate", "Ignoring deactivated buff %s", buff.displayText)
+                if self.profile.mem_profiling then
+                    mem_before = GetAddOnMemoryUsage(addonName)
+                end
                 --@end-debug@
-                return
-            end
-            --@debug@
-            if self.profile.mem_profiling then
-                mem_before = GetAddOnMemoryUsage(addonName)
-            end
-            --@end-debug@
-            
-            if buff.func then
-                buff:func()
-            end
-            buff:BuildToolTipText()
-            
-            --@debug@
-            if self.profile.mem_profiling then
-                UpdateAddOnMemoryUsage()
-                mem_after = GetAddOnMemoryUsage(addonName)
-                diff      = (mem_after - mem_before)
-            end
-            --@end-debug@
-            
-            --@debug@
-            if self.profile.mem_profiling and diff > 2.0 then
-                self:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
-                           buff.displayText,
-                           mem_before,
-                           mem_after,
-                           diff)
-            end
-            --@end-debug@
-            
-            if buff.bar then
-                buff.bar:Update()
+                
+                if buff.func then
+                    buff:func()
+                end
+                buff:BuildToolTipText()
+                
+                --@debug@
+                if self.profile.mem_profiling then
+                    UpdateAddOnMemoryUsage()
+                    mem_after = GetAddOnMemoryUsage(addonName)
+                    diff      = (mem_after - mem_before)
+                end
+                --@end-debug@
+                
+                --@debug@
+                if self.profile.mem_profiling and diff > 2.0 then
+                    self:Infof("OnUpdate", "Memory increase for %s : %.1f -> %.1f (%.1f)",
+                               buff.displayText,
+                               mem_before,
+                               mem_after,
+                               diff)
+                end
+                --@end-debug@
+                
+                if buff.bar then
+                    buff.bar:Update()
+                end
             end
         end -- end for loop
         -- --@debug@

@@ -170,7 +170,8 @@ end
 --    theBar.buffNameTextString:SetPoint("CENTER", RBT.mainFrame, "TOP", 0, -7)
 --    theBar.buffNameTextString:SetText(text)
 --end
---local DMF_specific = { [true] = "active", [false] = "inactive" }
+
+
 function RBT:CreateBuffInfoBar(buff_index, buff)
     -- text, r, g, b)
     local theBar = CreateFrame("Frame", nil, self.mainFrame)
@@ -200,6 +201,16 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
     theBar.percentTextString:SetParent(theBar)
     --theBar.percentTextString:SetText(text)
     
+    theBar.spark = theBar:CreateTexture(nil, 'OVERLAY')
+    theBar.spark:SetSize(default_bar_height / 2.0, 2.0 * default_bar_height)
+    theBar.spark:SetBlendMode("ADD")
+    theBar.spark:SetPoint("CENTER", theBar.texture, "RIGHT", 0, 0)
+    theBar.spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
+    if self.profile.enable_spark then
+        theBar.spark:Show()
+    else
+        theBar.spark:Hide()
+    end
     
     theBar.SetIndex    = function(self_bar_frame, index)
         if index then
