@@ -532,7 +532,12 @@ function RBT:UpdateBars()
 end
 
 function RBT:ParseAuras(player_name)
-    
+    --@debug@
+    local user_name = UnitName("player")
+    if player_name == user_name then
+        player_name = "player"
+    end
+    --@end-debug@
     local buff_name, caster, spellId
     for buff_index = 1, BUFF_MAX_DISPLAY do
         buff_name, _, _, _, _, _, caster, _, _, spellId = UnitBuff(player_name, buff_index)
@@ -555,6 +560,12 @@ function RBT:AddPlayerToCache(player_name,
                               raid_index)
     local slacker, disco, fd, low_level = self:CheckUnitCannotHelpRaid(player_name)
     --local unitPowerType, unitPowerTypeName = UnitPowerType(player_name)
+    --@debug@
+    local user_name                     = UnitName("player")
+    if player_name == user_name then
+        player_name = "player"
+    end
+    --@end-debug@
     if not self.raid_player_cache[player_name] then
         self.raid_player_cache[player_name] = {
             colored_player_name = WrapTextInColorCode(player_name, RAID_CLASS_COLORS[player_class].colorStr),
