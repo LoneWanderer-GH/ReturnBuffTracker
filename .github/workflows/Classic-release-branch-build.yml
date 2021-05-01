@@ -7,16 +7,25 @@ on:
 
 jobs:
   build-classic:
-
     runs-on: ubuntu-latest
-
     steps:
-#      - name: Dump GitHub context
-#        env:
-#          GITHUB_CONTEXT: ${{ toJSON(github) }}
-#        run: echo "$GITHUB_CONTEXT"
+      #      - name: Dump GitHub context
+      #        env:
+      #          GITHUB_CONTEXT: ${{ toJSON(github) }}
+      #        run: echo "$GITHUB_CONTEXT"
 
       - uses: actions/checkout@v1
+
+      #      - name: Extract release notes
+      #        id: extract-release-notes
+      #        uses: ffurrer2/extract-release-notes@v1
+      #        with:
+      #          release_notes_file: RELEASE_NOTES.md
+
+      #    - uses: BigWigsMods/packager@master
+      #      name: Build Retail and upload to CurseForge
+      #      with:
+      #        args: -l -g retail
 
       - uses: BigWigsMods/packager@master
         name: Build Classic
@@ -51,9 +60,9 @@ jobs:
 
       - name: Zip dir
         run: ls && zip -r "${{ github.event.repository.name }}-${{ github.event.after }}.zip" "${{ github.event.repository.name }}-${{ github.event.after }}/${{ github.event.repository.name }}"
-
-      - name: List dirs
-        run: ls -aRl *.zip
+      #
+      #      - name: List dirs
+      #        run: ls -aRl *.zip
 
       - name: Get latest release data
         id: LatestRelease
@@ -62,13 +71,18 @@ jobs:
           repository: ${{ github.repository }}
           excludes: prerelease, draft
 
-      - name: Generate changelog between current and latest release (${{ steps.LatestRelease.outputs.release }})
-        id: changelog
-        uses: metcalfc/changelog-generator@v1.0.0
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
-          #head-ref: ${{ github.event.ref }}
-          base-ref: ${{ steps.LatestRelease.outputs.release }}
+      #      - name: Extract release notes
+      #        id: extract-release-notes
+      #        uses: ffurrer2/extract-release-notes@v1
+      #        with:
+      #          release_notes_file: RELEASE_NOTES.md
+      #      - name: Generate changelog between current and latest release (${{ steps.LatestRelease.outputs.release }})
+      #        id: changelog
+      #        uses: metcalfc/changelog-generator@v1.0.0
+      #        with:
+      #          myToken: ${{ secrets.GITHUB_TOKEN }}
+      #          #head-ref: ${{ github.event.ref }}
+      #          base-ref: ${{ steps.LatestRelease.outputs.release }}
 
       - name: Send Discord message with built file
         uses: appleboy/discord-action@master
@@ -80,16 +94,16 @@ jobs:
           _This package has been built automatically and comes without warranty._
           "
 
-      - name: Echo changelog to file
-        run: echo '${{ steps.changelog.outputs.changelog }}' >> changelog.txt
+      #      - name: Echo changelog to file
+      #        run: echo '${{ steps.changelog.outputs.changelog }}' >> changelog.txt
 
-#      - uses: lifepal/markdown-to-html@v1.1
-#        id: html_changelog
-#        with:
-#          text: ${{ steps.changelog.outputs.changelog }}
+      #      - uses: lifepal/markdown-to-html@v1.1
+      #        id: html_changelog
+      #        with:
+      #          text: ${{ steps.changelog.outputs.changelog }}
 
-#      - name: Echo HTML changelog to file
-#        run: echo '${{ steps.html_changelog.outputs.html }}' >> changelog.html
+      #      - name: Echo HTML changelog to file
+      #        run: echo '${{ steps.html_changelog.outputs.html }}' >> changelog.html
 
       - name: Post changelog
         uses: appleboy/discord-action@master
@@ -97,6 +111,7 @@ jobs:
           webhook_id: ${{ secrets.DISCORD_RBT_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_RBT_WEBHOOK_TOKEN }}
           message: "**Changelog since `${{ steps.LatestRelease.outputs.release }}` (latest release)**"
-          file: changelog.txt
+          # file: changelog.txt
+          file: CHANGELOG.md
       #          > ${{ steps.changelog.outputs.changelog }}"
 

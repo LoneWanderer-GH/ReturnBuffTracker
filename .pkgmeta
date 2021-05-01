@@ -1,5 +1,6 @@
 package-as: ReturnBuffTracker
 manual-changelog:
+#  filename: RELEASE_NOTES.md
   filename: CHANGELOG.md
   markup-type: markdown
 
