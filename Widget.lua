@@ -230,11 +230,18 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
             if self_bar_frame.percentage_float > 0.1 then
                 self_bar_frame.texture:SetWidth(w * self_bar_frame.percentage_float)
                 self_bar_frame.texture:Show()
+                if self.profile.enable_spark then
+                    self_bar_frame.spark:Show()
+                end
             else
+                self_bar_frame:SetWidth(0)
                 self_bar_frame.texture:Hide()
+                self_bar_frame.spark:Hide()
             end
         else
+            self_bar_frame:SetWidth(0)
             self_bar_frame.texture:Hide()
+            self_bar_frame.spark:Hide()
         end
         self_bar_frame:SetWidth(w)
     end
@@ -251,7 +258,14 @@ function RBT:CreateBuffInfoBar(buff_index, buff)
             --local percentage = buff.count / buff.total
             self_bar_frame.percentTextString:SetText(self_bar_frame.percentage_str)
         else
-            self_bar_frame.percentTextString:SetText(format("%d/%d", self_bar_frame.buff.count, self_bar_frame.buff.total))
+            if self_bar_frame.buff.total == 0 then
+                self_bar_frame.percentTextString:SetText(self_bar_frame.percentage_str)
+            else
+                self_bar_frame.percentTextString:SetText(format("%d/%d",
+                                                                self_bar_frame.buff.count,
+                                                                self_bar_frame.buff.total))
+            end
+        
         end
     end
     

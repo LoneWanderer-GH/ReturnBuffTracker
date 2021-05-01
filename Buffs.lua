@@ -35,16 +35,16 @@ function RBT:compute_percent_string(nb, total)
     --@debug@
     -- RBT:Debugf("compute_percent_string", "compute_percent_string(%s, %s)", tostring(nb), tostring(total))
     --@end-debug@
-    local return_value_str = "NA"
-    local return_value_f
+    local return_value_str = ""
+    local return_value_f   = 0.0
     if total > 0 and nb <= total then
         return_value_f = (nb / total)
         if return_value_f ~= return_value_f then
             -- NaN/Inf checks
-            return_value_str = "NA"
+            return_value_str = ""
             return_value_f   = nil
         else
-            return_value_str = format("%.0f%%", return_value_f * 100.0)
+            return_value_str = string.format("%.0f%%", return_value_f * 100.0)
         end
     end
     return return_value_str, return_value_f
