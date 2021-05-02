@@ -122,29 +122,66 @@ function RBT:CheckUnitIsRealDPS(name)
     return is_real_dps, real_role
 end
 
-local non_healer_class_buff_ids_clues = {
-    [15473] = "SHADOWPRIEST", -- shadowform buff
-    [24907] = "MOONKIN", -- moonkin buff
+RBT.non_healer_class_buff_ids_clues = {
+    
+    [15473] = L["SHADOWPRIEST"], -- shadowform buff
+    
+    [24907] = L["MOONKIN"], -- moonkin buff
+    [768]   = L["CAT"], -- cat form
+    --[24932] = L["BEARTANK"], -- leader of the pack
+    
+    [16257] = L["SHAMELIO"], -- flurry
+    [16277] = L["SHAMELIO"], -- flurry
+    [16278] = L["SHAMELIO"], -- flurry
+    [16279] = L["SHAMELIO"], -- flurry
+    [16280] = L["SHAMELIO"], -- flurry
+    
+    [16246] = L["CHAMELEM"], -- clearcast
+    [16166] = L["CHAMELEM"], -- elemental mastery
+    --[29063] = L["CHAMELEM"], -- Focused casting
 }
+
+RBT.buff_def_not_healer             = {
+    buffIDs = { 15473,
+    
+                24858,
+                768,
+        --24932,
+        
+                16257, 16277, 16278, 16279, 16280,
+        
+                16166, 16246, --29063
+    },
+}
+
+--RBT.healer_class_buff_ids_clues = {
+--    [17116] = L["RESTAURATION_DRUID"], -- Nature's switftness
+--}
 
 function RBT:CheckUnitIsRealHealer(name)
     local is_real_healer = true
-    local real_role      = "HEALER"
-    if RBT:CheckUnitBuff(name, { buffIDs = { 15473 } }) then
-        is_real_healer = false
-        real_role      = "SHADOWPRIEST"
-    elseif RBT:CheckUnitBuff(name, { buffIDs = { 24858 } }) then
-        is_real_healer = false
-        real_role      = "MOONKIN"
-    elseif RBT:CheckUnitBuff(name, { buffIDs = { 768 } }) then
-        is_real_healer = false
-        real_role      = "CAT"
-    elseif GetPartyAssignment("MAINTANK", name) then
-        is_real_healer = false
-        real_role      = "MAINTANK"
-        --else
-        --    -- ok
+    local real_role      = L["HEALER"]
+    
+    if self.raid_player_cache[name].role then
+        -- we already checked that player was not to be considered as a healer
+        is_real_healer = self.raid_player_cache[name].is_real_healer
+        real_role      = self.raid_player_cache[name].role
+    else
+        -- try to determine if it is really a healer
+        local is_dps_aura_present, _, matching_id = RBT:CheckUnitBuff(name, RBT.buff_def_not_healer)
+        if is_dps_aura_present then
+            is_real_healer                              = false
+            real_role                                   = RBT.non_healer_class_buff_ids_clues[matching_id]
+            self.raid_player_cache[name].is_real_healer = is_real_healer
+            self.raid_player_cache[name].role           = real_role
+        elseif GetPartyAssignment("MAINTANK", name) then
+            is_real_healer                              = false
+            real_role                                   = L["MAINTANK"]
+            self.raid_player_cache[name].is_real_healer = is_real_healer
+            self.raid_player_cache[name].role           = real_role
+        end
     end
+    
     return is_real_healer, real_role
 end
 
@@ -284,14 +321,14 @@ function RBT:CheckUnitBuff(player_name, buff)
         if type(buff.buffIDs) == "table" then
             for _, spell_id in pairs(buff.buffIDs) do
                 if player_cache_data.active_buff_ids[spell_id] then
-                    return true, player_cache_data.active_buff_ids[spell_id].caster
+                    return true, player_cache_data.active_buff_ids[spell_id].caster, spell_id
                 end
             end
         else
             print("WTF_BBQ ?! type: " .. type(buff.buffIDs))
         end
     end
-    return false, nil
+    return false
 end
 
 function RBT:RegisterCheck(check_conf)

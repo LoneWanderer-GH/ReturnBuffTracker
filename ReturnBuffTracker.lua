@@ -289,10 +289,7 @@ function RBT:ParseBuffsDefinition()
                     for _, id in ipairs(buff.buffIDs) do
                         if not self.buff_id_to_buff_count_data[id] then
                             self:Debugf("OnInitialize", "Tracking spellid: %s", id)
-                            self.buff_id_to_buff_count_data[id] = { count   = 0,
-                                                                    total   = 0,
-                                                                    players = {},
-                            }
+                            self.buff_id_to_buff_count_data[id] = { }
                         end
                     end
                 end
@@ -470,6 +467,11 @@ function RBT:OnInitialize()
     self.buff_id_to_buff_count_data = {}
     
     self:ParseBuffsDefinition()
+    
+    -- add special buffs to tracked buffs for helper functions
+    for _, buff_id in ipairs(RBT.buff_def_not_healer.buffIDs) do
+        self.buff_id_to_buff_count_data[buff_id] = {}
+    end
     
     self.db = ADB:New("ReturnBuffTrackerDB", self.defaults, "Default")
     self.db.RegisterCallback(self, "OnProfileChanged", "ReloadOptions")
