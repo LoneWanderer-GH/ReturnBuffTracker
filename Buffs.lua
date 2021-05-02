@@ -105,7 +105,7 @@ function RBT:CheckUnitCannotHelpRaid(name)
         fd        = UnitIsFeignDeath(name)
         low_level = UnitLevel(name) < MAX_PLAYER_LEVEL
     end
-    
+
     slacker = not co or afk or fd or low_level -- or not_in_raid
     return slacker, not co, fd, low_level --, not_in_raid
 end
@@ -122,20 +122,33 @@ function RBT:CheckUnitIsRealDPS(name)
     return is_real_dps, real_role
 end
 
+RBT.POWER_IGNORED_ROLES = { L["Slacker"],
+                              --L["HEALER"],
+                              L["SHADOWPRIEST"],
+                              L["MOONKIN"],
+                              L["MAINTANK"],
+                              L["CAT"],
+                              L["SHAMELIO"],
+                              L["CHAMELEM"]
+}
+for p, _ in pairs(Enum.PowerType) do
+    table.insert(RBT.POWER_IGNORED_ROLES, p)
+end
+
 RBT.non_healer_class_buff_ids_clues = {
-    
+
     [15473] = L["SHADOWPRIEST"], -- shadowform buff
-    
+
     [24907] = L["MOONKIN"], -- moonkin buff
     [768]   = L["CAT"], -- cat form
     --[24932] = L["BEARTANK"], -- leader of the pack
-    
+
     [16257] = L["SHAMELIO"], -- flurry
     [16277] = L["SHAMELIO"], -- flurry
     [16278] = L["SHAMELIO"], -- flurry
     [16279] = L["SHAMELIO"], -- flurry
     [16280] = L["SHAMELIO"], -- flurry
-    
+
     [16246] = L["CHAMELEM"], -- clearcast
     [16166] = L["CHAMELEM"], -- elemental mastery
     --[29063] = L["CHAMELEM"], -- Focused casting
@@ -143,13 +156,13 @@ RBT.non_healer_class_buff_ids_clues = {
 
 RBT.buff_def_not_healer             = {
     buffIDs = { 15473,
-    
+
                 24858,
                 768,
         --24932,
-        
+
                 16257, 16277, 16278, 16279, 16280,
-        
+
                 16166, 16246, --29063
     },
 }
@@ -161,7 +174,7 @@ RBT.buff_def_not_healer             = {
 function RBT:CheckUnitIsRealHealer(name)
     local is_real_healer = true
     local real_role      = L["HEALER"]
-    
+
     if self.raid_player_cache[name].role then
         -- we already checked that player was not to be considered as a healer
         is_real_healer = self.raid_player_cache[name].is_real_healer
@@ -181,14 +194,14 @@ function RBT:CheckUnitIsRealHealer(name)
             self.raid_player_cache[name].role           = real_role
         end
     end
-    
+
     return is_real_healer, real_role
 end
 
 function RBT:CountUnitPower(name, power_type)
     local unitPower    = UnitPower(name, power_type)
     local unitPowerMax = UnitPowerMax(name, power_type)
-    
+
     return unitPower, unitPowerMax, unitPower / unitPowerMax
 end
 
@@ -205,7 +218,7 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[p_class], player.name)
         end
-        
+
         for cls, player_names_array in pairs(tmp) do
             if #player_names_array > 0 then
                 buff.tooltip.main_text[tool_tip_index] = format("%s : %s",
@@ -223,15 +236,15 @@ local function fill_tooltip_data_array(buff,
             end
             tinsert(tmp[player_group_nb], player.name)
         end
-        
+
         --table.sort(tmp) -- its a table of <group number ; list>
-        
+
         --for group_nb, player_names_array in ipairs(tmp) do
         local player_names_array
         for group_nb = 1, 8 do
             player_names_array = tmp[group_nb]
             if player_names_array and #player_names_array > 0 then
-                
+
                 buff.tooltip.main_text[tool_tip_index] = format("%s %s",
                                                                 format("%s: %d", L["Group"], group_nb),
                                                                 tconcat(player_names_array, " "))
@@ -244,9 +257,9 @@ end
 
 local function CheckBuff(buff)
     buff:ResetBuffData()
-    
+
     local slacker, disco, fd, low_level
-    
+
     local isClassExpected
     if buff.ignoredPlayers then
         for _, v in pairs(buff.ignoredPlayers) do
@@ -297,11 +310,11 @@ local function BuildToolTip(buff)
                                                     colored_buff_name)
     local tool_tip_index                   = 2
     buff.tooltip.main_text[tool_tip_index] = L["no one"] .. "."
-    
+
     tool_tip_index                         = fill_tooltip_data_array(buff, tool_tip_index)
-    
+
     local players_str
-    
+
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
         -- RBT:Debugf("CheckBuff", "Ignored players: [%s] = %d", tostring(reason), #player_details)
@@ -349,7 +362,7 @@ function RBT:RegisterCheck(check_conf)
             return check_conf.displayText
         end
     end
-    
+
     local colorMixin          = CreateColor(check_conf.color.r,
                                             check_conf.color.g,
                                             check_conf.color.b,

@@ -13,16 +13,11 @@ local tinsert, tconcat, tremove           = table.insert, table.concat, table.re
 local mana_power_RGB                      = PowerBarColor[mana_power]
 local RAID_CLASS_COLORS                   = RAID_CLASS_COLORS
 
-local POWER_IGNORED_ROLES                 = { "Slacker", "HEALER", "SHADOWPRIEST", "MOONKIN", "MAINTANK", "CAT" }
-for p, _ in pairs(Enum.PowerType) do
-    table.insert(POWER_IGNORED_ROLES, p)
-end
-
 local function CheckPowerType(buff)
     --@debug@
     -- RBT:Debugf("CheckPowerType", "CheckPowerType - power = %s", tostring(buff.name))
     --@end-debug@
-    
+
     buff:ResetBuffData()
     if buff.ignoredPlayers then
         --for role, name_list in ipairs(POWER_IGNORED_ROLES) do
@@ -32,16 +27,16 @@ local function CheckPowerType(buff)
         end
     else
         buff.ignoredPlayers = {}
-        for _, role_number in ipairs(POWER_IGNORED_ROLES) do
+        for _, role_number in ipairs(RBT.POWER_IGNORED_ROLES) do
             buff.ignoredPlayers[role_number] = {}
             --@debug@
             -- RBT:Debugf("CheckPowerType", "Adding power ignore: %s", role_number)
             --@end-debug@
         end
     end
-    
+
     local unitPower, unitPowerMax, unitPowerPercent, unitPowerType, unitPowerTypeName
-    
+
     local slacker, disco, fd, low_level
     local is_real_healer, is_real_dps, real_role
     for player_name, player_cache_data in pairs(RBT.raid_player_cache) do
@@ -69,7 +64,7 @@ local function CheckPowerType(buff)
                 -- --@debug@
                 -- RBT:Debugf("CheckPowerType", "%s has the targeted power (%s)", tostring(name), unitPowerTypeName)
                 -- --@end-debug@
-                
+
                 --unitPower    = UnitPower(name, buff.powerType)
                 --unitPowerMax = UnitPowerMax(name, buff.powerType)
                 --if not UnitIsConnected(name) then
@@ -78,8 +73,8 @@ local function CheckPowerType(buff)
                 --    end
                 --    tinsert(ignoredPlayers["DISCONNECTED"], name)
                 --else
-                
-                
+
+
                 if buff.shortName == L["Healer"] then
                     is_real_healer, real_role = RBT:CheckUnitIsRealHealer(player_name)
                     if not is_real_healer then
@@ -115,9 +110,9 @@ end
 local function BuildToolTip(buff)
     local percent_string = RBT:compute_percent_string(buff.count, buff.total)
     local header         = format("%s: %s", tostring(buff.name), percent_string)
-    
+
     tinsert(buff.tooltip.main_text, header)
-    
+
     for reason, player_details in pairs(buff.ignoredPlayers) do
         --@debug@
         -- RBT:Debugf("CheckPowerType", "Ignored players: [%s] = %d", tostring(reason), #player_details)
