@@ -1,6 +1,7 @@
 ## Title: |cFF22B14CReturnBuffTracker|r v@project-version@
 ## Interface: 11307
 ## Interface-Classic: 11307
+## X-WoWAddonTooling-Targets: classic
 ## Notes: Shows raid buffs status |cff00b3ff v@project-version@|r modifications by |cff00ffdaLoneWanderer-GH
 ## Version: @project-version@
 ## Author: Irpa, continued by |cff00ffdaLoneWanderer-GH|r
@@ -46,5 +47,4 @@ checks\CheckSoulstones.lua
 checks\CheckPlayerRaidBuffs.lua
 checks\CheckWorldBuffs.lua
 checks\CheckConsumables.lua
-
 

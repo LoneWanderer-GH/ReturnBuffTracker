@@ -3,6 +3,8 @@ package-as: ReturnBuffTracker
 enable-nolib-creation: no
 
 ignore:
+  - .github
+  - addon-tooling
   - .pkgmeta
   - .docmeta
   - Docs
